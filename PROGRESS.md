@@ -1,6 +1,6 @@
 # 云中书 YunType — 项目进度文档
 
-> 更新时间：2026-04-10 21:10
+> 更新时间：2026-04-10 21:57
 
 ---
 
@@ -119,7 +119,33 @@
 
 ---
 
-## 五、技术栈
+## 五、工作日志
+
+### 2026-04-10（Day 1）
+
+**已完成：**
+- ✅ 完成全部 7 份产品文档（产品总览/功能规格/设计系统/技术架构/小红书模式/AI图片生成/开发计划）
+- ✅ 完成 Phase 1 MVP 全部 16 个源文件
+  - 原子组合引擎（11配色 × 5排版 × 4装饰 × 3字体 = 660种）
+  - Markdown → AST 解析器
+  - 公众号 HTML 渲染器（全内联CSS，微信兼容）
+  - UI组件：文章输入、公众号预览（375px模拟）、导出面板
+  - 剪贴板工具（Clipboard API + execCommand 双降级）
+- ✅ 编写项目进度文档 `PROGRESS.md`
+- ✅ 添加 `.gitignore`（排除 node_modules）
+- ✅ 修复全局 git user.name：`v_yuanbowen01` → `yuanbw2025`
+- ✅ 重写三个仓库（my-website / infiniteskill / flying-sword-pinball）全部历史 commit 作者为 `yuanbw2025`
+- ✅ 推送 yuntype 到主仓库 `my-website`
+- ✅ 在 GitHub 新建独立仓库 `yuntype`（https://github.com/yuanbw2025/yuntype）并推送
+
+**未完成（暂缓）：**
+- ❌ P0 Bug：段落不分段（markdown.ts 段落解析逻辑）
+- ❌ P1：tsconfig baseUrl 弃用警告
+- ❌ P2：装饰模板 hex 透明度兼容性
+
+---
+
+## 六、技术栈
 
 - **框架**: React 18 + TypeScript
 - **构建**: Vite 6
@@ -130,7 +156,7 @@
 
 ---
 
-## 六、运行方式
+## 七、运行方式
 
 ```bash
 cd yuntype
