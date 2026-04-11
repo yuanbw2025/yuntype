@@ -14,3 +14,116 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* ═══════════════════════════════════════
+   移动端适配
+   ═══════════════════════════════════════ */
+
+/* 平板（≤1024px）：收窄风格面板 */
+@media (max-width: 1024px) {
+  header {
+    padding: 8px 12px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  header > div:first-child span:last-child {
+    display: none; /* 隐藏组合数 */
+  }
+}
+
+/* 手机（≤768px）：改为纵向堆叠布局 */
+@media (max-width: 768px) {
+  /* 主内容区改为纵向 */
+  #root > div > div:last-child {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+
+  /* 左栏（输入区）：全宽 + 固定高度 */
+  #root > div > div:last-child > div:first-child {
+    width: 100% !important;
+    min-width: unset !important;
+    max-height: 30vh;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  /* 中栏（风格面板）：全宽横向滚动 */
+  #root > div > div:last-child > div:nth-child(2) {
+    width: 100% !important;
+    max-height: 200px;
+    overflow-y: auto;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  /* 右栏（预览区）：占满剩余空间 */
+  #root > div > div:last-child > div:last-child {
+    min-height: 50vh;
+  }
+
+  /* 顶栏：两行布局 */
+  header {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+  }
+
+  /* Logo区域精简 */
+  header > div:first-child {
+    flex: 1;
+    min-width: 120px;
+  }
+  header > div:first-child span:last-child {
+    display: none !important;
+  }
+
+  /* 模式切换按钮变小 */
+  header > div:nth-child(2) button {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* 右侧按钮组 */
+  header > div:last-child {
+    gap: 6px !important;
+    flex-wrap: wrap;
+  }
+  header > div:last-child button {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+  header > div:last-child > div:last-child {
+    display: none; /* 隐藏"当前: xxx" */
+  }
+}
+
+/* 超小屏幕（≤480px） */
+@media (max-width: 480px) {
+  header > div:first-child span:nth-child(2) {
+    font-size: 14px !important;
+  }
+
+  /* 左栏（输入区）进一步压缩 */
+  #root > div > div:last-child > div:first-child {
+    max-height: 25vh;
+  }
+
+  /* 风格面板更紧凑 */
+  #root > div > div:last-child > div:nth-child(2) {
+    max-height: 160px;
+  }
+}
+
+/* 触屏优化 */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    min-height: 36px;
+    min-width: 36px;
+  }
+  textarea {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+  input {
+    font-size: 16px !important;
+  }
+}
