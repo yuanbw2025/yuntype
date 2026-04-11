@@ -8,6 +8,7 @@ import ExportPanel from './components/ExportPanel'
 import XiaohongshuPreview from './components/XiaohongshuPreview'
 import InfographicPanel from './components/InfographicPanel'
 import AIImageDialog from './components/AIImageDialog'
+import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
 import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds } from './lib/atoms'
 import { defaultTuneParams, applyTuning, type TuneParams } from './lib/atoms/presets'
@@ -21,6 +22,7 @@ export default function App() {
   const [tuneParams, setTuneParams] = useState<TuneParams>(defaultTuneParams)
   const [mode, setMode] = useState<AppMode>('wechat')
   const [showAIImage, setShowAIImage] = useState(false)
+  const [showApiConfig, setShowApiConfig] = useState(false)
 
   const handleShuffle = () => {
     setAtomIds(randomAtomIds())
@@ -56,6 +58,18 @@ export default function App() {
         onClose={() => setShowAIImage(false)}
         style={finalStyle}
         selectedText={article.slice(0, 200)}
+      />
+
+      {/* AI 文章分析对话框 */}
+      <ApiConfigDialog
+        visible={showApiConfig}
+        onClose={() => setShowApiConfig(false)}
+        article={article}
+        onApplyRecommendation={(ids, tune) => {
+          setAtomIds(ids)
+          if (tune) setTuneParams(tune)
+          setShowApiConfig(false)
+        }}
       />
 
       {/* 顶栏 */}
@@ -104,6 +118,22 @@ export default function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* AI 分析按钮 */}
+          <button
+            onClick={() => setShowApiConfig(true)}
+            style={{
+              padding: '5px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#059669',
+              background: '#ECFDF5',
+              border: '1px solid #05966930',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            🤖 AI分析
+          </button>
           {/* AI 生图按钮 */}
           <button
             onClick={() => setShowAIImage(true)}
