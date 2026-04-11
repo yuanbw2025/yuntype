@@ -1,7 +1,5 @@
 // 小红书图片导出 — HTML→PNG + ZIP打包
 
-import html2canvas from 'html2canvas'
-import JSZip from 'jszip'
 import type { XhsPage, XhsConfig } from '../render/xiaohongshu'
 import { renderXhsPageHTML } from '../render/xiaohongshu'
 import type { StyleCombo } from '../atoms'
@@ -24,6 +22,7 @@ async function renderPageToImage(
   const target = container.firstElementChild as HTMLElement
 
   try {
+    const { default: html2canvas } = await import('html2canvas')
     const canvas = await html2canvas(target, {
       width,
       height,
@@ -36,7 +35,7 @@ async function renderPageToImage(
 
     return new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
-        (blob) => {
+        (blob: Blob | null) => {
           if (blob) resolve(blob)
           else reject(new Error('Canvas toBlob failed'))
         },
@@ -68,6 +67,7 @@ export async function renderPageToDataURL(
   const target = container.firstElementChild as HTMLElement
 
   try {
+    const { default: html2canvas } = await import('html2canvas')
     const canvas = await html2canvas(target, {
       width: config.width,
       height: config.height,
@@ -104,6 +104,7 @@ export async function exportAllPagesAsZip(
   config: XhsConfig,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
+  const { default: JSZip } = await import('jszip')
   const zip = new JSZip()
 
   for (let i = 0; i < pages.length; i++) {

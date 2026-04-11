@@ -23,7 +23,7 @@ export const decorationSets: DecorationSet[] = [
       headingDecoH3: (text, primary) =>
         `<h3 style="border-left: 3px solid ${primary}; padding-left: 10px; margin: 0;">${text}</h3>`,
       blockquote: (content, secondary, text) =>
-        `<section style="border-left: 3px solid ${secondary}; padding: 12px 16px; background: ${secondary}20; color: ${text}; margin: 0;">${content}</section>`,
+        `<section style="border-left: 3px solid ${secondary}; padding: 12px 16px; background: ${secondary}; background: rgba(0,0,0,0.03); color: ${text}; margin: 0;">${content}</section>`,
       divider: (secondary) =>
         `<section style="border-top: 1px solid ${secondary}; margin: 24px 0;"></section>`,
       listMarker: () => '●',
@@ -36,7 +36,7 @@ export const decorationSets: DecorationSet[] = [
       headingDecoH2: (text, primary) =>
         `<h2 style="margin: 0;"><span style="background: ${primary}; color: #FFFFFF; padding: 6px 16px; border-radius: 4px; display: inline-block;">${text}</span></h2>`,
       headingDecoH3: (text, primary) =>
-        `<h3 style="margin: 0;"><span style="background: ${primary}30; color: ${primary}; padding: 4px 12px; border-radius: 3px; display: inline-block;">${text}</span></h3>`,
+        `<h3 style="margin: 0;"><span style="background: ${primary}; opacity: 0.85; color: ${primary}; padding: 4px 12px; border-radius: 3px; display: inline-block;">${text}</span></h3>`,
       blockquote: (content, secondary, text) =>
         `<section style="background: ${secondary}; padding: 16px 20px; border-radius: 6px; color: ${text}; margin: 0;">${content}</section>`,
       divider: (secondary) =>
@@ -51,9 +51,9 @@ export const decorationSets: DecorationSet[] = [
       headingDecoH2: (text, _primary, secondary) =>
         `<h2 style="margin: 0;"><span style="background: ${secondary}; padding: 8px 20px; border-radius: 20px; display: inline-block;">${text}</span></h2>`,
       headingDecoH3: (text, primary) =>
-        `<h3 style="margin: 0;"><span style="background: ${primary}15; padding: 6px 16px; border-radius: 16px; display: inline-block;">${text}</span></h3>`,
+        `<h3 style="margin: 0;"><span style="background: ${primary}; opacity: 0.8; padding: 6px 16px; border-radius: 16px; display: inline-block;">${text}</span></h3>`,
       blockquote: (content, secondary, text) =>
-        `<section style="background: ${secondary}40; padding: 16px 20px; border-radius: 12px; color: ${text}; margin: 0;">${content}</section>`,
+        `<section style="background: ${secondary}; opacity: 0.9; padding: 16px 20px; border-radius: 12px; color: ${text}; margin: 0;">${content}</section>`,
       divider: (_secondary, primary) =>
         `<p style="text-align: center; color: ${primary}; letter-spacing: 8px; margin: 24px 0;">· · · · ·</p>`,
       listMarker: () => '🔹',

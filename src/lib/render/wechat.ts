@@ -135,7 +135,7 @@ function renderList(
 
 function renderCodeBlock(
   node: MarkdownNode,
-  c: StyleCombo['color']['colors'],
+  _c: StyleCombo['color']['colors'],
   p: StyleCombo['layout']['params'],
   isDark = false,
 ): string {

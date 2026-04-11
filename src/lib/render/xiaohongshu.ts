@@ -336,7 +336,7 @@ function renderContentPage(
 }
 
 function renderEndingPage(
-  page: XhsPage, colors: any, titleFont: string, separator: string, config: XhsConfig
+  _page: XhsPage, colors: any, titleFont: string, separator: string, config: XhsConfig
 ): string {
   const centerY = Math.round(config.height * 0.35)
 
