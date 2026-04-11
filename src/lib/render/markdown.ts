@@ -139,27 +139,12 @@ export function parseMarkdown(md: string): MarkdownNode[] {
       continue
     }
 
-    // 普通段落（连续非空行合并为一段）
-    const paraLines: string[] = []
-    while (
-      i < lines.length &&
-      lines[i].trim() !== '' &&
-      !lines[i].match(/^#{1,3}\s/) &&
-      !lines[i].trim().startsWith('```') &&
-      !lines[i].trimStart().startsWith('> ') &&
-      !/^\s*[-*+]\s+/.test(lines[i]) &&
-      !/^\s*\d+\.\s+/.test(lines[i]) &&
-      !/^(-{3,}|\*{3,}|_{3,})\s*$/.test(lines[i].trim())
-    ) {
-      paraLines.push(lines[i].trim())
-      i++
-    }
-    if (paraLines.length > 0) {
-      nodes.push({
-        type: 'paragraph',
-        text: paraLines.join(' '),
-      })
-    }
+    // 普通段落（每行独立成段，适配中文文章习惯）
+    nodes.push({
+      type: 'paragraph',
+      text: line.trim(),
+    })
+    i++
   }
 
   return nodes
