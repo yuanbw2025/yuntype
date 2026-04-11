@@ -1,7 +1,7 @@
 // 小红书预览组件 — 缩略图网格 + 大图预览
 
 import { useState, useMemo } from 'react'
-import { splitToPages, renderXhsPageHTML, XHS_PRESETS, type XhsPage, type XhsConfig } from '../lib/render/xiaohongshu'
+import { splitToPages, renderXhsPageHTML, XHS_PRESETS, type XhsConfig } from '../lib/render/xiaohongshu'
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
 import type { StyleCombo, AtomIds } from '../lib/atoms'
 
@@ -14,7 +14,7 @@ interface XhsPreviewProps {
 
 type AspectRatio = '3:4' | '1:1' | '16:9'
 
-export default function XiaohongshuPreview({ markdown, style, comboName, atomIds }: XhsPreviewProps) {
+export default function XiaohongshuPreview({ markdown, style, comboName, atomIds: _atomIds }: XhsPreviewProps) {
   const [ratio, setRatio] = useState<AspectRatio>('3:4')
   const [selectedPage, setSelectedPage] = useState(0)
   const [exporting, setExporting] = useState(false)
