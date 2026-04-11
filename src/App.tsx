@@ -1,18 +1,30 @@
-// 云中书 YunType — 主应用布局
+// 云中书 YunType — 主应用布局（三栏：输入 | 风格 | 预览）
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import ArticleInput from './components/ArticleInput'
+import StylePanel from './components/StylePanel'
 import WechatPreview from './components/WechatPreview'
 import ExportPanel from './components/ExportPanel'
-import { randomAtomIds, TOTAL_COMBOS, type AtomIds } from './lib/atoms'
+import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds } from './lib/atoms'
+import { defaultTuneParams, applyTuning, type TuneParams } from './lib/atoms/presets'
 
 export default function App() {
   const [article, setArticle] = useState('')
   const [atomIds, setAtomIds] = useState<AtomIds>(randomAtomIds)
+  const [tuneParams, setTuneParams] = useState<TuneParams>(defaultTuneParams)
 
   const handleShuffle = () => {
     setAtomIds(randomAtomIds())
+    setTuneParams(defaultTuneParams)
   }
+
+  // 计算最终样式（原子 + 微调）
+  const finalStyle = useMemo(() => {
+    const base = getStyleCombo(atomIds)
+    return applyTuning(base, tuneParams)
+  }, [atomIds, tuneParams])
+
+  const comboName = getComboName(atomIds)
 
   return (
     <div style={{
@@ -29,6 +41,7 @@ export default function App() {
         padding: '10px 20px',
         background: '#fff',
         borderBottom: '1px solid #e5e5e5',
+        flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '20px' }}>☁️</span>
@@ -38,31 +51,45 @@ export default function App() {
           </span>
         </div>
         <div style={{ fontSize: '12px', color: '#999' }}>
-          公众号排版模式
+          当前: {comboName}
         </div>
       </header>
 
-      {/* 主内容区：左右分栏 */}
+      {/* 主内容区：三栏 */}
       <div style={{
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
       }}>
-        {/* 左侧：输入 */}
+        {/* 左栏：文章输入 */}
         <div style={{
-          width: '40%',
-          minWidth: '300px',
+          width: '30%',
+          minWidth: '280px',
           background: '#fff',
           borderRight: '1px solid #e5e5e5',
           display: 'flex',
           flexDirection: 'column',
         }}>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <ArticleInput value={article} onChange={setArticle} />
-          </div>
+          <ArticleInput value={article} onChange={setArticle} />
         </div>
 
-        {/* 右侧：预览 + 导出 */}
+        {/* 中栏：风格面板 */}
+        <div style={{
+          width: '240px',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <StylePanel
+            atomIds={atomIds}
+            tuneParams={tuneParams}
+            onAtomIdsChange={setAtomIds}
+            onTuneChange={setTuneParams}
+            onShuffle={handleShuffle}
+          />
+        </div>
+
+        {/* 右栏：预览 + 导出 */}
         <div style={{
           flex: 1,
           display: 'flex',
@@ -72,11 +99,12 @@ export default function App() {
           <div style={{ flex: 1, overflow: 'hidden' }}>
             <WechatPreview
               markdown={article}
+              style={finalStyle}
+              comboName={comboName}
               atomIds={atomIds}
-              onShuffle={handleShuffle}
             />
           </div>
-          <ExportPanel markdown={article} atomIds={atomIds} />
+          <ExportPanel markdown={article} style={finalStyle} />
         </div>
       </div>
     </div>
