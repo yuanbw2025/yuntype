@@ -5,13 +5,17 @@ import ArticleInput from './components/ArticleInput'
 import StylePanel from './components/StylePanel'
 import WechatPreview from './components/WechatPreview'
 import ExportPanel from './components/ExportPanel'
+import XiaohongshuPreview from './components/XiaohongshuPreview'
 import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds } from './lib/atoms'
 import { defaultTuneParams, applyTuning, type TuneParams } from './lib/atoms/presets'
+
+type AppMode = 'wechat' | 'xiaohongshu'
 
 export default function App() {
   const [article, setArticle] = useState('')
   const [atomIds, setAtomIds] = useState<AtomIds>(randomAtomIds)
   const [tuneParams, setTuneParams] = useState<TuneParams>(defaultTuneParams)
+  const [mode, setMode] = useState<AppMode>('wechat')
 
   const handleShuffle = () => {
     setAtomIds(randomAtomIds())
@@ -50,6 +54,43 @@ export default function App() {
             {TOTAL_COMBOS} 种排版组合
           </span>
         </div>
+
+        {/* 模式切换 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <button
+            onClick={() => setMode('wechat')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: mode === 'wechat' ? 700 : 400,
+              color: mode === 'wechat' ? '#fff' : '#666',
+              background: mode === 'wechat' ? '#07C160' : '#f0f0f0',
+              border: 'none',
+              borderRadius: '6px 0 0 6px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            📝 公众号
+          </button>
+          <button
+            onClick={() => setMode('xiaohongshu')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: mode === 'xiaohongshu' ? 700 : 400,
+              color: mode === 'xiaohongshu' ? '#fff' : '#666',
+              background: mode === 'xiaohongshu' ? '#FF2442' : '#f0f0f0',
+              border: 'none',
+              borderRadius: '0 6px 6px 0',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            📸 小红书
+          </button>
+        </div>
+
         <div style={{ fontSize: '12px', color: '#999' }}>
           当前: {comboName}
         </div>
@@ -89,22 +130,33 @@ export default function App() {
           />
         </div>
 
-        {/* 右栏：预览 + 导出 */}
+        {/* 右栏：预览 + 导出（根据模式切换） */}
         <div style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <WechatPreview
+          {mode === 'wechat' ? (
+            <>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <WechatPreview
+                  markdown={article}
+                  style={finalStyle}
+                  comboName={comboName}
+                  atomIds={atomIds}
+                />
+              </div>
+              <ExportPanel markdown={article} style={finalStyle} />
+            </>
+          ) : (
+            <XiaohongshuPreview
               markdown={article}
               style={finalStyle}
               comboName={comboName}
               atomIds={atomIds}
             />
-          </div>
-          <ExportPanel markdown={article} style={finalStyle} />
+          )}
         </div>
       </div>
     </div>
