@@ -21,6 +21,7 @@ import {
   type BrandPreset,
   type HistoryEntry,
 } from '../lib/storage'
+import FontPanel from './FontPanel'
 
 interface StylePanelProps {
   atomIds: AtomIds
@@ -30,7 +31,7 @@ interface StylePanelProps {
   onShuffle: () => void
 }
 
-type Tab = 'presets' | 'atoms' | 'tune' | 'brand' | 'history'
+type Tab = 'presets' | 'atoms' | 'tune' | 'brand' | 'history' | 'fonts'
 
 // ═══════════════════════════════════════
 //  样式常量
@@ -103,6 +104,7 @@ export default function StylePanel({
           {([
             ['brand', '💼 我的'],
             ['history', '🕐 历史'],
+            ['fonts', '🔤 字体'],
           ] as [Tab, string][]).map(([key, label]) => (
             <TabButton key={key} tab={tab} value={key} label={label} onClick={setTab} />
           ))}
@@ -131,6 +133,9 @@ export default function StylePanel({
           <HistoryTab
             onLoad={(ids, tune) => { onAtomIdsChange(ids); onTuneChange(tune) }}
           />
+        )}
+        {tab === 'fonts' && (
+          <FontPanel />
         )}
       </div>
     </div>

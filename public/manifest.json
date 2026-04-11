@@ -1,0 +1,22 @@
+{
+  "name": "云中书 YunType — AI 排版工具",
+  "short_name": "云中书",
+  "description": "660 种排版组合，一键生成微信公众号文章、小红书图片组",
+  "start_url": "/yuntype/",
+  "scope": "/yuntype/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#4F46E5",
+  "orientation": "any",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☁️</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false
+}

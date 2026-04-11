@@ -1,6 +1,6 @@
 // 云中书 YunType — 主应用布局（三栏：输入 | 风格 | 预览）
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import ArticleInput from './components/ArticleInput'
 import StylePanel from './components/StylePanel'
 import WechatPreview from './components/WechatPreview'
@@ -23,11 +23,55 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>('wechat')
   const [showAIImage, setShowAIImage] = useState(false)
   const [showApiConfig, setShowApiConfig] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('yuntype-dark-mode') === 'true'
+    }
+    return false
+  })
 
-  const handleShuffle = () => {
+  // 深色模式持久化
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
+    localStorage.setItem('yuntype-dark-mode', String(darkMode))
+  }, [darkMode])
+
+  const handleShuffle = useCallback(() => {
     setAtomIds(randomAtomIds())
     setTuneParams(defaultTuneParams)
-  }
+  }, [])
+
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Shift+R — 随机排版
+      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        e.preventDefault()
+        handleShuffle()
+      }
+      // Ctrl+E — 导出（触发导出面板下载）
+      if (e.ctrlKey && !e.shiftKey && e.key === 'e') {
+        e.preventDefault()
+        // 触发导出按钮点击
+        const exportBtn = document.querySelector('[data-export-btn]') as HTMLButtonElement
+        if (exportBtn) exportBtn.click()
+      }
+      // Ctrl+D — 深色模式切换
+      if (e.ctrlKey && !e.shiftKey && e.key === 'd') {
+        e.preventDefault()
+        setDarkMode(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleShuffle])
+
+  // 注册 Service Worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/yuntype/sw.js', { scope: '/yuntype/' }).catch(() => {})
+    }
+  }, [])
 
   // 计算最终样式（原子 + 微调）
   const finalStyle = useMemo(() => {
@@ -149,6 +193,21 @@ export default function App() {
             }}
           >
             🎨 AI生图
+          </button>
+          {/* 深色模式切换 */}
+          <button
+            onClick={() => setDarkMode(prev => !prev)}
+            title="Ctrl+D 切换深色模式"
+            style={{
+              padding: '4px 8px',
+              fontSize: '14px',
+              background: 'none',
+              border: '1px solid #e5e5e5',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}
+          >
+            {darkMode ? '☀️' : '🌙'}
           </button>
           <div style={{ fontSize: '12px', color: '#999' }}>
             当前: {comboName}

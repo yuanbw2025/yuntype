@@ -1,6 +1,6 @@
 // 小红书预览组件 — 缩略图网格 + 大图预览
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { splitToPages, renderXhsPageHTML, XHS_PRESETS, type XhsConfig } from '../lib/render/xiaohongshu'
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
 import type { StyleCombo, AtomIds } from '../lib/atoms'
@@ -19,13 +19,42 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
   const [selectedPage, setSelectedPage] = useState(0)
   const [exporting, setExporting] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [pageOrder, setPageOrder] = useState<number[]>([])
+  const dragItemRef = useRef<number | null>(null)
+  const dragOverRef = useRef<number | null>(null)
 
   const config: XhsConfig = XHS_PRESETS[ratio]
 
-  const pages = useMemo(() => {
+  const rawPages = useMemo(() => {
     if (!markdown.trim()) return []
     return splitToPages(markdown, config)
   }, [markdown, config])
+
+  // 页面排序：当原始页面变化时重置排序
+  useMemo(() => {
+    setPageOrder(rawPages.map((_, i) => i))
+  }, [rawPages.length])
+
+  // 按用户排列顺序得到的页面
+  const pages = useMemo(() => {
+    if (pageOrder.length !== rawPages.length) return rawPages
+    return pageOrder.map(i => rawPages[i]).filter(Boolean)
+  }, [rawPages, pageOrder])
+
+  // 拖拽排序
+  const handleDragStart = (idx: number) => { dragItemRef.current = idx }
+  const handleDragEnter = (idx: number) => { dragOverRef.current = idx }
+  const handleDragEnd = () => {
+    if (dragItemRef.current === null || dragOverRef.current === null) return
+    if (dragItemRef.current === dragOverRef.current) return
+    const newOrder = [...pageOrder]
+    const [removed] = newOrder.splice(dragItemRef.current, 1)
+    newOrder.splice(dragOverRef.current, 0, removed)
+    setPageOrder(newOrder)
+    setSelectedPage(dragOverRef.current)
+    dragItemRef.current = null
+    dragOverRef.current = null
+  }
 
   const selectedPageHtml = useMemo(() => {
     if (pages.length === 0) return ''
@@ -132,7 +161,12 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
           ) : (
             pages.map((page, i) => (
               <div
-                key={i}
+                key={`page-${i}`}
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragEnter={() => handleDragEnter(i)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
                 onClick={() => setSelectedPage(i)}
                 style={{
                   width: `${thumbW}px`,
@@ -140,10 +174,11 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
                   background: style.color.colors.pageBg,
                   border: `2px solid ${selectedPage === i ? '#4F46E5' : '#ddd'}`,
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: 'grab',
                   position: 'relative',
                   overflow: 'hidden',
                   flexShrink: 0,
+                  transition: 'transform 0.15s',
                 }}
               >
                 {/* 页码标签 */}
