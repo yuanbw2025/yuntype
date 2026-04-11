@@ -2,18 +2,17 @@
 
 import { useState, useMemo } from 'react'
 import { renderWechatHTML } from '../lib/render/wechat'
-import { getStyleCombo, type AtomIds } from '../lib/atoms'
+import { type StyleCombo } from '../lib/atoms'
 import { copyRichText, downloadHTML } from '../lib/export/clipboard'
 
 interface ExportPanelProps {
   markdown: string
-  atomIds: AtomIds
+  style: StyleCombo
 }
 
-export default function ExportPanel({ markdown, atomIds }: ExportPanelProps) {
+export default function ExportPanel({ markdown, style }: ExportPanelProps) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'fail'>('idle')
 
-  const style = useMemo(() => getStyleCombo(atomIds), [atomIds])
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
     return renderWechatHTML(markdown, style)

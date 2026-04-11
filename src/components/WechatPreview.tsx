@@ -2,22 +2,20 @@
 
 import { useMemo } from 'react'
 import { renderWechatHTML } from '../lib/render/wechat'
-import { getStyleCombo, getComboName, type AtomIds } from '../lib/atoms'
+import { type StyleCombo, type AtomIds } from '../lib/atoms'
 
 interface WechatPreviewProps {
   markdown: string
+  style: StyleCombo
+  comboName: string
   atomIds: AtomIds
-  onShuffle: () => void
 }
 
-export default function WechatPreview({ markdown, atomIds, onShuffle }: WechatPreviewProps) {
-  const style = useMemo(() => getStyleCombo(atomIds), [atomIds])
+export default function WechatPreview({ markdown, style, comboName, atomIds }: WechatPreviewProps) {
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
     return renderWechatHTML(markdown, style)
   }, [markdown, style])
-
-  const comboName = getComboName(atomIds)
 
   return (
     <div style={{
@@ -34,21 +32,9 @@ export default function WechatPreview({ markdown, atomIds, onShuffle }: WechatPr
         borderBottom: '1px solid #e5e5e5',
       }}>
         <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>👁️ 公众号预览</span>
-        <button
-          onClick={onShuffle}
-          style={{
-            padding: '6px 16px',
-            fontSize: '13px',
-            background: '#4F46E5',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          🎲 换一个
-        </button>
+        <span style={{ fontSize: '11px', color: '#999' }}>
+          {atomIds.colorId} · {atomIds.layoutId} · {atomIds.decorationId} · {atomIds.typographyId}
+        </span>
       </div>
 
       {/* 预览区 */}
@@ -88,11 +74,8 @@ export default function WechatPreview({ markdown, atomIds, onShuffle }: WechatPr
         borderTop: '1px solid #e5e5e5',
         fontSize: '12px',
         color: '#999',
-        display: 'flex',
-        justifyContent: 'space-between',
       }}>
-        <span>当前方案: {comboName}</span>
-        <span>{atomIds.colorId} · {atomIds.layoutId} · {atomIds.decorationId} · {atomIds.typographyId}</span>
+        当前方案: {comboName}
       </div>
     </div>
   )
