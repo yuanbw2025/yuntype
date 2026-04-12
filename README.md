@@ -8,10 +8,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Combinations](https://img.shields.io/badge/排版组合-660种-FF6B6B)](/)
 [![WeChat Compatible](https://img.shields.io/badge/微信公众号-兼容-07C160?logo=wechat&logoColor=white)](/)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa&logoColor=white)](/)
 
 ---
 
@@ -42,11 +43,19 @@
 | 特性 | 说明 |
 |:---:|:---|
 | 🎨 **660种排版组合** | 11配色 × 5排版 × 4装饰 × 3字体，原子化组合永不撞款 |
-| 🤖 **AI 智能推荐** | 分析文章内容和文风，自动匹配最佳排版方案 |
+| 🤖 **AI 智能推荐** | 9大AI提供商（通义千问/DeepSeek/豆包/OpenAI/Gemini等），分析文章自动匹配最佳排版 |
 | 🎚️ **滑条微调** | 调"感觉"而不是调参数 — 色温、装饰密度、间距... |
 | 📝 **公众号模式** | 输出微信兼容的内联CSS富文本，直接粘贴到公众号编辑器 |
-| 📸 **小红书模式** | 自动分页生成图片组，支持16种免费商用字体 |
-| 🔑 **自带API Key** | 零后端、零账号、零付费墙，核心功能完全离线可用 |
+| 📸 **小红书模式** | 自动分页生成图片组，5种封面变体，拖拽排序，ZIP打包导出 |
+| 📊 **信息图模式** | 流程图/对比表/知识卡片/时间线，程序化生成精美信息图 |
+| 🎨 **AI 文生图** | 集成通义万相/豆包/OpenAI/Gemini，一键生成配图 |
+| ✒️ **10种字体** | 按需CDN加载，分类浏览，标题/正文独立选择 |
+| 🌙 **暗黑模式** | 深色主题，保护眼睛，Ctrl+D一键切换 |
+| ⌨️ **键盘快捷键** | Ctrl+Shift+R 随机组合 / Ctrl+E 导出 / Ctrl+D 暗黑模式 |
+| 💼 **品牌预设** | 保存最多20套品牌预设，一键调用 |
+| 🕐 **历史记录** | 自动保存最近10次排版记录 |
+| 📱 **移动端适配** | 平板/手机/超小屏全适配，触屏优化 |
+| 🔑 **零门槛** | 零后端、零账号、零付费墙，核心功能完全离线可用 |
 
 ---
 
@@ -79,23 +88,23 @@
 
 | 编号 | 名称 | 主色 | 适合场景 |
 |:---:|:---:|:---:|:---|
-| L1 | 🍵 奶茶温柔 | ![#C8A882](https://via.placeholder.com/12/C8A882/C8A882.png) `#C8A882` | 生活随笔、美食 |
-| L2 | 🌿 薄荷清新 | ![#2D9F83](https://via.placeholder.com/12/2D9F83/2D9F83.png) `#2D9F83` | 健康、环保 |
-| L3 | 🍑 蜜桃活力 | ![#FF7B54](https://via.placeholder.com/12/FF7B54/FF7B54.png) `#FF7B54` | 美妆、运动 |
-| L4 | 🌫️ 烟灰高级 | ![#6B6B6B](https://via.placeholder.com/12/6B6B6B/6B6B6B.png) `#6B6B6B` | 商务、科技 |
-| L5 | 💜 藤紫文艺 | ![#8B6FC0](https://via.placeholder.com/12/8B6FC0/8B6FC0.png) `#8B6FC0` | 文艺、读书 |
-| L6 | 🌊 天青雅致 | ![#5B8FA8](https://via.placeholder.com/12/5B8FA8/5B8FA8.png) `#5B8FA8` | 旅行、人文 |
-| L7 | 🌸 樱花浪漫 | ![#D4729C](https://via.placeholder.com/12/D4729C/D4729C.png) `#D4729C` | 情感、女性 |
-| L8 | 🏖️ 落日暖橘 | ![#E8914F](https://via.placeholder.com/12/E8914F/E8914F.png) `#E8914F` | 旅行、生活 |
+| L1 | 🍵 奶茶温柔 | `#C8A882` | 生活随笔、美食 |
+| L2 | 🌿 薄荷清新 | `#2D9F83` | 健康、环保 |
+| L3 | 🍑 蜜桃活力 | `#FF7B54` | 美妆、运动 |
+| L4 | 🌫️ 烟灰高级 | `#6B6B6B` | 商务、科技 |
+| L5 | 💜 藤紫文艺 | `#8B6FC0` | 文艺、读书 |
+| L6 | 🌊 天青雅致 | `#5B8FA8` | 旅行、人文 |
+| L7 | 🌸 樱花浪漫 | `#D4729C` | 情感、女性 |
+| L8 | 🏖️ 落日暖橘 | `#E8914F` | 旅行、生活 |
 
 </td>
 <td>
 
 | 编号 | 名称 | 主色 | 适合 |
 |:---:|:---:|:---:|:---|
-| D1 | 🌙 墨夜金字 | ![#D4A843](https://via.placeholder.com/12/D4A843/D4A843.png) `#D4A843` | 高端品牌 |
-| D2 | 🖤 深空科技 | ![#00D4AA](https://via.placeholder.com/12/00D4AA/00D4AA.png) `#00D4AA` | 科技产品 |
-| D3 | 🍷 暗夜酒红 | ![#C75B5B](https://via.placeholder.com/12/C75B5B/C75B5B.png) `#C75B5B` | 品酒、高级 |
+| D1 | 🌙 墨夜金字 | `#D4A843` | 高端品牌 |
+| D2 | 🖤 深空科技 | `#00D4AA` | 科技产品 |
+| D3 | 🍷 暗夜酒红 | `#C75B5B` | 品酒、高级 |
 
 </td>
 </tr>
@@ -136,6 +145,44 @@
 
 ---
 
+### 📸 小红书模式
+
+小红书模式支持将文章自动分页为 1080×1440 图片组：
+
+| 功能 | 说明 |
+|:---:|:---|
+| 📐 **智能分页** | 按段落自动切分内容，确保排版美观 |
+| 🎨 **5种封面变体** | classic 经典 / bold 大字 / minimal 极简 / card 卡片 / magazine 杂志 |
+| 🖱️ **拖拽排序** | 生成后可拖拽调整页面顺序 |
+| 🏷️ **增强尾页** | CTA互动按钮（点赞/收藏/转发）+ 品牌区 + 总页数 |
+| 📦 **ZIP打包** | 一键下载所有图片，自动编号命名 |
+
+---
+
+### 🤖 AI 能力
+
+| 功能 | 支持的提供商 |
+|:---:|:---|
+| 📊 **文章分析** | 通义千问、DeepSeek、豆包、OpenAI、Gemini、Moonshot、智谱、SiliconFlow、自定义 |
+| 🖼️ **AI 文生图** | 通义万相、豆包、OpenAI DALL-E、Google Gemini |
+| 📈 **信息图生成** | 内置4种模板：流程图、对比表、知识卡片、时间线 |
+
+> 💡 自带 API Key 模式，数据不经过任何中间服务器，100%隐私安全。离线时自动使用本地规则分析。
+
+---
+
+### 🌙 暗黑模式 & 快捷键
+
+| 快捷键 | 功能 |
+|:---:|:---|
+| `Ctrl + D` | 切换暗黑/明亮模式 |
+| `Ctrl + Shift + R` | 随机生成排版组合 |
+| `Ctrl + E` | 导出当前排版 |
+
+暗黑模式支持 localStorage 持久化，刷新页面保持上次设置。
+
+---
+
 ### 🚀 快速开始
 
 ```bash
@@ -159,15 +206,20 @@ npm run dev
 
 ```
 yuntype/
-├── index.html                  # 入口 HTML
-├── package.json                # React 18 + TypeScript + Vite
+├── index.html                  # 入口 HTML（含SEO/OG/PWA元标签）
+├── package.json                # React 19 + TypeScript + Vite 6
 ├── vite.config.ts              # Vite 配置
 ├── tsconfig.json               # TypeScript 配置
+├── vercel.json                 # Vercel 部署配置（缓存/安全头/SPA重写）
+│
+├── public/
+│   ├── manifest.json           # PWA 应用清单
+│   └── sw.js                   # Service Worker（网络优先缓存策略）
 │
 ├── src/
 │   ├── main.tsx                # React 入口
-│   ├── App.tsx                 # 主应用（左右分栏布局）
-│   ├── index.css               # 全局样式
+│   ├── App.tsx                 # 主应用（三模式切换 + 暗黑模式 + 快捷键）
+│   ├── index.css               # 全局样式（CSS变量 + 暗黑主题 + 响应式）
 │   │
 │   ├── lib/
 │   │   ├── atoms/              # 🎨 原子设计系统
@@ -175,28 +227,49 @@ yuntype/
 │   │   │   ├── layouts.ts      #    5种排版结构
 │   │   │   ├── decorations.ts  #    4种装饰风格
 │   │   │   ├── typography.ts   #    3种字体气质
-│   │   │   └── index.ts        #    组合引擎 (660种)
+│   │   │   ├── index.ts        #    组合引擎 (660种)
+│   │   │   └── presets.ts      #    8套风格预设 + 微调参数
 │   │   │
 │   │   ├── render/             # 📄 渲染核心
 │   │   │   ├── markdown.ts     #    Markdown → AST 解析器
-│   │   │   └── wechat.ts       #    公众号 HTML 渲染器（全内联CSS）
+│   │   │   ├── wechat.ts       #    公众号 HTML 渲染器（全内联CSS）
+│   │   │   ├── xiaohongshu.ts  #    小红书分页渲染器（5种封面变体）
+│   │   │   └── infographic.ts  #    信息图渲染引擎（4种模板）
+│   │   │
+│   │   ├── ai/                 # 🤖 AI 模块
+│   │   │   ├── client.ts       #    统一AI客户端（9个提供商）
+│   │   │   ├── analyzer.ts     #    文章分析器（自动推荐 + 离线回退）
+│   │   │   └── image-gen.ts    #    AI文生图（4个提供商）
+│   │   │
+│   │   ├── fonts/              # ✒️ 字体模块
+│   │   │   └── index.ts        #    字体加载管理器（10种字体/按需CDN）
+│   │   │
+│   │   ├── storage.ts          # 💾 本地存储（品牌预设/历史/引导）
 │   │   │
 │   │   └── export/             # 📤 导出工具
-│   │       └── clipboard.ts    #    剪贴板复制（双降级策略）
+│   │       ├── clipboard.ts    #    剪贴板复制（双降级策略）
+│   │       └── image.ts        #    图片导出（html2canvas + JSZip，懒加载）
 │   │
 │   └── components/             # 🧩 UI 组件
 │       ├── ArticleInput.tsx    #    文章输入面板
 │       ├── WechatPreview.tsx   #    公众号预览（375px模拟）
-│       └── ExportPanel.tsx     #    导出操作面板
+│       ├── XiaohongshuPreview.tsx  # 小红书预览（拖拽排序）
+│       ├── ExportPanel.tsx     #    导出操作面板
+│       ├── StylePanel.tsx      #    风格面板（6个Tab）
+│       ├── FontPanel.tsx       #    字体选择面板
+│       ├── InfographicPanel.tsx #   信息图编辑面板
+│       ├── AIImageDialog.tsx   #    AI生图对话框
+│       ├── ApiConfigDialog.tsx #    AI分析配置对话框
+│       └── GuideOverlay.tsx    #    新手引导遮罩
 │
 └── docs/                       # 📚 产品文档（7份）
-    ├── 01-PRODUCT-OVERVIEW.md  #    产品总览
-    ├── 02-FEATURE-SPEC.md      #    功能规格（10个模块）
-    ├── 03-DESIGN-SYSTEM.md     #    设计系统（完整原子定义）
-    ├── 04-TECH-ARCHITECTURE.md #    技术架构
-    ├── 05-XIAOHONGSHU-MODE.md  #    小红书模式
-    ├── 06-AI-IMAGE-GEN.md      #    AI图片生成
-    └── 07-DEVELOPMENT-PLAN.md  #    开发计划
+    ├── 01-PRODUCT-OVERVIEW.md
+    ├── 02-FEATURE-SPEC.md
+    ├── 03-DESIGN-SYSTEM.md
+    ├── 04-TECH-ARCHITECTURE.md
+    ├── 05-XIAOHONGSHU-MODE.md
+    ├── 06-AI-IMAGE-GEN.md
+    └── 07-DEVELOPMENT-PLAN.md
 ```
 
 ---
@@ -205,27 +278,44 @@ yuntype/
 
 | 层 | 技术 | 说明 |
 |:---|:---|:---|
-| 框架 | React 18 + TypeScript 5.7 | 组件化开发 |
+| 框架 | React 19 + TypeScript 5.7 | 组件化开发 |
 | 构建 | Vite 6 | 极速 HMR |
 | 排版输出 | 纯内联 CSS | 100% 微信兼容，零外部依赖 |
 | Markdown | 自研轻量解析器 | 无第三方库，精准控制 AST |
-| 图片生成 | html2canvas | 小红书模式导出 PNG |
-| 字体 | Google Fonts + jsDelivr | 16种免费商用字体 |
-| 部署 | Vercel | 零配置自动部署 |
+| 图片生成 | html2canvas（动态加载） | 小红书模式导出 PNG |
+| 打包导出 | JSZip（动态加载） | ZIP 批量下载 |
+| 字体 | Google Fonts + jsDelivr | 10种免费商用字体，按需加载 |
+| AI | 9 个提供商统一接口 | 通义千问/DeepSeek/豆包/OpenAI/Gemini... |
+| 存储 | localStorage | 品牌预设 + 历史记录 + 用户偏好 |
+| PWA | Service Worker + Manifest | 离线可用，可安装到桌面 |
+| 部署 | Vercel | 智能缓存 + 安全头 + SPA 重写 |
+
+---
+
+### 📦 构建产物
+
+```
+dist/index.html                            2.62 kB │ gzip:  1.04 kB
+dist/assets/index.css                      2.49 kB │ gzip:  0.81 kB
+dist/assets/jszip.min.js                  97.54 kB │ gzip: 30.32 kB  (懒加载)
+dist/assets/html2canvas.esm.js           202.38 kB │ gzip: 48.04 kB  (懒加载)
+dist/assets/index.js                     310.79 kB │ gzip: 93.76 kB
+```
+
+> html2canvas 和 JSZip 通过 `dynamic import()` 懒加载，首屏仅加载主包 ~94KB gzip。
 
 ---
 
 ### 🗺️ 开发路线图
 
 ```
-Phase 1 ✅ (2周)  → MVP：公众号排版核心（粘贴→预览→复制）
-                     已完成：原子系统 + 渲染引擎 + UI组件
-                     
-Phase 2 🔲 (1周)  → AI 分析 + 四维度选择面板 + 微调滑条
-
-Phase 3 🔲 (2周)  → 小红书图片组生成（自动分页 + 16种字体）
-
-Phase 4 🔲 (1-2周) → AI 生图 + 程序化信息图 + 性能优化
+Phase 1 ✅  → MVP：公众号排版核心（粘贴→预览→复制）
+Phase 2 ✅  → 四维度选择面板 + 8套预设 + 微调滑条 + 随机组合
+Phase 3 ✅  → 小红书图片组生成（自动分页 + HTML→Canvas→PNG）
+Phase 4 ✅  → 信息图引擎 + AI文生图 + 品牌预设 + 历史记录 + 新手引导
+Phase 5 ✅  → AI文章分析（9个提供商）+ 字体管理器 + 移动端适配
+Phase 6 ✅  → 暗黑模式 + 键盘快捷键 + 封面5变体 + 拖拽排序 + SEO/PWA + Vercel优化
+Phase 7 🔲  → 多语言支持 + 模板市场 + 协作编辑 + 更多导出格式
 ```
 
 ---
@@ -274,11 +364,19 @@ Phase 4 🔲 (1-2周) → AI 生图 + 程序化信息图 + 性能优化
 | Feature | Description |
 |:---:|:---|
 | 🎨 **660 Layout Combinations** | 11 colors × 5 layouts × 4 decorations × 3 fonts — atomic design, never repeat |
-| 🤖 **AI Smart Matching** | Analyzes article content and writing style, recommends the best layout |
+| 🤖 **AI Smart Matching** | 9 AI providers (Qwen/DeepSeek/Doubao/OpenAI/Gemini...), auto-match best layout |
 | 🎚️ **Slider Fine-tuning** | Adjust "feel" not parameters — color warmth, decoration density, spacing... |
 | 📝 **WeChat Mode** | Outputs inline-CSS rich text, directly paste into WeChat editor |
-| 📸 **Xiaohongshu Mode** | Auto-paginate into image carousels, 16 free commercial fonts |
-| 🔑 **Bring Your Own API Key** | Zero backend, zero account, zero paywall. Core features work 100% offline |
+| 📸 **Xiaohongshu Mode** | Auto-paginate into image carousels, 5 cover variants, drag-to-reorder, ZIP export |
+| 📊 **Infographic Mode** | Flowcharts / comparison tables / knowledge cards / timelines |
+| 🎨 **AI Image Generation** | Integrated with Tongyi Wanxiang / Doubao / OpenAI DALL-E / Gemini |
+| ✒️ **10 Fonts** | On-demand CDN loading, category browsing, separate title/body selection |
+| 🌙 **Dark Mode** | Eye-friendly dark theme, Ctrl+D toggle, persisted in localStorage |
+| ⌨️ **Keyboard Shortcuts** | Ctrl+Shift+R random / Ctrl+E export / Ctrl+D dark mode |
+| 💼 **Brand Presets** | Save up to 20 brand presets, one-click apply |
+| 🕐 **History** | Auto-save last 10 layout records |
+| 📱 **Mobile Responsive** | Tablet / phone / small screen fully adapted |
+| 🔑 **Zero Barrier** | Zero backend, zero account, zero paywall. Core features work 100% offline |
 
 ---
 
@@ -305,22 +403,22 @@ YunType doesn't use "templates". It uses **free combination of 4 atomic dimensio
 
 | ID | Name | Primary | Best For |
 |:---:|:---|:---:|:---|
-| L1 | 🍵 Milk Tea Warmth | ![#C8A882](https://via.placeholder.com/12/C8A882/C8A882.png) `#C8A882` | Lifestyle, Food |
-| L2 | 🌿 Mint Fresh | ![#2D9F83](https://via.placeholder.com/12/2D9F83/2D9F83.png) `#2D9F83` | Health, Eco |
-| L3 | 🍑 Peach Vitality | ![#FF7B54](https://via.placeholder.com/12/FF7B54/FF7B54.png) `#FF7B54` | Beauty, Sports |
-| L4 | 🌫️ Ash Elegance | ![#6B6B6B](https://via.placeholder.com/12/6B6B6B/6B6B6B.png) `#6B6B6B` | Business, Tech |
-| L5 | 💜 Wisteria Literary | ![#8B6FC0](https://via.placeholder.com/12/8B6FC0/8B6FC0.png) `#8B6FC0` | Arts, Books |
-| L6 | 🌊 Azure Classic | ![#5B8FA8](https://via.placeholder.com/12/5B8FA8/5B8FA8.png) `#5B8FA8` | Travel, Culture |
-| L7 | 🌸 Sakura Romance | ![#D4729C](https://via.placeholder.com/12/D4729C/D4729C.png) `#D4729C` | Emotion, Feminine |
-| L8 | 🏖️ Sunset Orange | ![#E8914F](https://via.placeholder.com/12/E8914F/E8914F.png) `#E8914F` | Travel, Lifestyle |
+| L1 | 🍵 Milk Tea Warmth | `#C8A882` | Lifestyle, Food |
+| L2 | 🌿 Mint Fresh | `#2D9F83` | Health, Eco |
+| L3 | 🍑 Peach Vitality | `#FF7B54` | Beauty, Sports |
+| L4 | 🌫️ Ash Elegance | `#6B6B6B` | Business, Tech |
+| L5 | 💜 Wisteria Literary | `#8B6FC0` | Arts, Books |
+| L6 | 🌊 Azure Classic | `#5B8FA8` | Travel, Culture |
+| L7 | 🌸 Sakura Romance | `#D4729C` | Emotion, Feminine |
+| L8 | 🏖️ Sunset Orange | `#E8914F` | Travel, Lifestyle |
 
 **Dark Themes (3)**
 
 | ID | Name | Primary | Best For |
 |:---:|:---|:---:|:---|
-| D1 | 🌙 Midnight Gold | ![#D4A843](https://via.placeholder.com/12/D4A843/D4A843.png) `#D4A843` | Premium Brand |
-| D2 | 🖤 Deep Space | ![#00D4AA](https://via.placeholder.com/12/00D4AA/00D4AA.png) `#00D4AA` | Tech Product |
-| D3 | 🍷 Wine Dark | ![#C75B5B](https://via.placeholder.com/12/C75B5B/C75B5B.png) `#C75B5B` | Luxury, Wine |
+| D1 | 🌙 Midnight Gold | `#D4A843` | Premium Brand |
+| D2 | 🖤 Deep Space | `#00D4AA` | Tech Product |
+| D3 | 🍷 Wine Dark | `#C75B5B` | Luxury, Wine |
 
 ---
 
@@ -357,6 +455,18 @@ YunType doesn't use "templates". It uses **free combination of 4 atomic dimensio
 
 ---
 
+### 📸 Xiaohongshu Mode
+
+| Feature | Description |
+|:---:|:---|
+| 📐 **Smart Pagination** | Auto-split content by paragraphs for beautiful layouts |
+| 🎨 **5 Cover Variants** | Classic / Bold / Minimal / Card / Magazine |
+| 🖱️ **Drag & Drop Reorder** | Rearrange pages after generation |
+| 🏷️ **Enhanced Ending Page** | CTA buttons (Like/Save/Share) + Brand section + Page count |
+| 📦 **ZIP Export** | One-click download all images, auto-numbered |
+
+---
+
 ### 🚀 Quick Start
 
 ```bash
@@ -380,27 +490,30 @@ npm run dev
 
 | Layer | Tech | Note |
 |:---|:---|:---|
-| Framework | React 18 + TypeScript 5.7 | Component-driven |
+| Framework | React 19 + TypeScript 5.7 | Component-driven |
 | Build | Vite 6 | Instant HMR |
 | Layout Output | Pure Inline CSS | 100% WeChat compatible, zero external deps |
 | Markdown | Custom Lightweight Parser | No 3rd-party lib, precise AST control |
-| Image Export | html2canvas | Xiaohongshu mode PNG export |
-| Fonts | Google Fonts + jsDelivr | 16 free commercial fonts |
-| Deploy | Vercel | Zero-config auto deploy |
+| Image Export | html2canvas (lazy-loaded) | Xiaohongshu mode PNG export |
+| ZIP Export | JSZip (lazy-loaded) | Batch download |
+| Fonts | Google Fonts + jsDelivr | 10 free commercial fonts, on-demand loading |
+| AI | 9 Providers Unified Interface | Qwen/DeepSeek/Doubao/OpenAI/Gemini... |
+| Storage | localStorage | Brand presets + History + Preferences |
+| PWA | Service Worker + Manifest | Offline capable, installable |
+| Deploy | Vercel | Smart cache + Security headers + SPA rewrite |
 
 ---
 
 ### 🗺️ Roadmap
 
 ```
-Phase 1 ✅ (2 weeks)  → MVP: WeChat layout core (paste → preview → copy)
-                         Done: Atomic system + render engine + UI components
-                     
-Phase 2 🔲 (1 week)   → AI analysis + 4-dimension selector panel + sliders
-
-Phase 3 🔲 (2 weeks)  → Xiaohongshu image carousel (auto-paginate + 16 fonts)
-
-Phase 4 🔲 (1-2 weeks) → AI image gen + infographics + optimization
+Phase 1 ✅  → MVP: WeChat layout core (paste → preview → copy)
+Phase 2 ✅  → 4-dimension selector + 8 presets + sliders + random
+Phase 3 ✅  → Xiaohongshu image carousel (auto-paginate + Canvas)
+Phase 4 ✅  → Infographics + AI image gen + Brand presets + History + Onboarding
+Phase 5 ✅  → AI article analysis (9 providers) + Font manager + Mobile responsive
+Phase 6 ✅  → Dark mode + Shortcuts + 5 cover variants + Drag reorder + SEO/PWA + Vercel
+Phase 7 🔲  → i18n + Template marketplace + Collaboration + More export formats
 ```
 
 ---
