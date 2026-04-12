@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云中书 YunType — 排版测试工场</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'Segoe UI', sans-serif; background:#0f0f0f; color:#e0e0e0; min-height:100vh; }
+
+.header { background:#161616; border-bottom:1px solid #333; padding:16px 24px; display:flex; align-items:center; gap:16px; }
+.header h1 { font-size:20px; color:#00D4AA; }
+.header .subtitle { font-size:13px; color:#888; }
+
+.main { display:flex; height:calc(100vh - 56px); }
+
+/* 左侧控制面板 */
+.panel { width:360px; min-width:360px; background:#1a1a1a; border-right:1px solid #333; overflow-y:auto; padding:16px; }
+.panel h3 { font-size:14px; color:#00D4AA; margin:16px 0 8px; padding-bottom:4px; border-bottom:1px solid #333; }
+.panel h3:first-child { margin-top:0; }
+
+.control-group { margin-bottom:12px; }
+.control-group label { display:block; font-size:12px; color:#aaa; margin-bottom:4px; }
+.control-group select { width:100%; padding:8px 10px; background:#252525; color:#e0e0e0; border:1px solid #444; border-radius:6px; font-size:14px; cursor:pointer; outline:none; }
+.control-group select:hover { border-color:#00D4AA; }
+.control-group select:focus { border-color:#00D4AA; box-shadow:0 0 0 2px rgba(0,212,170,0.2); }
+
+.preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+.preset-btn { padding:8px 6px; background:#252525; border:1px solid #444; border-radius:6px; color:#ccc; font-size:12px; cursor:pointer; text-align:center; transition: all 0.2s; }
+.preset-btn:hover { border-color:#00D4AA; color:#00D4AA; background:#1a2a25; }
+.preset-btn.active { border-color:#00D4AA; color:#00D4AA; background:#0d2a20; }
+
+.color-preview { display:flex; gap:4px; margin-top:6px; height:20px; border-radius:4px; overflow:hidden; }
+.color-preview span { flex:1; }
+
+.combo-display { background:#252525; border-radius:6px; padding:10px 12px; margin:12px 0; font-size:13px; color:#aaa; line-height:1.6; }
+.combo-display strong { color:#00D4AA; }
+
+.random-btn { width:100%; padding:10px; background:linear-gradient(135deg, #00D4AA, #00a888); color:#000; font-weight:600; border:none; border-radius:6px; font-size:14px; cursor:pointer; margin-bottom:8px; }
+.random-btn:hover { opacity:0.9; }
+
+.copy-btn { width:100%; padding:10px; background:#333; color:#e0e0e0; border:1px solid #555; border-radius:6px; font-size:14px; cursor:pointer; }
+.copy-btn:hover { border-color:#00D4AA; color:#00D4AA; }
+
+/* 右侧 */
+.right-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+/* 编辑器区域 */
+.editor-area { height:40%; border-bottom:1px solid #333; display:flex; flex-direction:column; }
+.editor-area .toolbar { background:#1a1a1a; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #333; }
+.editor-area .toolbar span { font-size:13px; color:#888; }
+.editor-area textarea { flex:1; padding:16px; background:#111; color:#ddd; border:none; font-size:14px; line-height:1.7; font-family:'Consolas','Monaco',monospace; resize:none; outline:none; }
+
+/* 预览区域 */
+.preview-area { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.preview-area .toolbar { background:#1a1a1a; padding:8px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #333; }
+.preview-area .toolbar span { font-size:13px; color:#888; }
+.preview-frame { flex:1; overflow:auto; padding:24px; display:flex; justify-content:center; }
+.preview-content { max-width:600px; width:100%; }
+
+/* 动态背景 */
+.preview-frame.light-bg { background:#f0f0f0; }
+.preview-frame.dark-bg { background:#0a0a0a; }
+
+.stats { font-size:12px; color:#666; padding:4px 16px; background:#111; text-align:right; border-top:1px solid #222; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>☁️ 云中书排版测试工场</h1>
+  <span class="subtitle">660种组合 · 实时预览 · 自由搭配</span>
+</div>
+
+<div class="main">
+  <!-- 左侧控制面板 -->
+  <div class="panel">
+    <h3>🎯 快速预设</h3>
+    <div class="preset-grid" id="presetGrid"></div>
+    
+    <div style="text-align:center; color:#555; font-size:12px; margin:8px 0;">── 或自由组合 ──</div>
+
+    <h3>🎨 配色方案（11种）</h3>
+    <div class="control-group">
+      <select id="colorSelect"></select>
+      <div class="color-preview" id="colorPreview"></div>
+    </div>
+
+    <h3>📐 排版结构（5种）</h3>
+    <div class="control-group">
+      <select id="layoutSelect"></select>
+    </div>
+
+    <h3>🎭 装饰风格（4种）</h3>
+    <div class="control-group">
+      <select id="decorationSelect"></select>
+    </div>
+
+    <h3>✒️ 字体气质（3种）</h3>
+    <div class="control-group">
+      <select id="typographySelect"></select>
+    </div>
+
+    <div class="combo-display" id="comboDisplay"></div>
+
+    <button class="random-btn" onclick="randomCombo()">🎲 随机组合</button>
+    <button class="copy-btn" onclick="copyHTML()">📋 复制排版 HTML</button>
+    <button class="copy-btn" style="margin-top:6px;" onclick="copyToWeChat()">📎 复制到公众号（富文本）</button>
+  </div>
+
+  <!-- 右侧区域 -->
+  <div class="right-area">
+    <div class="editor-area">
+      <div class="toolbar">
+        <span>📝 Markdown 编辑器</span>
+        <span id="charCount">0 字</span>
+      </div>
+      <textarea id="editor" placeholder="在这里粘贴或输入 Markdown 文章..."></textarea>
+    </div>
+    <div class="preview-area">
+      <div class="toolbar">
+        <span>👁️ 实时预览（模拟微信公众号宽度）</span>
+        <span id="comboLabel">-</span>
+      </div>
+      <div class="preview-frame light-bg" id="previewFrame">
+        <div class="preview-content" id="previewContent">
+          <p style="color:#888; text-align:center; padding:40px;">在左侧输入文章，实时预览排版效果</p>
+        </div>
+      </div>
+    </div>
+    <div class="stats" id="stats">660 种组合可选</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  数据定义（与 MCP Server 同源）
+// ═══════════════════════════════════════
+
+const colorSchemes = [
+  { id:'L1', name:'奶茶温柔', category:'light', tags:['温暖','生活','美食'], colors:{ pageBg:'#FAF6F1', contentBg:'#FFFDF9', primary:'#C8A882', secondary:'#E8D5C0', accent:'#B8956A', text:'#5C4A3A', textMuted:'#9B8B7A' }},
+  { id:'L2', name:'薄荷清新', category:'light', tags:['清新','健康','自然'], colors:{ pageBg:'#F0FAF6', contentBg:'#F8FFFC', primary:'#2D9F83', secondary:'#B8E6D6', accent:'#1A8A6E', text:'#2C4A40', textMuted:'#6B9B8A' }},
+  { id:'L3', name:'蜜桃活力', category:'light', tags:['活力','年轻','美妆'], colors:{ pageBg:'#FFF5F0', contentBg:'#FFFAF7', primary:'#FF7B54', secondary:'#FFD4C4', accent:'#E8633A', text:'#5C3A2A', textMuted:'#B08070' }},
+  { id:'L4', name:'烟灰高级', category:'light', tags:['商务','科技','极简'], colors:{ pageBg:'#F5F5F5', contentBg:'#FFFFFF', primary:'#6B6B6B', secondary:'#E0E0E0', accent:'#444444', text:'#333333', textMuted:'#999999' }},
+  { id:'L5', name:'藤紫文艺', category:'light', tags:['文学','艺术','诗意'], colors:{ pageBg:'#F8F4FC', contentBg:'#FEFBFF', primary:'#8B6FC0', secondary:'#D8C8F0', accent:'#7055A8', text:'#3A2C50', textMuted:'#8B7BA0' }},
+  { id:'L6', name:'天青雅致', category:'light', tags:['科技','教育','专业'], colors:{ pageBg:'#F2F7FA', contentBg:'#F9FCFE', primary:'#5B8FA8', secondary:'#C4DAE8', accent:'#3A7A98', text:'#2C3E4A', textMuted:'#7A9AAA' }},
+  { id:'L7', name:'樱花浪漫', category:'light', tags:['女性','浪漫','情感'], colors:{ pageBg:'#FFF5F8', contentBg:'#FFFAFC', primary:'#D4729C', secondary:'#F0C4D8', accent:'#C05A88', text:'#4A2A3A', textMuted:'#A07888' }},
+  { id:'L8', name:'落日暖橘', category:'light', tags:['温暖','旅行','生活'], colors:{ pageBg:'#FFF8F0', contentBg:'#FFFCF7', primary:'#E8914F', secondary:'#F8D4B0', accent:'#D07838', text:'#4A3020', textMuted:'#A08060' }},
+  { id:'D1', name:'墨夜金字', category:'dark', tags:['奢华','商务','金融'], colors:{ pageBg:'#1A1A2E', contentBg:'#16213E', primary:'#D4A843', secondary:'#2A2A4A', accent:'#E8C060', text:'#E8E0D0', textMuted:'#8A8078' }},
+  { id:'D2', name:'深空科技', category:'dark', tags:['科技','极客','编程'], colors:{ pageBg:'#0D1117', contentBg:'#161B22', primary:'#00D4AA', secondary:'#1A2A30', accent:'#58D6B0', text:'#C8D0D8', textMuted:'#6A7A80' }},
+  { id:'D3', name:'暗夜酒红', category:'dark', tags:['学术','分析','严肃'], colors:{ pageBg:'#1A1018', contentBg:'#241820', primary:'#C75B5B', secondary:'#2A1A28', accent:'#E07070', text:'#E0D0D0', textMuted:'#887078' }},
+];
+
+const layouts = [
+  { id:'T1', name:'紧凑知识型', desc:'信息密度高，适合教程干货' },
+  { id:'T2', name:'舒展阅读型', desc:'行距宽松，适合长文散文' },
+  { id:'T3', name:'卡片模块型', desc:'卡片式布局，结构化内容' },
+  { id:'T4', name:'杂志编辑型', desc:'大标题杂志感，深度报道' },
+  { id:'T5', name:'对话访谈型', desc:'对话体排版，访谈FAQ' },
+];
+
+const decorations = [
+  { id:'S1', name:'极简线条', desc:'细线分割，呼吸感强' },
+  { id:'S2', name:'色块标签', desc:'色块强调，模块化' },
+  { id:'S3', name:'圆润气泡', desc:'大圆角，柔和温暖' },
+  { id:'S4', name:'几何装饰', desc:'几何符号，设计感强' },
+];
+
+const typographies = [
+  { id:'F1', name:'现代简约', desc:'粗标题+细正文' },
+  { id:'F2', name:'文艺优雅', desc:'半粗标题+宽字距' },
+  { id:'F3', name:'活泼趣味', desc:'超粗标题+零字距' },
+];
+
+const presets = [
+  { name:'💼 商务简约', ids:{ colorId:'L4', layoutId:'T1', decorationId:'S1', typographyId:'F1' }},
+  { name:'🌿 文艺清新', ids:{ colorId:'L2', layoutId:'T2', decorationId:'S3', typographyId:'F2' }},
+  { name:'🍵 温柔奶茶', ids:{ colorId:'L1', layoutId:'T2', decorationId:'S2', typographyId:'F2' }},
+  { name:'🍑 活力蜜桃', ids:{ colorId:'L3', layoutId:'T1', decorationId:'S4', typographyId:'F3' }},
+  { name:'🌙 暗夜金字', ids:{ colorId:'D1', layoutId:'T4', decorationId:'S2', typographyId:'F2' }},
+  { name:'💻 科技极光', ids:{ colorId:'D2', layoutId:'T1', decorationId:'S4', typographyId:'F1' }},
+  { name:'🌸 樱花浪漫', ids:{ colorId:'L8', layoutId:'T4', decorationId:'S3', typographyId:'F2' }},
+  { name:'🌊 深海学术', ids:{ colorId:'D3', layoutId:'T3', decorationId:'S2', typographyId:'F1' }},
+];
+
+// ═══════════════════════════════════════
+//  排版引擎（与 MCP Server 同源）
+// ═══════════════════════════════════════
+
+function getLayoutParams(id) {
+  const map = {
+    T1: { fontSizeBody:'15px', fontSizeH1:'22px', fontSizeH2:'18px', fontSizeH3:'16px', lineHeight:'1.75', paragraphSpacing:'16px', headingTopSpacing:'28px', listItemSpacing:'6px', contentPadding:'20px 24px' },
+    T2: { fontSizeBody:'16px', fontSizeH1:'24px', fontSizeH2:'20px', fontSizeH3:'17px', lineHeight:'2.0', paragraphSpacing:'24px', headingTopSpacing:'36px', listItemSpacing:'10px', contentPadding:'24px 28px', textIndent:'2em' },
+    T3: { fontSizeBody:'15px', fontSizeH1:'22px', fontSizeH2:'18px', fontSizeH3:'16px', lineHeight:'1.8', paragraphSpacing:'20px', headingTopSpacing:'32px', listItemSpacing:'8px', contentPadding:'20px 24px' },
+    T4: { fontSizeBody:'15px', fontSizeH1:'28px', fontSizeH2:'20px', fontSizeH3:'16px', lineHeight:'1.85', paragraphSpacing:'20px', headingTopSpacing:'48px', listItemSpacing:'8px', contentPadding:'24px 28px', firstParagraphSize:'18px', blockquoteFontSize:'16px', blockquoteTextAlign:'center', blockquoteFontStyle:'italic' },
+    T5: { fontSizeBody:'15px', fontSizeH1:'22px', fontSizeH2:'18px', fontSizeH3:'16px', lineHeight:'1.8', paragraphSpacing:'16px', headingTopSpacing:'28px', listItemSpacing:'6px', contentPadding:'20px 24px' },
+  };
+  return map[id] || map['T1'];
+}
+
+function getTypoParams(id) {
+  const map = {
+    F1: { headingWeight:'700', bodyWeight:'400', letterSpacing:'0.5px' },
+    F2: { headingWeight:'600', bodyWeight:'400', letterSpacing:'1px' },
+    F3: { headingWeight:'800', bodyWeight:'400', letterSpacing:'0px' },
+  };
+  return map[id] || map['F1'];
+}
+
+function getDecoTemplates(id, c) {
+  const templates = {
+    S1: {
+      h2: (text) => `<h2 style="border-bottom:2px solid ${c.primary};padding-bottom:8px;margin:0;">${text}</h2>`,
+      h3: (text) => `<h3 style="border-left:3px solid ${c.primary};padding-left:10px;margin:0;">${text}</h3>`,
+      blockquote: (content) => `<section style="border-left:3px solid ${c.secondary};padding:12px 16px;background:rgba(0,0,0,0.03);color:${c.text};margin:0;">${content}</section>`,
+      hr: () => `<section style="border-top:1px solid ${c.secondary};margin:24px 0;"></section>`,
+      listMarker: '●',
+    },
+    S2: {
+      h2: (text) => `<h2 style="margin:0;"><span style="background:${c.primary};color:#FFFFFF;padding:6px 16px;border-radius:4px;display:inline-block;">${text}</span></h2>`,
+      h3: (text) => `<h3 style="margin:0;"><span style="background:${c.secondary};color:${c.primary};padding:4px 12px;border-radius:3px;display:inline-block;">${text}</span></h3>`,
+      blockquote: (content) => `<section style="background:${c.secondary};padding:16px 20px;border-radius:6px;color:${c.text};margin:0;">${content}</section>`,
+      hr: () => `<section style="border-top:3px solid ${c.secondary};margin:24px 0;"></section>`,
+      listMarker: `<span style="color:${c.primary};">■</span>`,
+    },
+    S3: {
+      h2: (text) => `<h2 style="margin:0;"><span style="background:${c.secondary};padding:8px 20px;border-radius:20px;display:inline-block;">${text}</span></h2>`,
+      h3: (text) => `<h3 style="margin:0;"><span style="background:${c.secondary};padding:6px 16px;border-radius:16px;display:inline-block;">${text}</span></h3>`,
+      blockquote: (content) => `<section style="background:${c.secondary};padding:16px 20px;border-radius:12px;color:${c.text};margin:0;">${content}</section>`,
+      hr: () => `<p style="text-align:center;color:${c.primary};letter-spacing:8px;margin:24px 0;">· · · · ·</p>`,
+      listMarker: '🔹',
+    },
+    S4: {
+      h2: (text) => `<h2 style="padding-left:0;margin:0;"><span style="color:${c.primary};margin-right:8px;">◆</span>${text}</h2>`,
+      h3: (text) => `<h3 style="padding-left:0;margin:0;"><span style="color:${c.primary};margin-right:8px;">▸</span>${text}</h3>`,
+      blockquote: (content) => `<section style="border:2px double ${c.secondary};padding:16px;color:${c.text};margin:0;">${content}</section>`,
+      hr: () => `<p style="text-align:center;color:${c.secondary};letter-spacing:6px;margin:24px 0;">◇ ◇ ◇</p>`,
+      listMarker: `<span style="color:${c.primary};">▶</span>`,
+    },
+  };
+  return templates[id] || templates['S1'];
+}
+
+function renderInline(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:3px;font-size:0.9em;">$1</code>')
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="text-decoration:underline;">$1</a>');
+}
+
+function parseMarkdown(md) {
+  const lines = md.split('\n');
+  const nodes = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim() === '') { i++; continue; }
+    const hm = line.match(/^(#{1,3})\s+(.+)/);
+    if (hm) { nodes.push({ type:'heading', level:hm[1].length, text:hm[2].trim() }); i++; continue; }
+    if (/^(-{3,}|\*{3,}|_{3,})\s*$/.test(line.trim())) { nodes.push({ type:'hr' }); i++; continue; }
+    const im = line.trim().match(/^!\[(.*)?\]\((.+?)\)$/);
+    if (im) { nodes.push({ type:'image', alt:im[1]||'', src:im[2] }); i++; continue; }
+    if (line.trim().startsWith('```')) {
+      const lang = line.trim().slice(3).trim(); const cl = []; i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) { cl.push(lines[i]); i++; }
+      nodes.push({ type:'code', text:cl.join('\n'), lang:lang||undefined }); i++; continue;
+    }
+    if (line.trimStart().startsWith('> ')) {
+      const ql = [];
+      while (i < lines.length && lines[i].trimStart().startsWith('> ')) { ql.push(lines[i].trimStart().slice(2)); i++; }
+      nodes.push({ type:'blockquote', text:ql.join('\n') }); continue;
+    }
+    if (/^\s*[-*+]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*[-*+]\s+/,'').trim()); i++; }
+      nodes.push({ type:'list', ordered:false, children:items }); continue;
+    }
+    if (/^\s*\d+\.\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*\d+\.\s+/,'').trim()); i++; }
+      nodes.push({ type:'list', ordered:true, children:items }); continue;
+    }
+    nodes.push({ type:'paragraph', text:line.trim() }); i++;
+  }
+  return nodes;
+}
+
+function renderWechatHTML(markdown, colorId, layoutId, decorationId, typographyId) {
+  const color = colorSchemes.find(c => c.id === colorId) || colorSchemes[0];
+  const c = color.colors;
+  const p = getLayoutParams(layoutId);
+  const typo = getTypoParams(typographyId);
+  const deco = getDecoTemplates(decorationId, c);
+  const nodes = parseMarkdown(markdown);
+  let html = '';
+  let isFirst = true;
+
+  for (const node of nodes) {
+    switch (node.type) {
+      case 'heading': {
+        const text = renderInline(node.text || '');
+        const level = node.level || 2;
+        const sizes = { 1:p.fontSizeH1, 2:p.fontSizeH2, 3:p.fontSizeH3 };
+        const fs = sizes[level] || p.fontSizeH2;
+        if (level === 1) {
+          html += `<section style="margin-top:${p.headingTopSpacing};margin-bottom:${p.paragraphSpacing};font-size:${fs};font-weight:${typo.headingWeight};color:${c.primary};text-align:center;line-height:1.3;">${text}</section>`;
+        } else if (level === 2) {
+          html += `<section style="margin-top:${p.headingTopSpacing};margin-bottom:${p.paragraphSpacing};font-size:${fs};font-weight:${typo.headingWeight};color:${c.primary};line-height:1.4;">${deco.h2(text)}</section>`;
+        } else {
+          html += `<section style="margin-top:${p.headingTopSpacing};margin-bottom:${p.paragraphSpacing};font-size:${fs};font-weight:${typo.headingWeight};color:${c.primary};line-height:1.4;">${deco.h3(text)}</section>`;
+        }
+        break;
+      }
+      case 'paragraph': {
+        const text = renderInline(node.text || '');
+        const fs = (isFirst && p.firstParagraphSize) ? p.firstParagraphSize : p.fontSizeBody;
+        const indent = p.textIndent ? `text-indent:${p.textIndent};` : '';
+        html += `<p style="margin:0 0 ${p.paragraphSpacing} 0;font-size:${fs};line-height:${p.lineHeight};color:${c.text};font-weight:${typo.bodyWeight};letter-spacing:${typo.letterSpacing};${indent}">${text}</p>`;
+        isFirst = false;
+        break;
+      }
+      case 'blockquote': {
+        const text = renderInline(node.text || '');
+        const bqExtra = p.blockquoteFontStyle ? `font-style:${p.blockquoteFontStyle};text-align:${p.blockquoteTextAlign||'left'};font-size:${p.blockquoteFontSize||p.fontSizeBody};` : '';
+        html += `<section style="margin:0 0 ${p.paragraphSpacing} 0;font-size:${p.fontSizeBody};letter-spacing:${typo.letterSpacing};${bqExtra}">${deco.blockquote(text)}</section>`;
+        break;
+      }
+      case 'list': {
+        const items = (node.children || []).map((item, idx) => {
+          const prefix = node.ordered
+            ? `<span style="color:${c.primary};font-weight:bold;margin-right:6px;">${idx+1}.</span>`
+            : `<span style="margin-right:6px;">${deco.listMarker}</span>`;
+          return `<section style="margin-bottom:${p.listItemSpacing};font-size:${p.fontSizeBody};line-height:${p.lineHeight};color:${c.text};font-weight:${typo.bodyWeight};letter-spacing:${typo.letterSpacing};">${prefix}${renderInline(item)}</section>`;
+        }).join('');
+        html += `<section style="margin:0 0 ${p.paragraphSpacing} 0;padding-left:8px;">${items}</section>`;
+        break;
+      }
+      case 'code': {
+        const isDark = color.category === 'dark';
+        const bgColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+        const textColor = isDark ? '#C8D0D8' : '#333333';
+        const code = (node.text || '').replace(/</g, '<').replace(/>/g, '>');
+        html += `<section style="margin:0 0 ${p.paragraphSpacing} 0;background:${bgColor};padding:12px 16px;border-radius:4px;overflow:hidden;"><pre style="margin:0;white-space:pre-wrap;word-break:break-all;font-size:13px;line-height:1.6;color:${textColor};font-family:Consolas,Monaco,'Courier New',monospace;">${code}</pre></section>`;
+        break;
+      }
+      case 'hr':
+        html += deco.hr();
+        break;
+      case 'image':
+        html += `<section style="text-align:center;margin:16px 0;"><img src="${node.src}" alt="${node.alt||''}" style="max-width:100%;border-radius:4px;" /></section>`;
+        break;
+    }
+  }
+
+  return `<section style="background-color:${c.contentBg};padding:${p.contentPadding};max-width:100%;box-sizing:border-box;color:${c.text};font-size:${p.fontSizeBody};line-height:${p.lineHeight};letter-spacing:${typo.letterSpacing};font-weight:${typo.bodyWeight};">${html}</section>`;
+}
+
+// ═══════════════════════════════════════
+//  UI 交互
+// ═══════════════════════════════════════
+
+let currentHTML = '';
+
+// 初始化下拉框
+function initSelects() {
+  const cs = document.getElementById('colorSelect');
+  colorSchemes.forEach(c => {
+    cs.innerHTML += `<option value="${c.id}">${c.id} ${c.name}（${c.category==='dark'?'深色':'浅色'} · ${c.tags.join('/')}）</option>`;
+  });
+
+  const ls = document.getElementById('layoutSelect');
+  layouts.forEach(l => {
+    ls.innerHTML += `<option value="${l.id}">${l.id} ${l.name} — ${l.desc}</option>`;
+  });
+
+  const ds = document.getElementById('decorationSelect');
+  decorations.forEach(d => {
+    ds.innerHTML += `<option value="${d.id}">${d.id} ${d.name} — ${d.desc}</option>`;
+  });
+
+  const ts = document.getElementById('typographySelect');
+  typographies.forEach(t => {
+    ts.innerHTML += `<option value="${t.id}">${t.id} ${t.name} — ${t.desc}</option>`;
+  });
+}
+
+// 初始化预设按钮
+function initPresets() {
+  const grid = document.getElementById('presetGrid');
+  presets.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.textContent = p.name;
+    btn.onclick = () => applyPreset(i);
+    grid.appendChild(btn);
+  });
+}
+
+function applyPreset(idx) {
+  const p = presets[idx];
+  document.getElementById('colorSelect').value = p.ids.colorId;
+  document.getElementById('layoutSelect').value = p.ids.layoutId;
+  document.getElementById('decorationSelect').value = p.ids.decorationId;
+  document.getElementById('typographySelect').value = p.ids.typographyId;
+  
+  // 高亮当前预设
+  document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+  
+  updatePreview();
+}
+
+function randomCombo() {
+  const cs = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
+  const ls = layouts[Math.floor(Math.random() * layouts.length)];
+  const ds = decorations[Math.floor(Math.random() * decorations.length)];
+  const ts = typographies[Math.floor(Math.random() * typographies.length)];
+  
+  document.getElementById('colorSelect').value = cs.id;
+  document.getElementById('layoutSelect').value = ls.id;
+  document.getElementById('decorationSelect').value = ds.id;
+  document.getElementById('typographySelect').value = ts.id;
+  
+  document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+  updatePreview();
+}
+
+function updateColorPreview() {
+  const cid = document.getElementById('colorSelect').value;
+  const color = colorSchemes.find(c => c.id === cid);
+  if (!color) return;
+  const c = color.colors;
+  const preview = document.getElementById('colorPreview');
+  preview.innerHTML = `
+    <span style="background:${c.primary}" title="primary: ${c.primary}"></span>
+    <span style="background:${c.secondary}" title="secondary: ${c.secondary}"></span>
+    <span style="background:${c.accent}" title="accent: ${c.accent}"></span>
+    <span style="background:${c.contentBg}; border:1px solid #444;" title="contentBg: ${c.contentBg}"></span>
+    <span style="background:${c.text}" title="text: ${c.text}"></span>
+  `;
+}
+
+function updateComboDisplay() {
+  const cid = document.getElementById('colorSelect').value;
+  const lid = document.getElementById('layoutSelect').value;
+  const did = document.getElementById('decorationSelect').value;
+  const tid = document.getElementById('typographySelect').value;
+  
+  const cn = colorSchemes.find(c => c.id === cid)?.name || cid;
+  const ln = layouts.find(l => l.id === lid)?.name || lid;
+  const dn = decorations.find(d => d.id === did)?.name || did;
+  const tn = typographies.find(t => t.id === tid)?.name || tid;
+  
+  const combo = `${cn} · ${ln} · ${dn} · ${tn}`;
+  document.getElementById('comboDisplay').innerHTML = `当前组合：<strong>${combo}</strong><br><span style="font-size:11px;color:#666;">${cid} + ${lid} + ${did} + ${tid}</span>`;
+  document.getElementById('comboLabel').textContent = combo;
+}
+
+function updatePreview() {
+  const md = document.getElementById('editor').value;
+  if (!md.trim()) {
+    document.getElementById('previewContent').innerHTML = '<p style="color:#888; text-align:center; padding:40px;">在左侧输入文章，实时预览排版效果</p>';
+    return;
+  }
+  
+  const cid = document.getElementById('colorSelect').value;
+  const lid = document.getElementById('layoutSelect').value;
+  const did = document.getElementById('decorationSelect').value;
+  const tid = document.getElementById('typographySelect').value;
+  
+  currentHTML = renderWechatHTML(md, cid, lid, did, tid);
+  document.getElementById('previewContent').innerHTML = currentHTML;
+  
+  // 更新预览区背景
+  const color = colorSchemes.find(c => c.id === cid);
+  const frame = document.getElementById('previewFrame');
+  if (color?.category === 'dark') {
+    frame.className = 'preview-frame dark-bg';
+  } else {
+    frame.className = 'preview-frame light-bg';
+  }
+  
+  updateColorPreview();
+  updateComboDisplay();
+  
+  // 更新统计
+  const charCount = md.replace(/\s/g,'').length;
+  document.getElementById('charCount').textContent = `${charCount} 字`;
+  document.getElementById('stats').textContent = `${cid}+${lid}+${did}+${tid} | ${charCount} 字 | 660 种组合可选`;
+}
+
+function copyHTML() {
+  if (!currentHTML) { alert('请先输入文章并生成排版'); return; }
+  navigator.clipboard.writeText(currentHTML).then(() => {
+    alert('✅ HTML 已复制到剪贴板！\n\n粘贴到公众号编辑器的"代码编辑"模式即可。');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = currentHTML;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('✅ HTML 已复制！');
+  });
+}
+
+function copyToWeChat() {
+  if (!currentHTML) { alert('请先输入文章并生成排版'); return; }
+  // 创建临时富文本复制
+  const container = document.createElement('div');
+  container.innerHTML = currentHTML;
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  document.body.appendChild(container);
+  
+  const range = document.createRange();
+  range.selectNodeContents(container);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  
+  try {
+    document.execCommand('copy');
+    alert('✅ 富文本已复制！\n\n直接 Ctrl+V 粘贴到公众号编辑器即可（无需代码模式）。');
+  } catch(e) {
+    alert('复制失败，请用"复制排版 HTML"按钮代替。');
+  }
+  
+  document.body.removeChild(container);
+  sel.removeAllRanges();
+}
+
+// ═══════════════════════════════════════
+//  初始化
+// ═══════════════════════════════════════
+
+const defaultMd = `# 云中书：让排版回归创作本身
+
+## 为什么需要云中书？
+
+在内容创作的时代，**排版不应该成为创作的障碍**。太多创作者把时间花在调整样式、选择模板上，而不是专注于内容本身。
+
+> 好的排版应该是透明的——读者感受到的是内容的力量，而不是设计的痕迹。
+
+## 660种组合的秘密
+
+云中书采用**原子化设计**：
+
+- 🎨 11套配色方案：从奶茶温柔到深空科技
+- 📐 5种排版结构：紧凑知识型、舒展阅读型、卡片模块型...
+- 🎭 4种装饰风格：极简线条、色块标签、圆润气泡、几何装饰
+- ✒️ 3种字体气质：现代简约、文艺优雅、活泼趣味
+
+这不是660个模板，而是**四个维度的自由组合**。每一种组合都有独特的气质。
+
+### 技术实现
+
+所有排版输出为**纯内联CSS**，确保100%微信公众号兼容：
+
+\`\`\`html
+<section style="background-color:#FFFFFF;padding:20px;">
+  <p style="font-size:15px;line-height:1.75;">正文内容</p>
+</section>
+\`\`\`
+
+## 三种使用方式
+
+1. **Web App**：打开网页直接用，零门槛
+2. **MCP Server**：AI编辑器直接调用
+3. **Prompt Skill**：用订阅额度，AI变排版引擎
+
+---
+
+选择最适合你的方式，开始创作吧！
+
+> 云中谁寄锦书来？`;
+
+initSelects();
+initPresets();
+
+document.getElementById('editor').value = defaultMd;
+
+// 绑定事件
+document.getElementById('editor').addEventListener('input', updatePreview);
+document.getElementById('colorSelect').addEventListener('change', () => { document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active')); updatePreview(); });
+document.getElementById('layoutSelect').addEventListener('change', () => { document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active')); updatePreview(); });
+document.getElementById('decorationSelect').addEventListener('change', () => { document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active')); updatePreview(); });
+document.getElementById('typographySelect').addEventListener('change', () => { document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active')); updatePreview(); });
+
+// 初始渲染
+updatePreview();
+</script>
+
+</body>
+</html>
