@@ -101,6 +101,22 @@ export const chatProviderPresets: ChatProviderPreset[] = [
     description: '硅基流动，免费模型多',
   },
   {
+    id: 'claude',
+    name: 'Claude',
+    icon: '🟤',
+    baseUrl: 'https://api.anthropic.com/v1',
+    defaultModel: 'claude-sonnet-4-20250514',
+    description: 'Anthropic Claude，文字/代码最强',
+  },
+  {
+    id: 'grok',
+    name: 'Grok',
+    icon: '𝕏',
+    baseUrl: 'https://api.x.ai/v1',
+    defaultModel: 'grok-3-mini',
+    description: 'xAI Grok，推理能力强',
+  },
+  {
     id: 'custom',
     name: '自定义',
     icon: '🔧',
@@ -147,6 +163,9 @@ export async function chat(
     if (config.provider === 'gemini') {
       return await callGemini(config, messages)
     }
+    if (config.provider === 'claude') {
+      return await callClaude(config, messages)
+    }
     return await callOpenAICompatible(config, messages)
   } catch (err: any) {
     return { success: false, error: err.message || '请求失败' }
@@ -192,6 +211,56 @@ async function callOpenAICompatible(
   return { success: true, content }
 }
 
+// ═══════════════════════════════════════
+//  Claude (Anthropic) 原生格式
+// ═══════════════════════════════════════
+
+async function callClaude(
+  config: AIClientConfig,
+  messages: ChatMessage[],
+): Promise<ChatResponse> {
+  const url = `${config.baseUrl.replace(/\/$/, '')}/messages`
+
+  // Claude 的 system 是顶层参数，不在 messages 里
+  const systemMsg = messages.find(m => m.role === 'system')
+  const chatMsgs = messages
+    .filter(m => m.role !== 'system')
+    .map(m => ({ role: m.role, content: m.content }))
+
+  const body: any = {
+    model: config.model,
+    max_tokens: 1024,
+    messages: chatMsgs,
+  }
+  if (systemMsg) {
+    body.system = systemMsg.content
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '')
+    throw new Error(`Claude API错误 ${res.status}: ${errText.slice(0, 200)}`)
+  }
+
+  const data = await res.json()
+  const content = data.content?.[0]?.text
+
+  if (!content) {
+    throw new Error('Claude 返回了空内容')
+  }
+
+  return { success: true, content }
+}
 // ═══════════════════════════════════════
 //  Gemini 原生格式
 // ═══════════════════════════════════════

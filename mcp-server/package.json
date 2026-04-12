@@ -1,0 +1,24 @@
+{
+  "name": "yuntype-mcp",
+  "version": "0.1.0",
+  "description": "YunType MCP Server — 云中书排版引擎 MCP 工具，让 AI 助手直接调用 660 种排版组合",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "yuntype-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["mcp", "yuntype", "typesetting", "wechat", "xiaohongshu", "markdown"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}
