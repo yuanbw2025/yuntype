@@ -145,19 +145,37 @@ claude mcp add yuntype node <你的路径>/yuntype/mcp-server/dist/index.js
 
 ---
 
-#### 📜 方式三：Prompt Skill
+#### 📜 方式三：Prompt Skill（⭐ 推荐）
 
-> 适用于 **OpenClaw / GPTs / Coze / 扣子** 等 AI 平台。通过导入 Prompt Skill 描述文件，让平台上的 AI 学会云中书的排版能力。
+> **不需要任何 API Key，直接用你的 Claude Pro / Gemini 订阅额度！** 在 claude.ai 的 Artifacts 画布或 Google AI Studio 的 Canvas 中实时预览排版效果，自由搭配、自由调试。
 
-**使用方法**：
+**完整版 Skill**（推荐）— 包含全部 660 种组合的完整数据和渲染规则，AI 直接变成排版引擎：
 
-1. 打开 `yuntype/skill/yuntype-skill.md`
-2. 将文件内容复制到平台的 Skill / System Prompt / 知识库中
-3. 对话中直接说"帮我排版这篇文章"
+1. 打开 [`yuntype/skill/yuntype-complete-skill.md`](skill/yuntype-complete-skill.md)
+2. 复制全部内容到 claude.ai 的 Project System Prompt / AI Studio 的 System Instructions
+3. 发送文章 → AI 分析推荐 → **Artifacts/Canvas 画布直接预览** → 说"换个暖色"即时调整 → 满意后复制 HTML
 
-**Skill 文件位置**：[`yuntype/skill/yuntype-skill.md`](skill/yuntype-skill.md)
+```
+你：帮我排版这篇文章（粘贴文章）
+AI：推荐 L4烟灰高级 + T1紧凑知识型 + S1极简线条 + F1现代简约
+   （画布中显示排版效果）
 
-> 💡 Prompt Skill 不需要代码执行环境，纯靠 AI 理解排版规则后生成 HTML。适合不能安装 MCP 的场景。
+你：颜色太冷了，换个暖色
+AI：切换为 L1奶茶温柔（画布立即刷新）
+
+你：装饰想要卡片风格
+AI：切换为 S2色块标签（画布更新）
+
+你：完美！
+AI：请在画布中复制 HTML → 粘贴到公众号编辑器
+```
+
+**轻量版 Skill** — 仅做推荐，引导用户去 Web App 操作：
+
+- 文件：[`yuntype/skill/yuntype-skill.md`](skill/yuntype-skill.md)
+- 适用于 OpenClaw / GPTs / Coze 等不支持画布的平台
+
+> 💡 完整版 Skill 的核心优势：**用订阅额度代替 API Key**。你订阅的 Claude Pro / Gemini Advanced 本身就是排版引擎，不需要额外付费。
 
 ---
 
