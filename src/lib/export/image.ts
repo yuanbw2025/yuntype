@@ -1,8 +1,23 @@
 // 小红书图片导出 — HTML→PNG + ZIP打包
+// 支持 V1 (StyleCombo) + V2 (StyleComboV2) 双模式
 
 import type { XhsPage, XhsConfig } from '../render/xiaohongshu'
-import { renderXhsPageHTML } from '../render/xiaohongshu'
-import type { StyleCombo } from '../atoms'
+import { renderXhsPageHTML, renderXhsPageV2 } from '../render/xiaohongshu'
+import type { StyleCombo, StyleComboV2 } from '../atoms'
+
+/** 根据模式渲染页面 HTML */
+function renderPageHTML(
+  page: XhsPage,
+  style: StyleCombo,
+  config: XhsConfig,
+  styleV2?: StyleComboV2,
+  useV2?: boolean,
+): string {
+  if (useV2 && styleV2) {
+    return renderXhsPageV2(page, styleV2, config)
+  }
+  return renderXhsPageHTML(page, style, config)
+}
 
 /** 将单页 HTML 渲染为 PNG Blob */
 async function renderPageToImage(
@@ -90,8 +105,10 @@ export async function downloadSinglePage(
   style: StyleCombo,
   config: XhsConfig,
   filename?: string,
+  styleV2?: StyleComboV2,
+  useV2?: boolean,
 ): Promise<void> {
-  const html = renderXhsPageHTML(page, style, config)
+  const html = renderPageHTML(page, style, config, styleV2, useV2)
   const blob = await renderPageToImage(html, config.width, config.height)
   const name = filename || `yuntype-${String(page.pageIndex + 1).padStart(2, '0')}.png`
   downloadBlob(blob, name)
@@ -103,12 +120,14 @@ export async function exportAllPagesAsZip(
   style: StyleCombo,
   config: XhsConfig,
   onProgress?: (progress: number) => void,
+  styleV2?: StyleComboV2,
+  useV2?: boolean,
 ): Promise<void> {
   const { default: JSZip } = await import('jszip')
   const zip = new JSZip()
 
   for (let i = 0; i < pages.length; i++) {
-    const html = renderXhsPageHTML(pages[i], style, config)
+    const html = renderPageHTML(pages[i], style, config, styleV2, useV2)
     const blob = await renderPageToImage(html, config.width, config.height)
 
     const paddedIndex = String(i + 1).padStart(2, '0')

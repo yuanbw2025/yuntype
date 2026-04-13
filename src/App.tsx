@@ -273,6 +273,7 @@ export default function App() {
                 atomIdsV2={atomIdsV2}
                 onChange={setAtomIdsV2}
                 onShuffle={handleShuffle}
+                article={article}
               />
             ) : (
               <StylePanel
@@ -312,6 +313,8 @@ export default function App() {
             <XiaohongshuPreview
               markdown={article}
               style={finalStyle}
+              styleV2={finalStyleV2}
+              useV2={useV2}
               comboName={comboName}
               atomIds={atomIds}
             />

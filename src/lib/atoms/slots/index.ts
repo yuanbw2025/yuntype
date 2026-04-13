@@ -15,6 +15,26 @@ export interface RenderContext {
   colors: ColorScheme['colors']
   typo: TypographySet['wechat']
   isDark: boolean
+  /** 渲染平台：wechat（默认）或 xhs */
+  platform?: 'wechat' | 'xhs'
+  /** 像素缩放系数：xhs 约 2x，wechat 默认 1 */
+  scale?: number
+}
+
+// ─── 像素缩放工具 ──────────────────────────────────────
+/**
+ * 根据平台自动缩放像素值
+ * wechat: scale=1 → px(15, ctx) = "15px"
+ * xhs 3:4: scale=2 → px(15, ctx) = "30px"
+ */
+export function px(base: number, ctx: RenderContext): string {
+  const s = ctx.scale ?? 1
+  return `${Math.round(base * s)}px`
+}
+
+/** 缩放并返回数值（不加 px 后缀），用于需要计算的场景 */
+export function pxN(base: number, ctx: RenderContext): number {
+  return Math.round(base * (ctx.scale ?? 1))
 }
 
 // ─── 各插槽的渲染函数签名 ─────────────────────────────

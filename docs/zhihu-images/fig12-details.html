@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 YunType — 更多细节</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.canvas {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 35%, #302b63 70%, #24243e 100%);
+  overflow: hidden; padding: 28px 48px;
+}
+.glow1 { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%); top: -100px; left: -60px; }
+.glow2 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%); bottom: -60px; right: 100px; }
+.glow3 { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%); top: 50%; left: 50%; }
+
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; position: relative; z-index: 10; }
+.tag { padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(168,85,247,0.2); color: #D8B4FE; border: 1px solid rgba(168,85,247,0.3); }
+.title { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: 1px; }
+.title em { font-style: normal; background: linear-gradient(90deg, #A78BFA, #D8B4FE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+/* 功能网格 */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; position: relative; z-index: 10; }
+.feat-card {
+  background: rgba(255,255,255,0.05); border-radius: 14px; padding: 20px 18px;
+  border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px);
+  transition: all 0.3s;
+}
+.feat-icon { font-size: 28px; margin-bottom: 10px; }
+.feat-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.feat-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.7; }
+.feat-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-top: 8px; }
+
+/* 底部技术栈 */
+.tech-bar {
+  position: absolute; bottom: 22px; left: 48px; right: 48px; z-index: 10;
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  padding: 12px 24px; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.tech-item { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 5px; }
+.tech-item em { font-style: normal; color: rgba(255,255,255,0.65); font-weight: 600; }
+.tech-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.1); }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="glow1"></div><div class="glow2"></div><div class="glow3"></div>
+
+  <div class="header">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div class="tag">图12 · 更多细节</div>
+      </div>
+      <div class="title">✨ 每一处细节，都为<em>创作者</em>打磨</div>
+    </div>
+    <div class="subtitle">不只是排版，更是完整的创作工具</div>
+  </div>
+
+  <div class="features">
+    <!-- 纯文本整理 -->
+    <div class="feat-card">
+      <div class="feat-icon">🪄</div>
+      <div class="feat-title">纯文本一键整理</div>
+      <div class="feat-desc">粘贴纯文本，点击「整理」按钮，自动识别标题、列表、引用，转为结构化 Markdown。</div>
+      <div class="feat-tag" style="background:rgba(52,211,153,0.15);color:#6EE7B7;">NEW</div>
+    </div>
+    <!-- 暗黑模式 -->
+    <div class="feat-card">
+      <div class="feat-icon">🌙</div>
+      <div class="feat-title">暗黑模式</div>
+      <div class="feat-desc">一键切换编辑器暗黑主题，保护眼睛。只影响界面，不影响预览区排版效果。</div>
+      <div class="feat-tag" style="background:rgba(99,102,241,0.15);color:#A5B4FC;">体验优化</div>
+    </div>
+    <!-- 快捷键 -->
+    <div class="feat-card">
+      <div class="feat-icon">⌨️</div>
+      <div class="feat-title">快捷键支持</div>
+      <div class="feat-desc">Ctrl+Shift+R 随机风格 · Ctrl+E 导出 · Ctrl+D 暗黑模式。键盘流用户的福音。</div>
+      <div class="feat-tag" style="background:rgba(251,191,36,0.15);color:#FDE68A;">效率</div>
+    </div>
+    <!-- 品牌预设 -->
+    <div class="feat-card">
+      <div class="feat-icon">💼</div>
+      <div class="feat-title">品牌预设（最多20套）</div>
+      <div class="feat-desc">保存常用风格组合为品牌预设。运营团队一键统一视觉风格，不再反复调整。</div>
+      <div class="feat-tag" style="background:rgba(244,114,182,0.15);color:#F9A8D4;">团队协作</div>
+    </div>
+    <!-- 历史记录 -->
+    <div class="feat-card">
+      <div class="feat-icon">🕐</div>
+      <div class="feat-title">历史记录回溯</div>
+      <div class="feat-desc">自动保存最近 10 次排版配置。换了风格不满意？一键回到之前的状态。</div>
+      <div class="feat-tag" style="background:rgba(168,85,247,0.15);color:#D8B4FE;">安全</div>
+    </div>
+    <!-- PWA -->
+    <div class="feat-card">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">PWA 离线可用</div>
+      <div class="feat-desc">添加到桌面像原生 App 一样使用。Service Worker 缓存，断网也能排版。</div>
+      <div class="feat-tag" style="background:rgba(59,130,246,0.15);color:#93C5FD;">跨平台</div>
+    </div>
+    <!-- 纯本地 -->
+    <div class="feat-card">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">纯本地运行</div>
+      <div class="feat-desc">所有排版在浏览器本地完成。文章内容不上传任何服务器。API Key 直连提供商。</div>
+      <div class="feat-tag" style="background:rgba(52,211,153,0.15);color:#6EE7B7;">隐私</div>
+    </div>
+    <!-- 100%内联CSS -->
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">100% 内联 CSS</div>
+      <div class="feat-desc">公众号不支持 <style> 标签，云中书全部使用 style 属性。复制即用，100% 还原。</div>
+      <div class="feat-tag" style="background:rgba(251,191,36,0.15);color:#FDE68A;">核心技术</div>
+    </div>
+    <!-- 自研解析器 -->
+    <div class="feat-card">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">自研 Markdown 解析器</div>
+      <div class="feat-desc">200 行代码，一次遍历。不依赖 marked/remark。精准控制 AST，直接支持小红书分页。</div>
+      <div class="feat-tag" style="background:rgba(244,114,182,0.15);color:#F9A8D4;">极致轻量</div>
+    </div>
+  </div>
+
+  <!-- 底部技术栈 -->
+  <div class="tech-bar">
+    <div class="tech-item">⚛️ <em>React 19</em></div>
+    <div class="tech-sep"></div>
+    <div class="tech-item">📘 <em>TypeScript 5.7</em></div>
+    <div class="tech-sep"></div>
+    <div class="tech-item">⚡ <em>Vite 6</em></div>
+    <div class="tech-sep"></div>
+    <div class="tech-item">📦 首屏仅 <em>95KB</em> gzip</div>
+    <div class="tech-sep"></div>
+    <div class="tech-item">🚫 零 UI 库依赖</div>
+    <div class="tech-sep"></div>
+    <div class="tech-item">🔓 <em>MIT</em> 开源协议</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 — 6个插槽微调</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 40%, #302b63 70%, #24243e 100%);
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+}
+.glow-a { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%); top: -100px; left: 100px; }
+.glow-b { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%); bottom: -100px; right: 50px; }
+
+.header { margin-top: 30px; text-align: center; z-index: 10; }
+.header .tag { display: inline-block; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(236,72,153,0.2); color: #F9A8D4; border: 1px solid rgba(236,72,153,0.3); margin-bottom: 10px; }
+.header h1 { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+.header h1 em { font-style: normal; background: linear-gradient(90deg, #F472B6, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 15px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+
+.content { display: flex; gap: 30px; margin-top: 30px; padding: 0 50px; z-index: 10; width: 100%; }
+
+/* 左侧：6个插槽卡片 */
+.slots-col { width: 420px; display: flex; flex-direction: column; gap: 10px; }
+.slot-card {
+  display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+  border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+.slot-icon { font-size: 24px; width: 40px; text-align: center; }
+.slot-info { flex: 1; }
+.slot-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.slot-variants { font-size: 11px; color: rgba(255,255,255,0.4); }
+.slot-variants strong { color: #C4B5FD; }
+.slot-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.slot-pill { padding: 2px 7px; font-size: 9px; border-radius: 4px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.slot-pill.on { background: rgba(139,92,246,0.35); color: #C4B5FD; border: 1px solid rgba(139,92,246,0.5); }
+
+/* 右侧：对比演示 */
+.demo-col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.demo-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-align: center; }
+.demo-pair { display: flex; gap: 12px; flex: 1; }
+.demo-card {
+  flex: 1; border-radius: 12px; padding: 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.demo-card-title { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3); margin-bottom: 10px; text-align: center; letter-spacing: 1px; }
+
+/* 日式标题样式 */
+.jp-h { font-size: 15px; color: #D4A574; text-align: center; font-weight: 300; letter-spacing: 4px; margin-bottom: 4px; }
+.jp-line { width: 40px; height: 1px; background: rgba(212,165,116,0.3); margin: 0 auto 8px; }
+.jp-p { font-size: 9px; color: rgba(255,255,255,0.3); line-height: 2; }
+.jp-q { font-size: 8px; color: #D4A574; border: 1px dashed rgba(212,165,116,0.3); padding: 6px 8px; border-radius: 2px; margin: 6px 0; }
+.jp-hr { text-align: center; color: rgba(212,165,116,0.3); font-size: 8px; margin: 6px 0; }
+
+/* 卡片标题样式 */
+.cd-h { font-size: 14px; color: #fff; font-weight: 700; background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent); padding: 4px 10px; border-radius: 4px; margin-bottom: 6px; }
+.cd-p { font-size: 9px; color: rgba(255,255,255,0.35); line-height: 1.8; }
+.cd-q { font-size: 8px; color: #A5B4FC; background: rgba(99,102,241,0.1); padding: 6px 8px; border-left: 3px solid #6366F1; border-radius: 0 4px 4px 0; margin: 6px 0; }
+.cd-hr { height: 2px; background: linear-gradient(90deg, #6366F1, transparent); margin: 6px 0; border-radius: 1px; }
+
+/* 气泡标题样式 */
+.bb-h { font-size: 13px; color: #fff; font-weight: 700; background: rgba(236,72,153,0.2); padding: 6px 12px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+.bb-p { font-size: 9px; color: rgba(255,255,255,0.35); line-height: 1.8; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 12px; }
+.bb-q { font-size: 8px; color: #F9A8D4; background: rgba(236,72,153,0.08); padding: 6px 10px; border-radius: 12px; margin: 6px 0; }
+
+.arrow-between { display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgba(255,255,255,0.15); width: 20px; }
+
+.bottom { position: absolute; bottom: 20px; z-index: 10; text-align: center; }
+.bottom-text { font-size: 13px; color: rgba(255,255,255,0.4); }
+.bottom-text strong { color: rgba(255,255,255,0.7); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow-a"></div>
+  <div class="glow-b"></div>
+
+  <div class="header">
+    <div class="tag">🔧 插槽系统 Slots</div>
+    <h1><em>6 个插槽</em>，精细到每个元素</h1>
+    <p>骨架选整体风格，插槽调细节 — 标题、引用、列表、分割线、段落、节区各自独立微调</p>
+  </div>
+
+  <div class="content">
+    <!-- 左侧：6个插槽 -->
+    <div class="slots-col">
+      <div class="slot-card">
+        <div class="slot-icon">🔤</div>
+        <div class="slot-info">
+          <div class="slot-name">标题插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">日式细字</div>
+            <div class="slot-pill">左对齐底线</div>
+            <div class="slot-pill">色块背景</div>
+            <div class="slot-pill">居中加粗</div>
+            <div class="slot-pill">气泡标题</div>
+          </div>
+        </div>
+      </div>
+      <div class="slot-card">
+        <div class="slot-icon">💬</div>
+        <div class="slot-info">
+          <div class="slot-name">引用插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">虚线方框</div>
+            <div class="slot-pill">左竖线</div>
+            <div class="slot-pill">卡片底色</div>
+            <div class="slot-pill">气泡引用</div>
+          </div>
+        </div>
+      </div>
+      <div class="slot-card">
+        <div class="slot-icon">📋</div>
+        <div class="slot-info">
+          <div class="slot-name">列表插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">圆点列表</div>
+            <div class="slot-pill">数字序号</div>
+            <div class="slot-pill">色块标记</div>
+            <div class="slot-pill">缩进层级</div>
+          </div>
+        </div>
+      </div>
+      <div class="slot-card">
+        <div class="slot-icon">➖</div>
+        <div class="slot-info">
+          <div class="slot-name">分割线插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">居中 ○</div>
+            <div class="slot-pill">点状 ···</div>
+            <div class="slot-pill">渐变线</div>
+            <div class="slot-pill">留白</div>
+          </div>
+        </div>
+      </div>
+      <div class="slot-card">
+        <div class="slot-icon">📄</div>
+        <div class="slot-info">
+          <div class="slot-name">段落插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">大留白</div>
+            <div class="slot-pill">首行缩进</div>
+            <div class="slot-pill">紧凑排列</div>
+          </div>
+        </div>
+      </div>
+      <div class="slot-card">
+        <div class="slot-icon">📑</div>
+        <div class="slot-info">
+          <div class="slot-name">节区插槽</div>
+          <div class="slot-pills">
+            <div class="slot-pill on">留白分隔</div>
+            <div class="slot-pill">线条分隔</div>
+            <div class="slot-pill">卡片分区</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：效果对比 -->
+    <div class="demo-col">
+      <div class="demo-label">▼ 同一篇文章，不同插槽组合的效果</div>
+      <div class="demo-pair">
+        <div class="demo-card">
+          <div class="demo-card-title">🍵 日式留白</div>
+          <div class="jp-h">如何高效阅读</div>
+          <div class="jp-line"></div>
+          <div class="jp-p">阅读是一种终身学习的方式。掌握方法，事半功倍。</div>
+          <div class="jp-hr">○</div>
+          <div class="jp-h" style="font-size: 12px;">选书的艺术</div>
+          <div class="jp-line" style="width: 30px;"></div>
+          <div class="jp-p">不是所有书都值得从头读到尾。</div>
+          <div class="jp-q">好书，是浓缩的思考。</div>
+        </div>
+        <div class="arrow-between">→</div>
+        <div class="demo-card">
+          <div class="demo-card-title">📦 卡片模块</div>
+          <div class="cd-h">如何高效阅读</div>
+          <div class="cd-p">阅读是一种终身学习的方式。掌握方法，事半功倍。</div>
+          <div class="cd-hr"></div>
+          <div class="cd-h" style="font-size: 12px;">选书的艺术</div>
+          <div class="cd-p">不是所有书都值得从头读到尾。</div>
+          <div class="cd-q">好书，是浓缩的思考。</div>
+        </div>
+        <div class="arrow-between">→</div>
+        <div class="demo-card">
+          <div class="demo-card-title">💬 气泡对话</div>
+          <div class="bb-h">如何高效阅读</div>
+          <div class="bb-p">阅读是一种终身学习的方式。掌握方法，事半功倍。</div>
+          <div style="text-align:center; color:rgba(255,255,255,0.1); font-size:8px; margin: 4px 0;">• • •</div>
+          <div class="bb-h" style="font-size: 11px;">选书的艺术</div>
+          <div class="bb-p">不是所有书都值得从头读到尾。</div>
+          <div class="bb-q">好书，是浓缩的思考。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="bottom-text">骨架选整体方向 → 插槽调每个细节 → <strong>15 骨架 × 6 插槽（各3~5变体）= 200,000+ 种独特组合</strong></div>
+  </div>
+</div>
+</body>
+</html>

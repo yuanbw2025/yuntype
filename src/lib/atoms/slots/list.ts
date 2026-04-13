@@ -1,5 +1,5 @@
-// 列表插槽 — 8种变体
-import { type ListSlotVariant } from './index'
+// 列表插槽 — 8种变体（支持平台缩放）
+import { type ListSlotVariant, px } from './index'
 import { renderInline } from '../../render/markdown'
 
 function r(text: string): string {
@@ -15,11 +15,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: 6px;">${idx + 1}.</span>`
-          : `<span style="color: ${ctx.colors.primary}; margin-right: 8px;">●</span>`
-        return `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text}; letter-spacing: ${ctx.typo.letterSpacing};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: ${px(6, ctx)};">${idx + 1}.</span>`
+          : `<span style="color: ${ctx.colors.primary}; margin-right: ${px(8, ctx)};">●</span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text}; letter-spacing: ${ctx.typo.letterSpacing};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L02 方块 ──
@@ -30,11 +30,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="background: ${ctx.colors.primary}; color: #fff; width: 22px; height: 22px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px; flex-shrink: 0;">${idx + 1}</span>`
-          : `<span style="color: ${ctx.colors.primary}; margin-right: 8px;">■</span>`
-        return `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="background: ${ctx.colors.primary}; color: #fff; width: ${px(22, ctx)}; height: ${px(22, ctx)}; border-radius: ${px(3, ctx)}; display: inline-flex; align-items: center; justify-content: center; font-size: ${px(12, ctx)}; margin-right: ${px(8, ctx)}; flex-shrink: 0;">${idx + 1}</span>`
+          : `<span style="color: ${ctx.colors.primary}; margin-right: ${px(8, ctx)};">■</span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L03 箭头 ──
@@ -45,11 +45,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: 6px;">${idx + 1}.</span>`
-          : `<span style="color: ${ctx.colors.primary}; margin-right: 8px; font-size: 12px;">▶</span>`
-        return `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: ${px(6, ctx)};">${idx + 1}.</span>`
+          : `<span style="color: ${ctx.colors.primary}; margin-right: ${px(8, ctx)}; font-size: ${px(12, ctx)};">▶</span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L04 菱形 ──
@@ -60,11 +60,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: 6px;">${idx + 1}.</span>`
-          : `<span style="margin-right: 8px;">🔹</span>`
-        return `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="color: ${ctx.colors.primary}; font-weight: bold; margin-right: ${px(6, ctx)};">${idx + 1}.</span>`
+          : `<span style="margin-right: ${px(8, ctx)};">🔹</span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L05 清单打勾 ──
@@ -74,11 +74,11 @@ export const listSlots: ListSlotVariant[] = [
     tags: ['structured', 'tutorial', 'checklist'],
     render: (items, _ordered, ctx) => {
       const html = items.map((item) =>
-        `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text};">
-  <span style="color: ${ctx.colors.primary}; margin-right: 8px;">☑</span><span>${r(item)}</span>
+        `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text};">
+  <span style="color: ${ctx.colors.primary}; margin-right: ${px(8, ctx)};">☑</span><span>${r(item)}</span>
 </section>`
       ).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L06 短线前缀 ──
@@ -89,11 +89,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="color: ${ctx.colors.textMuted}; margin-right: 8px;">${idx + 1}.</span>`
-          : `<span style="color: ${ctx.colors.textMuted}; margin-right: 8px;">—</span>`
-        return `<section style="margin-bottom: 10px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.8; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="color: ${ctx.colors.textMuted}; margin-right: ${px(8, ctx)};">${idx + 1}.</span>`
+          : `<span style="color: ${ctx.colors.textMuted}; margin-right: ${px(8, ctx)};">—</span>`
+        return `<section style="margin-bottom: ${px(10, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.8; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
   // ── L07 卡片列表 ──
@@ -104,11 +104,11 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, ordered, ctx) => {
       const html = items.map((item, idx) => {
         const prefix = ordered
-          ? `<span style="background: ${ctx.colors.primary}; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 10px; flex-shrink: 0;">${idx + 1}</span>`
-          : `<span style="width: 6px; height: 6px; border-radius: 50%; background: ${ctx.colors.primary}; display: inline-block; margin-right: 10px; flex-shrink: 0; position: relative; top: -2px;"></span>`
-        return `<section style="margin-bottom: 8px; padding: 10px 14px; background: ${ctx.colors.secondary}; border-radius: 6px; display: flex; align-items: center; font-size: 15px; line-height: 1.6; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+          ? `<span style="background: ${ctx.colors.primary}; color: #fff; width: ${px(22, ctx)}; height: ${px(22, ctx)}; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: ${px(12, ctx)}; margin-right: ${px(10, ctx)}; flex-shrink: 0;">${idx + 1}</span>`
+          : `<span style="width: ${px(6, ctx)}; height: ${px(6, ctx)}; border-radius: 50%; background: ${ctx.colors.primary}; display: inline-block; margin-right: ${px(10, ctx)}; flex-shrink: 0; position: relative; top: ${px(-2, ctx)};"></span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; padding: ${px(10, ctx)} ${px(14, ctx)}; background: ${ctx.colors.secondary}; border-radius: ${px(6, ctx)}; display: flex; align-items: center; font-size: ${px(15, ctx)}; line-height: 1.6; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0;">${html}</section>`
     },
   },
   // ── L08 编号圆圈 ──
@@ -119,10 +119,10 @@ export const listSlots: ListSlotVariant[] = [
     render: (items, _ordered, ctx) => {
       const circles = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩']
       const html = items.map((item, idx) => {
-        const prefix = `<span style="color: ${ctx.colors.primary}; margin-right: 8px; font-size: 16px;">${circles[idx] ?? `${idx + 1}.`}</span>`
-        return `<section style="margin-bottom: 8px; display: flex; align-items: baseline; font-size: 15px; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
+        const prefix = `<span style="color: ${ctx.colors.primary}; margin-right: ${px(8, ctx)}; font-size: ${px(16, ctx)};">${circles[idx] ?? `${idx + 1}.`}</span>`
+        return `<section style="margin-bottom: ${px(8, ctx)}; display: flex; align-items: baseline; font-size: ${px(15, ctx)}; line-height: 1.75; color: ${ctx.colors.text};">${prefix}<span>${r(item)}</span></section>`
       }).join('')
-      return `<section style="margin: 0 0 16px 0; padding-left: 4px;">${html}</section>`
+      return `<section style="margin: 0 0 ${px(16, ctx)} 0; padding-left: ${px(4, ctx)};">${html}</section>`
     },
   },
 ]

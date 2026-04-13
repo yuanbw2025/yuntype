@@ -1,7 +1,10 @@
 // 小红书图片组渲染器 — 分页算法 + HTML生成
+// V1 (StyleCombo) + V2 (StyleComboV2 with blueprint + slots)
 
 import { parseMarkdown, renderInline, type MarkdownNode } from './markdown'
-import type { StyleCombo } from '../atoms'
+import type { StyleCombo, StyleComboV2 } from '../atoms'
+import { getSlot, type RenderContext } from '../atoms/slots'
+import type { BlueprintXhsConfig, CoverVariantType, ContentLayoutType } from '../atoms/blueprints'
 
 // ═══════════════════════════════════════
 //  类型定义
@@ -77,7 +80,214 @@ function estimateElementHeight(node: MarkdownNode, config: XhsConfig): number {
 }
 
 // ═══════════════════════════════════════
-//  分页算法
+//  V2 高度估算 — 插槽装饰感知 + 缩放感知
+// ═══════════════════════════════════════
+
+/**
+ * 插槽装饰开销（基于微信 600px 基准值，单位 px）
+ * marginV: 上下 margin 总和
+ * paddingV: 上下 padding 总和
+ * decorExtra: 边框 / 图标 / 圆角等额外空间
+ */
+const SLOT_OVERHEAD: Record<string, { marginV: number; paddingV: number; decorExtra: number }> = {
+  heading:    { marginV: 44, paddingV: 0,  decorExtra: 12 },
+  paragraph:  { marginV: 20, paddingV: 0,  decorExtra: 0 },
+  blockquote: { marginV: 16, paddingV: 28, decorExtra: 6 },
+  list:       { marginV: 16, paddingV: 0,  decorExtra: 8 },
+  code:       { marginV: 32, paddingV: 32, decorExtra: 4 },
+  hr:         { marginV: 48, paddingV: 0,  decorExtra: 8 },
+}
+
+/** 布局模式额外每元素开销（基准 px） */
+const LAYOUT_OVERHEAD: Record<ContentLayoutType, number> = {
+  'standard': 0,
+  'card-wrapped': 44,
+  'alternating-bg': 16,
+  'timeline-rail': 20,
+}
+
+/** V2: 单个元素高度估算（含插槽装饰 + 缩放） */
+function estimateElementHeightV2(
+  node: MarkdownNode,
+  config: XhsConfig,
+  scale: number,
+  layout: ContentLayoutType,
+): number {
+  const contentWidth = config.width - config.padding * 2
+  const { fontSize, lineHeight } = config
+
+  const overhead = SLOT_OVERHEAD[node.type] || SLOT_OVERHEAD['paragraph']
+  const decorH = (overhead.marginV + overhead.paddingV + overhead.decorExtra) * scale
+  const layoutExtra = LAYOUT_OVERHEAD[layout] * scale
+
+  let textH: number
+  switch (node.type) {
+    case 'heading': {
+      const hSize = node.level === 1 ? fontSize * 1.6 : node.level === 2 ? fontSize * 1.3 : fontSize * 1.1
+      textH = estimateTextHeight(node.text || '', hSize, lineHeight, contentWidth)
+      break
+    }
+    case 'paragraph':
+      textH = estimateTextHeight(node.text || '', fontSize, lineHeight, contentWidth)
+      break
+    case 'blockquote':
+      textH = estimateTextHeight(node.text || '', fontSize * 0.95, lineHeight, contentWidth - 80 * scale)
+      break
+    case 'list': {
+      textH = (node.children || []).reduce((sum, item) => {
+        return sum + estimateTextHeight(item, fontSize, lineHeight, contentWidth - 36 * scale) + 8 * scale
+      }, 0)
+      break
+    }
+    case 'code':
+      textH = estimateTextHeight(node.text || '', fontSize * 0.8, 1.5, contentWidth - 40 * scale)
+      break
+    case 'hr':
+      textH = 0
+      break
+    default:
+      textH = fontSize * lineHeight
+  }
+
+  return textH + decorH + layoutExtra
+}
+
+/** V2: 页面级装饰占用高度（header / pageNum / footer / brand） */
+function estimatePageChromeV2(config: XhsConfig, xhs: BlueprintXhsConfig): number {
+  let chrome = config.padding * 2 // top + bottom padding (已含在容器box-sizing里)
+
+  // 页码区域
+  chrome += Math.round(config.fontSize * 0.65) + 20
+
+  // header bar
+  if (xhs.pageDecoration.headerBar) chrome += 6
+
+  // footer line
+  if (xhs.pageDecoration.footerLine) chrome += 4
+
+  // brand watermark
+  if (xhs.pageDecoration.brandPosition !== 'none') chrome += Math.round(config.fontSize * 0.5) + 10
+
+  // safety margin（取整 / 行内装饰误差）
+  chrome += 24
+
+  return chrome
+}
+
+/** V2: 将 MarkdownNode 转为 PageElement（使用 V2 估算） */
+function nodeToPageElementV2(
+  node: MarkdownNode,
+  config: XhsConfig,
+  scale: number,
+  layout: ContentLayoutType,
+): PageElement {
+  return {
+    type: node.type === 'image' ? 'paragraph' : node.type as PageElement['type'],
+    content: node.text || (node.type === 'image' ? `[图片: ${node.alt || ''}]` : ''),
+    level: node.level,
+    items: node.children,
+    ordered: node.ordered,
+    estimatedHeight: estimateElementHeightV2(node, config, scale, layout),
+  }
+}
+
+/** V2 分页算法 — 插槽装饰感知 + 缩放感知 */
+export function splitToPagesV2(markdown: string, config: XhsConfig, style: StyleComboV2): XhsPage[] {
+  const nodes = parseMarkdown(markdown)
+  if (nodes.length === 0) return []
+
+  const xhs = style.blueprint.xhs
+  const scale = config.fontSize / 16
+  const layout = xhs.contentLayout
+
+  const pages: XhsPage[] = []
+  const availableHeight = config.height - estimatePageChromeV2(config, xhs)
+
+  // 提取标题和摘要作为封面
+  let titleText = '无标题'
+  let summaryText = ''
+  let contentStartIdx = 0
+
+  if (nodes[0]?.type === 'heading' && nodes[0].level === 1) {
+    titleText = nodes[0].text || '无标题'
+    contentStartIdx = 1
+    if (nodes[1]?.type === 'paragraph') {
+      summaryText = nodes[1].text || ''
+      contentStartIdx = 2
+    }
+  } else if (nodes[0]?.type === 'paragraph') {
+    titleText = nodes[0].text || '无标题'
+    contentStartIdx = 1
+  }
+
+  // 封面页
+  pages.push({
+    type: 'cover',
+    elements: [{
+      type: 'heading',
+      content: titleText,
+      level: 1,
+      estimatedHeight: 0,
+    }, ...(summaryText ? [{
+      type: 'paragraph' as const,
+      content: summaryText,
+      estimatedHeight: 0,
+    }] : [])],
+    pageIndex: 0,
+    totalPages: 0,
+  })
+
+  // 内容页
+  let currentElements: PageElement[] = []
+  let currentHeight = 0
+
+  for (let i = contentStartIdx; i < nodes.length; i++) {
+    const element = nodeToPageElementV2(nodes[i], config, scale, layout)
+
+    if (currentHeight + element.estimatedHeight > availableHeight && currentElements.length > 0) {
+      pages.push({
+        type: 'content',
+        elements: currentElements,
+        pageIndex: pages.length,
+        totalPages: 0,
+      })
+      currentElements = [element]
+      currentHeight = element.estimatedHeight
+    } else {
+      currentElements.push(element)
+      currentHeight += element.estimatedHeight
+    }
+  }
+
+  if (currentElements.length > 0) {
+    pages.push({
+      type: 'content',
+      elements: currentElements,
+      pageIndex: pages.length,
+      totalPages: 0,
+    })
+  }
+
+  // 尾页
+  pages.push({
+    type: 'ending',
+    elements: [],
+    pageIndex: pages.length,
+    totalPages: 0,
+  })
+
+  // 填入总页数
+  const total = pages.length
+  pages.forEach((p, i) => {
+    p.pageIndex = i
+    p.totalPages = total
+  })
+
+  return pages
+}
+
+// ═══════════════════════════════════════
+//  分页算法 (V1)
 // ═══════════════════════════════════════
 
 function nodeToPageElement(node: MarkdownNode, config: XhsConfig): PageElement {
@@ -639,6 +849,290 @@ function renderElement(
           opacity: 0.4;
         ">· · ·</div>
       `
+    default:
+      return ''
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  V2 渲染器 — 使用骨架+插槽系统渲染小红书
+//  支持 15 种骨架 × 6 插槽 × 11 配色 × 3 字体 × 3 比例
+// ═══════════════════════════════════════════════════════════
+
+/** 将封面变体映射到分隔符 */
+const COVER_SEPARATORS: Record<CoverVariantType, string> = {
+  classic: '· · · · ·',
+  bold: '■ ■ ■ ■ ■',
+  minimal: '',
+  card: '◇ ◇ ◇',
+  magazine: '──────',
+}
+
+/** 页码渲染 — 4 种风格 */
+function renderPageNumber(page: XhsPage, style: 'right' | 'center' | 'fraction' | 'dot', colors: any, fontSize: number): string {
+  const idx = page.pageIndex + 1
+  const total = page.totalPages
+  switch (style) {
+    case 'center':
+      return `<div style="text-align:center;color:${colors.textMuted};font-size:${fontSize * 0.6}px;margin-bottom:16px;letter-spacing:2px;">${idx} / ${total}</div>`
+    case 'fraction':
+      return `<div style="text-align:right;color:${colors.textMuted};font-size:${fontSize * 0.55}px;margin-bottom:16px;font-family:'JetBrains Mono',monospace;"><span style="font-size:${fontSize * 0.9}px;font-weight:700;color:${colors.primary};">${idx}</span><span style="opacity:0.4;"> / ${total}</span></div>`
+    case 'dot': {
+      const dots = Array.from({ length: total }, (_, i) =>
+        `<span style="display:inline-block;width:${i === idx - 1 ? 16 : 6}px;height:6px;border-radius:3px;background:${i === idx - 1 ? colors.primary : colors.primary + '30'};"></span>`
+      ).join('')
+      return `<div style="text-align:center;display:flex;gap:4px;justify-content:center;margin-bottom:16px;">${dots}</div>`
+    }
+    case 'right':
+    default:
+      return `<div style="text-align:right;color:${colors.textMuted};font-size:${fontSize * 0.65}px;margin-bottom:20px;font-family:'JetBrains Mono',monospace;">${idx} / ${total}</div>`
+  }
+}
+
+/** 页面顶部装饰条 */
+function renderV2HeaderBar(colors: any, config: XhsConfig, bp: StyleComboV2['blueprint']): string {
+  const xhs = bp.xhs
+  if (!xhs.pageDecoration.headerBar) return ''
+  // 根据骨架风格选择不同的头部装饰
+  if (bp.tags.includes('magazine') || bp.tags.includes('editorial')) {
+    return `<div style="position:absolute;top:0;left:0;right:0;height:4px;background:${colors.primary};"></div>`
+  }
+  if (bp.tags.includes('academic') || bp.tags.includes('formal')) {
+    return `<div style="position:absolute;top:${config.padding * 0.5}px;left:${config.padding}px;right:${config.padding}px;border-top:2px double ${colors.primary}40;padding-top:4px;"></div>`
+  }
+  return `<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${colors.primary},${colors.primary}40,transparent);"></div>`
+}
+
+/** 页面底部装饰 */
+function renderV2FooterDecor(colors: any, config: XhsConfig, xhs: BlueprintXhsConfig): string {
+  if (!xhs.pageDecoration.footerLine) return ''
+  return `<div style="position:absolute;bottom:${config.padding}px;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;height:2px;background:linear-gradient(90deg,transparent,${colors.primary}40,transparent);"></div>`
+}
+
+/** 品牌水印 */
+function renderV2Brand(colors: any, config: XhsConfig, position: 'bottom-center' | 'bottom-right' | 'none'): string {
+  if (position === 'none') return ''
+  const align = position === 'bottom-right' ? 'right' : 'center'
+  return `<div style="position:absolute;bottom:${config.padding * 0.4}px;left:${config.padding}px;right:${config.padding}px;text-align:${align};color:${colors.textMuted};font-size:${Math.round(config.fontSize * 0.45)}px;opacity:0.4;letter-spacing:1px;">云中书 YunType</div>`
+}
+
+/** V2: 渲染单页小红书 HTML（使用骨架+插槽） */
+export function renderXhsPageV2(page: XhsPage, style: StyleComboV2, config: XhsConfig): string {
+  const { colors } = style.color
+  const typo = style.typography
+  const bp = style.blueprint
+  const xhs = bp.xhs
+
+  // XHS 平台上下文：传给插槽渲染函数
+  const ctx: RenderContext = {
+    colors,
+    typo: typo.wechat,
+    isDark: colors.pageBg.startsWith('#1') || colors.pageBg.startsWith('#0'),
+    platform: 'xhs',
+    scale: config.fontSize / 16, // ~2x for 32px base
+  }
+
+  const bodyFont = typo.xiaohongshu.bodyFont
+  const titleFont = typo.xiaohongshu.titleFont
+
+  // 背景样式
+  let bgStyle: string
+  if (page.type === 'cover' || page.type === 'ending') {
+    bgStyle = `background: linear-gradient(160deg, ${colors.pageBg}, ${colors.contentBg});`
+  } else {
+    const bpStyle = bp.containerStyle({ contentBg: colors.contentBg, text: colors.text, pageBg: colors.pageBg })
+    const bgMatch = bpStyle.match(/background[^;]+;/)
+    bgStyle = bgMatch ? bgMatch[0] : `background-color: ${colors.pageBg};`
+  }
+
+  const containerStyle = `
+    width: ${config.width}px; height: ${config.height}px; ${bgStyle}
+    padding: ${config.padding}px; box-sizing: border-box;
+    font-family: '${bodyFont}', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-size: ${config.fontSize}px; line-height: ${config.lineHeight};
+    color: ${colors.text}; position: relative; overflow: hidden;
+  `
+
+  let content = ''
+  const separator = COVER_SEPARATORS[xhs.coverVariant] || '· · ·'
+
+  switch (page.type) {
+    case 'cover': {
+      const title = page.elements[0]?.content || '无标题'
+      const summary = page.elements[1]?.content || ''
+      const titleSize = Math.round(config.fontSize * 2.2)
+      const subtitleSize = Math.round(config.fontSize * 1.05)
+      // 使用骨架 xhs.coverVariant 直接选择
+      switch (xhs.coverVariant) {
+        case 'bold':
+          content = renderCoverBold(title, summary, colors, titleFont, bodyFont, titleSize, subtitleSize, separator, config)
+          break
+        case 'minimal':
+          content = renderCoverMinimal(title, summary, colors, titleFont, bodyFont, titleSize, subtitleSize, config)
+          break
+        case 'card':
+          content = renderCoverCard(title, summary, colors, titleFont, bodyFont, titleSize, subtitleSize, separator, config)
+          break
+        case 'magazine':
+          content = renderCoverMagazine(title, summary, colors, titleFont, bodyFont, titleSize, subtitleSize, separator, config)
+          break
+        case 'classic':
+        default:
+          content = renderCoverClassic(title, summary, colors, titleFont, bodyFont, titleSize, subtitleSize, separator, config)
+          break
+      }
+      break
+    }
+    case 'content': {
+      // 顶部装饰条
+      content += renderV2HeaderBar(colors, config, bp)
+      // 页码
+      content += renderPageNumber(page, xhs.pageDecoration.pageNumberStyle, colors, config.fontSize)
+      // 内容元素（按布局模式包裹）
+      let hIdx = 0
+      const layout = xhs.contentLayout
+      if (layout === 'card-wrapped') {
+        // 卡片包裹：每个元素都在卡片里
+        for (const el of page.elements) {
+          content += `<div style="background:${colors.contentBg};border-radius:12px;padding:16px 20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">`
+          content += renderElementV2(el, config, style, ctx, hIdx)
+          content += `</div>`
+          if (el.type === 'heading') hIdx++
+        }
+      } else if (layout === 'alternating-bg') {
+        // 交替色带：奇偶元素交替底色
+        let elIdx = 0
+        for (const el of page.elements) {
+          const altBg = elIdx % 2 === 1 ? `background:${colors.secondary};border-radius:8px;padding:12px 16px;margin-bottom:8px;` : `margin-bottom:8px;`
+          content += `<div style="${altBg}">`
+          content += renderElementV2(el, config, style, ctx, hIdx)
+          content += `</div>`
+          if (el.type === 'heading') hIdx++
+          elIdx++
+        }
+      } else if (layout === 'timeline-rail') {
+        // 时间线：左侧连线 + 圆点
+        content += `<div style="position:relative;padding-left:36px;">`
+        content += `<div style="position:absolute;left:12px;top:0;bottom:0;width:2px;background:${colors.primary}30;"></div>`
+        for (const el of page.elements) {
+          const isH = el.type === 'heading'
+          const dotSize = isH ? 12 : 6
+          const dotTop = isH ? 8 : 6
+          content += `<div style="position:relative;margin-bottom:8px;">`
+          content += `<div style="position:absolute;left:-30px;top:${dotTop}px;width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${isH ? colors.primary : colors.primary + '50'};"></div>`
+          content += renderElementV2(el, config, style, ctx, hIdx)
+          content += `</div>`
+          if (isH) hIdx++
+        }
+        content += `</div>`
+      } else {
+        // standard：直接渲染
+        for (const el of page.elements) {
+          content += renderElementV2(el, config, style, ctx, hIdx)
+          if (el.type === 'heading') hIdx++
+        }
+      }
+      // 底部装饰
+      content += renderV2FooterDecor(colors, config, xhs)
+      // 品牌水印
+      content += renderV2Brand(colors, config, xhs.pageDecoration.brandPosition)
+      break
+    }
+    case 'ending': {
+      content = renderEndingV2(page, style, config, ctx, xhs)
+      break
+    }
+  }
+
+  return `<div style="${containerStyle}">${content}</div>`
+}
+
+/** V2 尾页渲染 — 3 种风格 */
+function renderEndingV2(page: XhsPage, style: StyleComboV2, config: XhsConfig, ctx: RenderContext, xhs: BlueprintXhsConfig): string {
+  const { colors } = style.color
+  const titleFont = style.typography.xiaohongshu.titleFont
+  const dividerSlot = getSlot('divider', style.slots.divider)
+  const centerY = Math.round(config.height * 0.28)
+
+  const ctaButtons = `
+    <div style="display:inline-flex;gap:12px;margin-bottom:40px;">
+      <span style="background:${colors.primary};color:#fff;padding:10px 24px;border-radius:24px;font-size:${config.fontSize * 0.8}px;font-weight:600;">👍 点赞</span>
+      <span style="background:${colors.primary}20;color:${colors.primary};padding:10px 24px;border-radius:24px;font-size:${config.fontSize * 0.8}px;font-weight:600;">⭐ 收藏</span>
+      <span style="background:${colors.primary}20;color:${colors.primary};padding:10px 24px;border-radius:24px;font-size:${config.fontSize * 0.8}px;font-weight:600;">🔄 转发</span>
+    </div>`
+
+  if (xhs.endingStyle === 'minimal') {
+    return `
+      <div style="position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;">
+        <div style="font-size:${config.fontSize * 2}px;margin-bottom:24px;">✨</div>
+        <div style="font-family:'${titleFont}',sans-serif;font-size:${config.fontSize * 1.6}px;font-weight:300;color:${colors.text};margin-bottom:20px;letter-spacing:4px;">感谢阅读</div>
+        <div style="width:40px;height:1px;background:${colors.primary};margin:0 auto 24px;opacity:0.4;"></div>
+        ${ctaButtons}
+        <div style="font-size:${config.fontSize * 0.6}px;color:${colors.textMuted};letter-spacing:2px;">本文共 ${page.totalPages} 页</div>
+      </div>
+      <div style="position:absolute;bottom:${config.padding}px;left:0;right:0;text-align:center;color:${colors.textMuted};font-size:${config.fontSize * 0.5}px;letter-spacing:3px;opacity:0.4;">YUNTYPE</div>
+    `
+  }
+
+  if (xhs.endingStyle === 'card') {
+    const cardPad = config.padding * 1.5
+    return `
+      <div style="position:absolute;top:50%;left:${cardPad}px;right:${cardPad}px;transform:translateY(-50%);background:${colors.contentBg};border-radius:20px;padding:${config.padding * 1.5}px;box-shadow:0 8px 40px rgba(0,0,0,0.08);text-align:center;">
+        <div style="font-size:${config.fontSize * 2}px;margin-bottom:20px;">✨</div>
+        <div style="font-family:'${titleFont}',sans-serif;font-size:${config.fontSize * 1.6}px;font-weight:800;color:${colors.text};margin-bottom:12px;letter-spacing:2px;">感谢阅读</div>
+        <div style="font-size:${config.fontSize * 0.7}px;color:${colors.textMuted};margin-bottom:28px;">Thank you for reading</div>
+        ${ctaButtons}
+        <div style="font-size:${config.fontSize * 0.6}px;color:${colors.textMuted};line-height:2;">本文共 ${page.totalPages} 页 · 关注获取更多内容</div>
+      </div>
+      <div style="position:absolute;bottom:${config.padding}px;left:0;right:0;text-align:center;color:${colors.textMuted};font-size:${config.fontSize * 0.5}px;letter-spacing:1px;">云中书 · YunType</div>
+    `
+  }
+
+  // standard ending
+  return `
+    <div style="position:absolute;top:${config.padding}px;left:${config.padding}px;right:${config.padding}px;">${dividerSlot.render(ctx)}</div>
+    <div style="position:absolute;top:${Math.round(config.height * 0.15)}px;left:50%;transform:translateX(-50%);width:${Math.round(config.width * 0.4)}px;height:${Math.round(config.width * 0.4)}px;border-radius:50%;background:${colors.primary};opacity:0.04;"></div>
+    <div style="position:absolute;top:${centerY}px;left:0;right:0;text-align:center;">
+      <div style="font-size:${config.fontSize * 2.5}px;margin-bottom:24px;">✨</div>
+      <div style="font-family:'${titleFont}',sans-serif;font-size:${config.fontSize * 1.8}px;font-weight:800;color:${colors.text};margin-bottom:16px;letter-spacing:2px;">感谢阅读</div>
+      <div style="font-size:${config.fontSize * 0.75}px;color:${colors.textMuted};margin-bottom:36px;letter-spacing:1px;">Thank you for reading</div>
+      ${ctaButtons}
+      <div style="font-size:${config.fontSize * 0.7}px;color:${colors.textMuted};line-height:2;">本文共 ${page.totalPages} 页 · 关注获取更多内容</div>
+    </div>
+    <div style="position:absolute;bottom:${config.padding * 1.5}px;left:${config.padding}px;right:${config.padding}px;text-align:center;">
+      ${dividerSlot.render(ctx)}
+      <div style="color:${colors.textMuted};font-size:${config.fontSize * 0.6}px;letter-spacing:2px;margin-top:12px;">Powered by 云中书 YunType</div>
+    </div>
+  `
+}
+
+/** V2 元素渲染 — 使用插槽 */
+function renderElementV2(el: PageElement, config: XhsConfig, style: StyleComboV2, ctx: RenderContext, _hIdx: number): string {
+  const { slots } = style
+
+  switch (el.type) {
+    case 'heading': {
+      const slot = getSlot('title', slots.title)
+      return `<div style="margin:16px 0 8px;">${slot.render(renderInline(el.content), el.level || 2, ctx, _hIdx)}</div>`
+    }
+    case 'paragraph': {
+      const slot = getSlot('paragraph', slots.paragraph)
+      return slot.render(renderInline(el.content), ctx, _hIdx === 0)
+    }
+    case 'blockquote': {
+      const slot = getSlot('quote', slots.quote)
+      return slot.render(renderInline(el.content), ctx)
+    }
+    case 'list': {
+      const slot = getSlot('list', slots.list)
+      return slot.render(el.items || [], el.ordered || false, ctx)
+    }
+    case 'hr': {
+      const slot = getSlot('divider', slots.divider)
+      return slot.render(ctx)
+    }
+    case 'code':
+      return `<div style="margin:16px 0;padding:16px;background:${ctx.colors.contentBg};border:1px solid ${ctx.colors.primary}20;border-radius:8px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:${Math.round(config.fontSize * 0.75)}px;line-height:1.5;color:${ctx.colors.text};white-space:pre-wrap;word-break:break-all;">${el.content.replace(/</g, '<').replace(/>/g, '>')}</div>`
     default:
       return ''
   }

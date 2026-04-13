@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 — 200,000+ 种组合</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 35%, #24243e 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+}
+/* 多层光效 */
+.g1 { position: absolute; width: 700px; height: 700px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 60%); top: -250px; left: 50%; transform: translateX(-50%); }
+.g2 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 60%); bottom: -100px; left: 100px; }
+.g3 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 60%); bottom: -50px; right: 80px; }
+
+/* 大数字 */
+.big-num { z-index: 10; text-align: center; margin-bottom: 10px; }
+.big-num h1 {
+  font-size: 120px; font-weight: 900; letter-spacing: -4px; line-height: 1;
+  background: linear-gradient(135deg, #818CF8 0%, #C084FC 40%, #F472B6 70%, #FB923C 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: none; filter: drop-shadow(0 4px 30px rgba(99,102,241,0.3));
+}
+.big-num .plus { font-size: 80px; font-weight: 300; }
+.big-num .unit { font-size: 32px; color: rgba(255,255,255,0.6); font-weight: 400; letter-spacing: 8px; margin-top: 4px; display: block; }
+
+/* 公式 */
+.formula { z-index: 10; margin: 20px 0 30px; display: flex; align-items: center; gap: 10px; }
+.f-block {
+  padding: 10px 18px; border-radius: 12px; text-align: center;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+.f-num { font-size: 28px; font-weight: 800; color: #fff; }
+.f-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.f-op { font-size: 24px; color: rgba(255,255,255,0.3); font-weight: 300; }
+.f-block.result { background: rgba(79,70,229,0.2); border-color: rgba(99,102,241,0.4); box-shadow: 0 4px 20px rgba(79,70,229,0.15); }
+.f-block.result .f-num { background: linear-gradient(90deg, #818CF8, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* 层叠预览卡 */
+.stack { z-index: 10; position: relative; width: 900px; height: 180px; }
+.stack-card {
+  position: absolute; width: 260px; height: 160px; border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  transition: all 0.3s;
+}
+.sc-header { padding: 8px 12px; font-size: 10px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.sc-body { padding: 10px 12px; }
+.sc-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+.sc-text { font-size: 8px; line-height: 1.8; opacity: 0.5; }
+
+/* 各风格 */
+.stack-card:nth-child(1) { left: 0; top: 10px; background: rgba(255,248,240,0.08); transform: rotate(-3deg); }
+.stack-card:nth-child(1) .sc-header { color: #D4A574; }
+.stack-card:nth-child(1) .sc-title { color: #D4A574; text-align: center; letter-spacing: 3px; font-weight: 300; }
+.stack-card:nth-child(1) .sc-text { color: rgba(255,255,255,0.35); }
+
+.stack-card:nth-child(2) { left: 160px; top: 0; background: rgba(99,102,241,0.1); transform: rotate(-1deg); z-index: 2; }
+.stack-card:nth-child(2) .sc-header { color: #A5B4FC; }
+.stack-card:nth-child(2) .sc-title { color: #fff; background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent); padding: 2px 8px; border-radius: 3px; }
+.stack-card:nth-child(2) .sc-text { color: rgba(255,255,255,0.35); }
+
+.stack-card:nth-child(3) { left: 320px; top: 8px; background: rgba(16,185,129,0.08); transform: rotate(0.5deg); z-index: 3; }
+.stack-card:nth-child(3) .sc-header { color: #6EE7B7; }
+.stack-card:nth-child(3) .sc-title { color: #6EE7B7; font-weight: 700; border-bottom: 2px solid rgba(16,185,129,0.3); display: inline-block; padding-bottom: 2px; }
+.stack-card:nth-child(3) .sc-text { color: rgba(255,255,255,0.35); }
+
+.stack-card:nth-child(4) { left: 480px; top: 4px; background: rgba(236,72,153,0.08); transform: rotate(1.5deg); z-index: 4; }
+.stack-card:nth-child(4) .sc-header { color: #F9A8D4; }
+.stack-card:nth-child(4) .sc-title { color: #fff; background: rgba(236,72,153,0.2); padding: 3px 10px; border-radius: 16px; display: inline-block; font-size: 11px; }
+.stack-card:nth-child(4) .sc-text { color: rgba(255,255,255,0.35); }
+
+.stack-card:nth-child(5) { left: 640px; top: 12px; background: rgba(251,146,60,0.08); transform: rotate(3deg); z-index: 5; }
+.stack-card:nth-child(5) .sc-header { color: #FDBA74; }
+.stack-card:nth-child(5) .sc-title { color: #FDBA74; font-weight: 800; font-size: 13px; }
+.stack-card:nth-child(5) .sc-text { color: rgba(255,255,255,0.35); }
+
+.bottom-note { position: absolute; bottom: 22px; z-index: 10; font-size: 13px; color: rgba(255,255,255,0.35); }
+.bottom-note strong { color: rgba(255,255,255,0.65); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="g1"></div><div class="g2"></div><div class="g3"></div>
+
+  <div class="big-num">
+    <h1>200,000<span class="plus">+</span></h1>
+    <span class="unit">种 独 特 风 格 组 合</span>
+  </div>
+
+  <div class="formula">
+    <div class="f-block">
+      <div class="f-num">15</div>
+      <div class="f-label">骨架</div>
+    </div>
+    <div class="f-op">×</div>
+    <div class="f-block">
+      <div class="f-num">5</div>
+      <div class="f-label">标题变体</div>
+    </div>
+    <div class="f-op">×</div>
+    <div class="f-block">
+      <div class="f-num">4</div>
+      <div class="f-label">引用变体</div>
+    </div>
+    <div class="f-op">×</div>
+    <div class="f-block">
+      <div class="f-num">4</div>
+      <div class="f-label">列表变体</div>
+    </div>
+    <div class="f-op">×</div>
+    <div class="f-block">
+      <div class="f-num">11</div>
+      <div class="f-label">配色</div>
+    </div>
+    <div class="f-op">×</div>
+    <div class="f-block">
+      <div class="f-num">3</div>
+      <div class="f-label">字体</div>
+    </div>
+    <div class="f-op">=</div>
+    <div class="f-block result">
+      <div class="f-num">200K+</div>
+      <div class="f-label">独特组合</div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="stack-card">
+      <div class="sc-header"><span>🍵 日式留白</span><span>暖沙配色</span></div>
+      <div class="sc-body">
+        <div class="sc-title">如何高效阅读</div>
+        <div class="sc-text">阅读是一种终身学习的方式。<br>掌握方法，事半功倍。</div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="sc-header"><span>📦 卡片模块</span><span>靛蓝配色</span></div>
+      <div class="sc-body">
+        <div class="sc-title">如何高效阅读</div>
+        <div class="sc-text">阅读是一种终身学习的方式。<br>掌握方法，事半功倍。</div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="sc-header"><span>✏️ 线条笔记</span><span>薄荷配色</span></div>
+      <div class="sc-body">
+        <div class="sc-title">如何高效阅读</div>
+        <div class="sc-text">阅读是一种终身学习的方式。<br>掌握方法，事半功倍。</div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="sc-header"><span>💬 气泡对话</span><span>樱花配色</span></div>
+      <div class="sc-body">
+        <div class="sc-title">如何高效阅读</div>
+        <div class="sc-text">阅读是一种终身学习的方式。<br>掌握方法，事半功倍。</div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="sc-header"><span>📰 杂志双栏</span><span>暖阳配色</span></div>
+      <div class="sc-body">
+        <div class="sc-title">如何高效阅读</div>
+        <div class="sc-text">阅读是一种终身学习的方式。<br>掌握方法，事半功倍。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-note">同一篇文章 × <strong>不同骨架 × 不同配色 × 不同字体</strong> = 每次点击都是全新视觉体验</div>
+</div>
+</body>
+</html>

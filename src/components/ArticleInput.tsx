@@ -1,4 +1,8 @@
 // 文章输入组件 — 左侧面板
+// 支持 Markdown 输入 + 纯文本智能转换
+
+import { useState } from 'react'
+import { plainTextToMarkdown } from '../lib/text-to-markdown'
 
 interface ArticleInputProps {
   value: string
@@ -54,6 +58,19 @@ const DEMO_ARTICLE = `# 如何高效阅读一本书
 
 export default function ArticleInput({ value, onChange }: ArticleInputProps) {
   const wordCount = value.replace(/\s/g, '').length
+  const [showTip, setShowTip] = useState(false)
+
+  const handleAutoFormat = () => {
+    if (!value.trim()) return
+    const result = plainTextToMarkdown(value)
+    if (result === value) {
+      // 内容没变化（已经是Markdown），闪一下提示
+      setShowTip(true)
+      setTimeout(() => setShowTip(false), 2000)
+      return
+    }
+    onChange(result)
+  }
 
   return (
     <div style={{
@@ -70,27 +87,64 @@ export default function ArticleInput({ value, onChange }: ArticleInputProps) {
         borderBottom: '1px solid #e5e5e5',
       }}>
         <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>📝 文章输入</span>
-        <button
-          onClick={() => onChange(DEMO_ARTICLE)}
-          style={{
-            padding: '4px 12px',
-            fontSize: '12px',
-            background: '#f0f0f0',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            color: '#666',
-          }}
-        >
-          加载示例
-        </button>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          {/* 智能整理按钮 */}
+          <button
+            onClick={handleAutoFormat}
+            disabled={!value.trim()}
+            title="将纯文本智能转换为 Markdown 格式"
+            style={{
+              padding: '4px 10px',
+              fontSize: '12px',
+              background: value.trim() ? '#EEF0FF' : '#f5f5f5',
+              border: `1px solid ${value.trim() ? '#4F46E530' : '#ddd'}`,
+              borderRadius: '4px',
+              cursor: value.trim() ? 'pointer' : 'not-allowed',
+              color: value.trim() ? '#4F46E5' : '#bbb',
+              fontWeight: 600,
+              transition: 'all 0.2s',
+            }}
+          >
+            🪄 整理
+          </button>
+          {/* 加载示例按钮 */}
+          <button
+            onClick={() => onChange(DEMO_ARTICLE)}
+            style={{
+              padding: '4px 12px',
+              fontSize: '12px',
+              background: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              color: '#666',
+            }}
+          >
+            加载示例
+          </button>
+        </div>
       </div>
+
+      {/* 已是Markdown提示 */}
+      {showTip && (
+        <div style={{
+          padding: '6px 16px',
+          fontSize: '12px',
+          color: '#059669',
+          background: '#ECFDF5',
+          borderBottom: '1px solid #05966920',
+          textAlign: 'center',
+          transition: 'all 0.3s',
+        }}>
+          ✅ 内容已经是 Markdown 格式，无需转换
+        </div>
+      )}
 
       {/* 输入框 */}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="粘贴你的 Markdown 文章到这里..."
+        placeholder="粘贴你的文章到这里...&#10;&#10;支持 Markdown 格式，也可以粘贴纯文本后点击「🪄 整理」自动转换为 Markdown"
         style={{
           flex: 1,
           padding: '16px',
@@ -111,8 +165,11 @@ export default function ArticleInput({ value, onChange }: ArticleInputProps) {
         borderTop: '1px solid #e5e5e5',
         fontSize: '12px',
         color: '#999',
+        display: 'flex',
+        justifyContent: 'space-between',
       }}>
-        {wordCount} 字
+        <span>{wordCount} 字</span>
+        <span style={{ color: '#bbb' }}>粘贴纯文本 → 点击 🪄 整理 → 自动转 Markdown</span>
       </div>
     </div>
   )

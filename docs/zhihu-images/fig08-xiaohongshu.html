@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 — 小红书图片组模式</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 40%, #302b63 70%, #24243e 100%);
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+}
+.glow-a { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(255,59,48,0.12) 0%, transparent 70%); top: -150px; right: -50px; }
+.glow-b { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(255,212,59,0.1) 0%, transparent 70%); bottom: -100px; left: 100px; }
+
+.header { margin-top: 28px; text-align: center; z-index: 10; }
+.header .tag { display: inline-block; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(255,59,48,0.2); color: #FF6B6B; border: 1px solid rgba(255,59,48,0.3); margin-bottom: 8px; }
+.header h1 { font-size: 36px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+.header h1 em { font-style: normal; background: linear-gradient(90deg, #FF6B6B, #FFD43B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 15px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+
+.main { display: flex; gap: 28px; margin-top: 22px; padding: 0 40px; z-index: 10; width: 100%; }
+
+/* 左侧：手机mockup展示 */
+.phone-area { display: flex; gap: 14px; align-items: flex-start; }
+.phone {
+  width: 180px; border-radius: 20px; overflow: hidden;
+  background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.phone-notch { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 0 0 8px 8px; margin: 0 auto; }
+.phone-screen { padding: 8px; }
+.phone-label { font-size: 8px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 6px; }
+
+/* 封面 */
+.cover { border-radius: 10px; overflow: hidden; aspect-ratio: 3/4; position: relative; }
+.cover-bg { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+.cover-title { font-size: 16px; font-weight: 700; text-align: center; line-height: 1.4; margin-bottom: 6px; }
+.cover-sub { font-size: 8px; text-align: center; opacity: 0.6; }
+.cover-deco { position: absolute; top: 8px; right: 8px; font-size: 8px; padding: 2px 6px; border-radius: 4px; }
+
+/* 内容页 */
+.content-page { border-radius: 10px; overflow: hidden; aspect-ratio: 3/4; padding: 12px; }
+.cp-h { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+.cp-p { font-size: 7px; line-height: 1.8; opacity: 0.5; }
+.cp-q { font-size: 7px; padding: 4px 6px; border-radius: 3px; margin: 4px 0; }
+.cp-num { position: absolute; bottom: 6px; right: 8px; font-size: 7px; opacity: 0.3; }
+
+/* 不同风格 */
+.style-warm .cover-bg { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
+.style-warm .cover-title { color: #8B6914; }
+.style-warm .cover-sub { color: #D4A574; }
+.style-warm .cover-deco { background: rgba(212,165,116,0.2); color: #D4A574; }
+.style-warm .content-page { background: #FFF8F0; }
+.style-warm .cp-h { color: #D4A574; }
+.style-warm .cp-p { color: #5C4A32; }
+.style-warm .cp-q { background: rgba(212,165,116,0.1); color: #D4A574; border: 1px dashed rgba(212,165,116,0.3); }
+
+.style-mint .cover-bg { background: linear-gradient(135deg, #F0FBF7, #D1F2E6); }
+.style-mint .cover-title { color: #2D7A5F; }
+.style-mint .cover-sub { color: #6BC4A6; }
+.style-mint .cover-deco { background: rgba(107,196,166,0.2); color: #6BC4A6; }
+.style-mint .content-page { background: #F0FBF7; }
+.style-mint .cp-h { color: #6BC4A6; }
+.style-mint .cp-p { color: #3A5A4A; }
+.style-mint .cp-q { background: rgba(107,196,166,0.1); color: #6BC4A6; border-left: 2px solid #6BC4A6; }
+
+.style-pink .cover-bg { background: linear-gradient(135deg, #FFF0F5, #FFD6E7); }
+.style-pink .cover-title { color: #E91E63; }
+.style-pink .cover-sub { color: #F48FB1; }
+.style-pink .cover-deco { background: rgba(244,143,177,0.2); color: #F48FB1; }
+.style-pink .content-page { background: #FFF0F5; }
+.style-pink .cp-h { color: #F48FB1; }
+.style-pink .cp-p { color: #5A2A3A; }
+.style-pink .cp-q { background: rgba(244,143,177,0.1); color: #F48FB1; border-radius: 8px; }
+
+/* 右侧：功能介绍 */
+.info-area { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+.feature-card {
+  padding: 14px 18px; border-radius: 12px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+}
+.fc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.fc-icon { font-size: 22px; }
+.fc-title { font-size: 15px; font-weight: 700; color: #fff; }
+.fc-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+.fc-desc strong { color: rgba(255,255,255,0.7); }
+
+.ratio-row { display: flex; gap: 10px; margin-top: 8px; }
+.ratio-box {
+  flex: 1; padding: 8px; border-radius: 8px; text-align: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+}
+.ratio-box.active { border-color: rgba(255,59,48,0.4); background: rgba(255,59,48,0.08); }
+.ratio-visual { margin: 0 auto 4px; border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; }
+.ratio-box.active .ratio-visual { border-color: rgba(255,59,48,0.5); }
+.ratio-name { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); }
+.ratio-box.active .ratio-name { color: #FF6B6B; }
+.ratio-size { font-size: 8px; color: rgba(255,255,255,0.3); }
+
+.export-bar {
+  padding: 12px 18px; border-radius: 12px; display: flex; align-items: center; gap: 14px;
+  background: rgba(255,59,48,0.08); border: 1px solid rgba(255,59,48,0.2);
+}
+.export-icon { font-size: 24px; }
+.export-info { flex: 1; }
+.export-title { font-size: 13px; font-weight: 700; color: #FF6B6B; }
+.export-desc { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+.bottom { position: absolute; bottom: 18px; z-index: 10; }
+.bottom-text { font-size: 12px; color: rgba(255,255,255,0.35); }
+.bottom-text strong { color: rgba(255,255,255,0.6); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow-a"></div><div class="glow-b"></div>
+
+  <div class="header">
+    <div class="tag">📱 小红书模式</div>
+    <h1>文章 → <em>高清图片组</em>，3 分钟搞定</h1>
+    <p>自动分页排版 + 智能封面生成 + 一键导出 ZIP，直接发小红书</p>
+  </div>
+
+  <div class="main">
+    <!-- 手机展示 -->
+    <div class="phone-area">
+      <div>
+        <div class="phone style-warm">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="cover">
+              <div class="cover-bg">
+                <div class="cover-deco">☕ 暖沙</div>
+                <div class="cover-title">如何高效<br>阅读一本书</div>
+                <div class="cover-sub">阅读方法论 · 终身学习指南</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">封面 · 3:4竖图</div>
+      </div>
+      <div>
+        <div class="phone style-mint">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="content-page" style="position:relative;">
+              <div class="cp-h">选书：找到值得读的书</div>
+              <div class="cp-p">不是所有书都值得从头读到尾。学会筛选，是阅读的第一课。</div>
+              <div class="cp-q">好书，是浓缩的思考。</div>
+              <div class="cp-p">看目录判断结构是否清晰；看序言了解作者的写作动机。</div>
+              <div class="cp-h" style="margin-top: 6px;">阅读：主动阅读四步法</div>
+              <div class="cp-p">第一步：花15分钟略读全书框架。第二步：带着问题精读重点章节。</div>
+              <div class="cp-num">2/5</div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">内容页 · 薄荷</div>
+      </div>
+      <div>
+        <div class="phone style-pink">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="content-page" style="position:relative;">
+              <div class="cp-h" style="text-align:center;">笔记：构建知识网络</div>
+              <div class="cp-p">好的笔记不是照抄原文，而是用自己的话重新表达。</div>
+              <div class="cp-q" style="text-align:center;">读书不是目的，思考才是。</div>
+              <div class="cp-p">建立关联：把新知识和旧知识连接起来。定期复习：间隔重复是最有效的记忆方法。</div>
+              <div class="cp-num">3/5</div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">内容页 · 樱花</div>
+      </div>
+    </div>
+
+    <!-- 功能介绍 -->
+    <div class="info-area">
+      <div class="feature-card">
+        <div class="fc-header">
+          <div class="fc-icon">📐</div>
+          <div class="fc-title">3 种图片比例</div>
+        </div>
+        <div class="ratio-row">
+          <div class="ratio-box active">
+            <div class="ratio-visual" style="width:36px; height:48px;"></div>
+            <div class="ratio-name">3:4</div>
+            <div class="ratio-size">1080×1440</div>
+          </div>
+          <div class="ratio-box">
+            <div class="ratio-visual" style="width:42px; height:42px;"></div>
+            <div class="ratio-name">1:1</div>
+            <div class="ratio-size">1080×1080</div>
+          </div>
+          <div class="ratio-box">
+            <div class="ratio-visual" style="width:54px; height:30px;"></div>
+            <div class="ratio-name">16:9</div>
+            <div class="ratio-size">1920×1080</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="fc-header">
+          <div class="fc-icon">🎨</div>
+          <div class="fc-title">完整风格系统</div>
+        </div>
+        <div class="fc-desc">
+          V2 支持 <strong>15种骨架 × 6个插槽 × 11套配色 × 3种字体</strong><br>
+          小红书图片也能有 200,000+ 种不同风格组合，不再只是换个颜色。
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="fc-header">
+          <div class="fc-icon">🤖</div>
+          <div class="fc-title">智能分页 + 封面生成</div>
+        </div>
+        <div class="fc-desc">
+          自动根据内容长度<strong>智能分页</strong>，不截断段落、不留空白。<br>
+          封面自动提取标题 + 副标题，<strong>风格与内容页统一</strong>。
+        </div>
+      </div>
+
+      <div class="export-bar">
+        <div class="export-icon">📦</div>
+        <div class="export-info">
+          <div class="export-title">一键导出 ZIP</div>
+          <div class="export-desc">所有页面打包为高清 PNG 图片组，直接上传小红书</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="bottom-text">公众号排版 + 小红书图片组 = <strong>一篇文章，两个平台，同步发布</strong></div>
+  </div>
+</div>
+</body>
+</html>

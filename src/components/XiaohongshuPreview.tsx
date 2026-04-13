@@ -1,20 +1,23 @@
 // 小红书预览组件 — 缩略图网格 + 大图预览
+// 支持 V1 (StyleCombo) + V2 (StyleComboV2) 双模式
 
 import { useState, useMemo, useRef } from 'react'
-import { splitToPages, renderXhsPageHTML, XHS_PRESETS, type XhsConfig } from '../lib/render/xiaohongshu'
+import { splitToPages, splitToPagesV2, renderXhsPageHTML, renderXhsPageV2, XHS_PRESETS, type XhsConfig } from '../lib/render/xiaohongshu'
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
-import type { StyleCombo, AtomIds } from '../lib/atoms'
+import type { StyleCombo, StyleComboV2, AtomIds } from '../lib/atoms'
 
 interface XhsPreviewProps {
   markdown: string
   style: StyleCombo
+  styleV2?: StyleComboV2
+  useV2?: boolean
   comboName: string
   atomIds: AtomIds
 }
 
 type AspectRatio = '3:4' | '1:1' | '16:9'
 
-export default function XiaohongshuPreview({ markdown, style, comboName, atomIds: _atomIds }: XhsPreviewProps) {
+export default function XiaohongshuPreview({ markdown, style, styleV2, useV2, comboName, atomIds: _atomIds }: XhsPreviewProps) {
   const [ratio, setRatio] = useState<AspectRatio>('3:4')
   const [selectedPage, setSelectedPage] = useState(0)
   const [exporting, setExporting] = useState(false)
@@ -27,8 +30,12 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
 
   const rawPages = useMemo(() => {
     if (!markdown.trim()) return []
+    // V2 模式使用插槽感知 + 缩放感知的分页算法
+    if (useV2 && styleV2) {
+      return splitToPagesV2(markdown, config, styleV2)
+    }
     return splitToPages(markdown, config)
-  }, [markdown, config])
+  }, [markdown, config, useV2, styleV2])
 
   // 页面排序：当原始页面变化时重置排序
   useMemo(() => {
@@ -59,15 +66,18 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
   const selectedPageHtml = useMemo(() => {
     if (pages.length === 0) return ''
     const page = pages[Math.min(selectedPage, pages.length - 1)]
+    if (useV2 && styleV2) {
+      return renderXhsPageV2(page, styleV2, config)
+    }
     return renderXhsPageHTML(page, style, config)
-  }, [pages, selectedPage, style, config])
+  }, [pages, selectedPage, style, styleV2, useV2, config])
 
   const handleExportZip = async () => {
     if (pages.length === 0) return
     setExporting(true)
     setProgress(0)
     try {
-      await exportAllPagesAsZip(pages, style, config, (p) => setProgress(p))
+      await exportAllPagesAsZip(pages, style, config, (p) => setProgress(p), styleV2, useV2)
     } catch (e) {
       console.error('导出失败:', e)
     } finally {
@@ -80,13 +90,16 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
     const page = pages[Math.min(selectedPage, pages.length - 1)]
     setExporting(true)
     try {
-      await downloadSinglePage(page, style, config)
+      await downloadSinglePage(page, style, config, undefined, styleV2, useV2)
     } catch (e) {
       console.error('下载失败:', e)
     } finally {
       setExporting(false)
     }
   }
+
+  // V2 时使用 V2 配色，否则使用 V1 配色
+  const activeColors = (useV2 && styleV2) ? styleV2.color.colors : style.color.colors
 
   // 缩略图尺寸
   const thumbW = 100
@@ -171,7 +184,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
                 style={{
                   width: `${thumbW}px`,
                   height: `${thumbH}px`,
-                  background: style.color.colors.pageBg,
+                  background: activeColors.pageBg,
                   border: `2px solid ${selectedPage === i ? '#4F46E5' : '#ddd'}`,
                   borderRadius: '4px',
                   cursor: 'grab',
@@ -187,7 +200,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
                   bottom: '2px',
                   right: '4px',
                   fontSize: '10px',
-                  color: style.color.colors.textMuted,
+                  color: activeColors.textMuted,
                   fontWeight: 600,
                 }}>
                   {page.type === 'cover' ? '封面' : page.type === 'ending' ? '尾页' : `${i + 1}`}
@@ -197,7 +210,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
                   padding: '6px',
                   fontSize: '6px',
                   lineHeight: '1.4',
-                  color: style.color.colors.text,
+                  color: activeColors.text,
                   overflow: 'hidden',
                 }}>
                   {page.type === 'cover' && (

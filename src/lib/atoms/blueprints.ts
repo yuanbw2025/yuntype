@@ -3,6 +3,27 @@
 
 import { type SlotConfig } from './slots'
 
+// ─── 小红书专属骨架配置 ─────────────────────────────
+export type CoverVariantType = 'classic' | 'bold' | 'minimal' | 'card' | 'magazine'
+export type ContentLayoutType = 'standard' | 'card-wrapped' | 'alternating-bg' | 'timeline-rail'
+export type PageNumberStyle = 'right' | 'center' | 'fraction' | 'dot'
+
+export interface BlueprintXhsConfig {
+  /** 封面风格偏好 */
+  coverVariant: CoverVariantType
+  /** 内容页布局 */
+  contentLayout: ContentLayoutType
+  /** 页面装饰 */
+  pageDecoration: {
+    headerBar: boolean
+    footerLine: boolean
+    pageNumberStyle: PageNumberStyle
+    brandPosition: 'bottom-center' | 'bottom-right' | 'none'
+  }
+  /** 尾页风格 */
+  endingStyle: 'standard' | 'minimal' | 'card'
+}
+
 export interface Blueprint {
   id: string
   name: string
@@ -15,6 +36,8 @@ export interface Blueprint {
   /** 内容区 padding */
   contentPadding: string
   tags: string[]
+  /** 小红书专属配置 */
+  xhs: BlueprintXhsConfig
 }
 
 export const blueprints: Blueprint[] = [
@@ -28,6 +51,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['minimal', 'clean', 'professional'],
+    xhs: {
+      coverVariant: 'minimal',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: false, footerLine: true, pageNumberStyle: 'right', brandPosition: 'bottom-center' },
+      endingStyle: 'minimal',
+    },
   },
   {
     id: 'B02', name: '日式留白', desc: '大量留白，禅意呼吸感', icon: '🍵',
@@ -38,6 +67,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '24px 28px',
     tags: ['japanese', 'minimal', 'elegant'],
+    xhs: {
+      coverVariant: 'minimal',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: false, footerLine: false, pageNumberStyle: 'center', brandPosition: 'bottom-center' },
+      endingStyle: 'minimal',
+    },
   },
 
   // ═══════════ 线条系 ═══════════
@@ -50,6 +85,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['structured', 'clean', 'professional'],
+    xhs: {
+      coverVariant: 'classic',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: true, pageNumberStyle: 'right', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
   {
     id: 'B04', name: '双线学术', desc: '双线框 + 两端对齐，论文风', icon: '🎓',
@@ -60,6 +101,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '20px 24px',
     tags: ['academic', 'formal', 'serious'],
+    xhs: {
+      coverVariant: 'magazine',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: true, pageNumberStyle: 'fraction', brandPosition: 'bottom-center' },
+      endingStyle: 'standard',
+    },
   },
 
   // ═══════════ 色块系 ═══════════
@@ -72,6 +119,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['modern', 'colorful', 'design'],
+    xhs: {
+      coverVariant: 'bold',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: false, pageNumberStyle: 'right', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
   {
     id: 'B06', name: '交替色带', desc: '奇偶节区交替底色', icon: '🌈',
@@ -82,6 +135,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['structured', 'colorful', 'magazine'],
+    xhs: {
+      coverVariant: 'classic',
+      contentLayout: 'alternating-bg',
+      pageDecoration: { headerBar: false, footerLine: true, pageNumberStyle: 'center', brandPosition: 'bottom-center' },
+      endingStyle: 'standard',
+    },
   },
 
   // ═══════════ 卡片系 ═══════════
@@ -94,6 +153,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.pageBg}; color: ${c.text};`,
     contentPadding: '12px 16px',
     tags: ['card', 'modular', 'structured'],
+    xhs: {
+      coverVariant: 'card',
+      contentLayout: 'card-wrapped',
+      pageDecoration: { headerBar: false, footerLine: false, pageNumberStyle: 'dot', brandPosition: 'bottom-center' },
+      endingStyle: 'card',
+    },
   },
   {
     id: 'B08', name: '气泡圆润', desc: '圆角气泡包裹，亲和力强', icon: '💬',
@@ -104,6 +169,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.pageBg}; color: ${c.text};`,
     contentPadding: '12px 16px',
     tags: ['friendly', 'warm', 'cute'],
+    xhs: {
+      coverVariant: 'card',
+      contentLayout: 'card-wrapped',
+      pageDecoration: { headerBar: false, footerLine: false, pageNumberStyle: 'dot', brandPosition: 'bottom-center' },
+      endingStyle: 'card',
+    },
   },
 
   // ═══════════ 杂志系 ═══════════
@@ -116,6 +187,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '20px 24px',
     tags: ['magazine', 'editorial', 'premium'],
+    xhs: {
+      coverVariant: 'magazine',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: true, pageNumberStyle: 'fraction', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
   {
     id: 'B10', name: '首字下沉', desc: '首段首字放大，古典杂志感', icon: '🔤',
@@ -126,6 +203,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '20px 24px',
     tags: ['literary', 'editorial', 'classic'],
+    xhs: {
+      coverVariant: 'classic',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: false, footerLine: true, pageNumberStyle: 'center', brandPosition: 'bottom-center' },
+      endingStyle: 'standard',
+    },
   },
 
   // ═══════════ 结构系 ═══════════
@@ -138,6 +221,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['tutorial', 'step-by-step', 'structured'],
+    xhs: {
+      coverVariant: 'bold',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: false, pageNumberStyle: 'right', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
   {
     id: 'B12', name: '时间线', desc: '左侧轨道 + 圆点节点', icon: '📍',
@@ -148,6 +237,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px 16px 8px',
     tags: ['timeline', 'step-by-step', 'structured'],
+    xhs: {
+      coverVariant: 'classic',
+      contentLayout: 'timeline-rail',
+      pageDecoration: { headerBar: false, footerLine: true, pageNumberStyle: 'right', brandPosition: 'bottom-center' },
+      endingStyle: 'standard',
+    },
   },
 
   // ═══════════ 文学系 ═══════════
@@ -160,6 +255,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '20px 28px',
     tags: ['literary', 'poetic', 'elegant'],
+    xhs: {
+      coverVariant: 'minimal',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: false, footerLine: false, pageNumberStyle: 'center', brandPosition: 'bottom-center' },
+      endingStyle: 'minimal',
+    },
   },
 
   // ═══════════ 商务系 ═══════════
@@ -172,6 +273,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['business', 'professional', 'clean'],
+    xhs: {
+      coverVariant: 'classic',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: true, pageNumberStyle: 'right', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
 
   // ═══════════ 几何系 ═══════════
@@ -184,6 +291,12 @@ export const blueprints: Blueprint[] = [
     containerStyle: (c) => `background-color: ${c.contentBg}; color: ${c.text};`,
     contentPadding: '16px 20px',
     tags: ['geometric', 'unique', 'design'],
+    xhs: {
+      coverVariant: 'bold',
+      contentLayout: 'standard',
+      pageDecoration: { headerBar: true, footerLine: true, pageNumberStyle: 'right', brandPosition: 'bottom-right' },
+      endingStyle: 'standard',
+    },
   },
 ]
 

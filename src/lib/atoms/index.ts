@@ -6,9 +6,13 @@ import { decorationSets, type DecorationSet } from './decorations'
 import { typographySets, type TypographySet } from './typography'
 import { blueprints, getBlueprint, type Blueprint } from './blueprints'
 import { type SlotConfig, type SlotLocks } from './slots'
+import { coordinatedPick, coordinatedPickWithBlueprint, coordinatedPickSlots, coordinatedPickByScene, tagAffinity, debugAffinity } from './coordination'
+import { scenePresetsV2, analyzeArticleTags, recommendPresets, getScenePreset, type ScenePresetV2 } from './presets-v2'
 
-export type { ColorScheme, LayoutTemplate, DecorationSet, TypographySet, Blueprint, SlotConfig, SlotLocks }
+export type { ColorScheme, LayoutTemplate, DecorationSet, TypographySet, Blueprint, SlotConfig, SlotLocks, ScenePresetV2 }
 export { colorSchemes, layoutTemplates, decorationSets, typographySets, blueprints, getBlueprint }
+export { coordinatedPick, coordinatedPickWithBlueprint, coordinatedPickSlots, coordinatedPickByScene, tagAffinity, debugAffinity }
+export { scenePresetsV2, analyzeArticleTags, recommendPresets, getScenePreset }
 
 // ─── V1 兼容类型（保持旧代码不挂）─────────────────────
 
@@ -87,8 +91,13 @@ export function getStyleComboV2(ids: AtomIdsV2): StyleComboV2 {
   }
 }
 
-/** 生成随机 V2 原子组合 */
+/** 生成随机 V2 原子组合（使用协调引擎，基于标签亲和度加权选择） */
 export function randomAtomIdsV2(): AtomIdsV2 {
+  return coordinatedPick()
+}
+
+/** 纯随机 V2（不使用协调引擎，用于对比测试） */
+export function pureRandomAtomIdsV2(): AtomIdsV2 {
   const bp = randomPick(blueprints)
   return {
     colorId: randomPick(colorSchemes).id,
