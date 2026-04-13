@@ -330,7 +330,8 @@ Phase 4 ✅  → 信息图引擎 + AI文生图 + 品牌预设
 Phase 5 ✅  → AI文章分析（9→11个提供商）+ 字体管理器 + 移动端适配
 Phase 6 ✅  → 暗黑模式 + 快捷键 + 封面5变体 + SEO/PWA
 Phase 7 ✅  → MCP Server + Prompt Skill + Claude/Grok支持
-Phase 8 🔲  → 多语言支持 + 模板市场 + 协作编辑
+Phase 8 ✅  → 骨架引擎V2：插槽系统(6类48变体) + 蓝图(5套) + 100万+种组合
+Phase 9 🔲  → 小红书V2渲染 + MCP/Skill V2适配 + 多语言 + 模板市场
 ```
 
 ---

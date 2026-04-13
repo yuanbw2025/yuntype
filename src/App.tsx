@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import ArticleInput from './components/ArticleInput'
 import StylePanel from './components/StylePanel'
+import LayoutPanel from './components/LayoutPanel'
 import WechatPreview from './components/WechatPreview'
 import ExportPanel from './components/ExportPanel'
 import XiaohongshuPreview from './components/XiaohongshuPreview'
@@ -10,7 +11,7 @@ import InfographicPanel from './components/InfographicPanel'
 import AIImageDialog from './components/AIImageDialog'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
-import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds } from './lib/atoms'
+import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds, randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 import { defaultTuneParams, applyTuning, type TuneParams } from './lib/atoms/presets'
 import { pushHistory } from './lib/storage'
 
@@ -20,6 +21,8 @@ export default function App() {
   const [article, setArticle] = useState('')
   const [atomIds, setAtomIds] = useState<AtomIds>(randomAtomIds)
   const [tuneParams, setTuneParams] = useState<TuneParams>(defaultTuneParams)
+  const [atomIdsV2, setAtomIdsV2] = useState<AtomIdsV2>(defaultAtomIdsV2)
+  const [useV2, setUseV2] = useState(true) // 默认启用 V2
   const [mode, setMode] = useState<AppMode>('wechat')
   const [showAIImage, setShowAIImage] = useState(false)
   const [showApiConfig, setShowApiConfig] = useState(false)
@@ -37,9 +40,13 @@ export default function App() {
   }, [darkMode])
 
   const handleShuffle = useCallback(() => {
-    setAtomIds(randomAtomIds())
-    setTuneParams(defaultTuneParams)
-  }, [])
+    if (useV2) {
+      setAtomIdsV2(randomAtomIdsV2())
+    } else {
+      setAtomIds(randomAtomIds())
+      setTuneParams(defaultTuneParams)
+    }
+  }, [useV2])
 
   // 键盘快捷键
   useEffect(() => {
@@ -79,7 +86,10 @@ export default function App() {
     return applyTuning(base, tuneParams)
   }, [atomIds, tuneParams])
 
-  const comboName = getComboName(atomIds)
+  const finalStyleV2 = useMemo(() => getStyleComboV2(atomIdsV2), [atomIdsV2])
+
+  const comboName = useV2 ? getComboNameV2(atomIdsV2) : getComboName(atomIds)
+  const totalCombos = useV2 ? TOTAL_COMBOS_V2 : TOTAL_COMBOS
 
   // 记录历史（atomIds变化时）
   useEffect(() => {
@@ -130,12 +140,24 @@ export default function App() {
           <span style={{ fontSize: '20px' }}>☁️</span>
           <span style={{ fontSize: '16px', fontWeight: 700, color: '#333' }}>云中书 YunType</span>
           <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
-            {TOTAL_COMBOS} 种排版组合
+            {totalCombos}+ 种排版组合
           </span>
         </div>
 
-        {/* 模式切换 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {/* V1/V2 切换 + 模式切换 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setUseV2(!useV2)}
+            style={{
+              padding: '5px 10px', fontSize: '11px', fontWeight: 600,
+              color: useV2 ? '#4F46E5' : '#999',
+              background: useV2 ? '#EEF0FF' : '#f5f5f5',
+              border: `1px solid ${useV2 ? '#4F46E530' : '#ddd'}`,
+              borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s',
+            }}
+          >
+            {useV2 ? '🏗️ V2 骨架' : '⚙️ V1 经典'}
+          </button>
           {([
             { key: 'wechat' as AppMode, label: '📝 公众号', color: '#07C160' },
             { key: 'xiaohongshu' as AppMode, label: '📸 小红书', color: '#FF2442' },
@@ -238,18 +260,29 @@ export default function App() {
         {/* 中栏：风格面板（信息图模式下隐藏） */}
         {mode !== 'infographic' && (
           <div style={{
-            width: '240px',
+            width: '260px',
             flexShrink: 0,
             display: 'flex',
             flexDirection: 'column',
+            background: '#fff',
+            borderRight: '1px solid #e5e5e5',
+            overflow: 'hidden',
           }}>
-            <StylePanel
-              atomIds={atomIds}
-              tuneParams={tuneParams}
-              onAtomIdsChange={setAtomIds}
-              onTuneChange={setTuneParams}
-              onShuffle={handleShuffle}
-            />
+            {useV2 ? (
+              <LayoutPanel
+                atomIdsV2={atomIdsV2}
+                onChange={setAtomIdsV2}
+                onShuffle={handleShuffle}
+              />
+            ) : (
+              <StylePanel
+                atomIds={atomIds}
+                tuneParams={tuneParams}
+                onAtomIdsChange={setAtomIds}
+                onTuneChange={setTuneParams}
+                onShuffle={handleShuffle}
+              />
+            )}
           </div>
         )}
 
@@ -266,6 +299,8 @@ export default function App() {
                 <WechatPreview
                   markdown={article}
                   style={finalStyle}
+                  styleV2={finalStyleV2}
+                  useV2={useV2}
                   comboName={comboName}
                   atomIds={atomIds}
                 />

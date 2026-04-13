@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云中书 — 15种布局预览</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #1a1a2e; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(26,26,46,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.nav h1 { font-size: 16px; color: #fff; white-space: nowrap; }
+.nav-btn { padding: 6px 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; transition: all 0.2s; white-space: nowrap; }
+.nav-btn:hover, .nav-btn.active { background: #c4956a; color: #fff; border-color: #c4956a; }
+.container { padding: 80px 20px 40px; max-width: 1400px; margin: 0 auto; }
+.grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+.layout-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.layout-label { background: linear-gradient(135deg, #c4956a, #a07850); color: #fff; padding: 12px 20px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.layout-label span { font-size: 12px; opacity: 0.8; font-weight: 400; }
+.layout-body { padding: 0; max-height: 800px; overflow-y: auto; }
+.layout-body::-webkit-scrollbar { width: 4px; }
+.layout-body::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+/* 通用配色: 奶茶温柔 */
+:root {
+  --bg: #faf6f1;
+  --content-bg: #ffffff;
+  --primary: #c4956a;
+  --secondary: #f0e6d6;
+  --accent: #d4a574;
+  --text: #4a3728;
+  --text-muted: #8b7355;
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <h1>☁️ 云中书 — 15种布局对比</h1>
+  <button class="nav-btn active" onclick="showAll()">全部展示</button>
+  <button class="nav-btn" onclick="scrollTo('L01')">L01 极简流线</button>
+  <button class="nav-btn" onclick="scrollTo('L02')">L02 学术论文</button>
+  <button class="nav-btn" onclick="scrollTo('L03')">L03 左色条</button>
+  <button class="nav-btn" onclick="scrollTo('L04')">L04 经典散文</button>
+  <button class="nav-btn" onclick="scrollTo('L05')">L05 日式留白</button>
+  <button class="nav-btn" onclick="scrollTo('L06')">L06 首字下沉</button>
+  <button class="nav-btn" onclick="scrollTo('L07')">L07 杂志编排</button>
+  <button class="nav-btn" onclick="scrollTo('L08')">L08 色块标签</button>
+  <button class="nav-btn" onclick="scrollTo('L09')">L09 双线框题</button>
+  <button class="nav-btn" onclick="scrollTo('L10')">L10 卡片分区</button>
+  <button class="nav-btn" onclick="scrollTo('L11')">L11 交替色带</button>
+  <button class="nav-btn" onclick="scrollTo('L12')">L12 时间线</button>
+  <button class="nav-btn" onclick="scrollTo('L13')">L13 问答对话</button>
+  <button class="nav-btn" onclick="scrollTo('L14')">L14 复古报刊</button>
+  <button class="nav-btn" onclick="scrollTo('L15')">L15 霓虹科技</button>
+</nav>
+
+<div class="container">
+<div class="grid" id="grid"></div>
+</div>
+
+<script>
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function showAll() {}
+
+// 统一素材：知乎文章节选
+const ARTICLE = {
+  title: '云中书 YunType：一个开源AI排版引擎的诞生',
+  subtitle: '660种排版组合，让公众号和小红书创作效率翻10倍',
+  lead: '我是一个经常写公众号和小红书的创作者。每次文章写完，排版这件事就让我抓狂。于是我用 React + TypeScript 从零做了一个完全免费、完全开源的 AI 排版引擎——云中书 YunType。',
+  h2_1: '为什么要做这个工具？',
+  h3_1: '公众号排版的痛',
+  p1: '如果你写过微信公众号文章，一定经历过这样的场景：花了2个小时写完一篇3000字的深度文章，打开公众号后台，开始排版。字号要调、行间距要改、标题样式要统一、配色要协调……又花了1个小时。',
+  p2: '更崩溃的是，你精心调好的排版，换一台手机打开发现字体全变了。',
+  quote: '粘贴 Markdown 文章 → 选个风格 → 一键复制到公众号。如果是小红书，直接帮我把文章自动切成一组图片，打包下载。',
+  h3_2: '小红书排版的痛',
+  p3: '如果说公众号排版是"折磨"，小红书排版就是"酷刑"。小红书是图片平台，你的文字文章需要变成一组精美的图片。一篇3000字的攻略，你可能需要手动把文字分成10-15张图。',
+  list: ['手动把文字分成 10-15 张图', '每张图保持一致的背景色、字体、排版风格', '封面要有冲击力', '尾页要有互动引导'],
+  h2_2: '产品全貌：三栏式工作台',
+  p4: '打开云中书，你会看到一个三栏式工作台。左栏是文章输入区，一个全屏的 Markdown 编辑器，支持实时字数统计。中栏是风格控制面板，包含6个标签页。右栏是实时预览区。',
+  table: [
+    ['工具', '优点', '痛点'],
+    ['秀米', '模板多', '同质化严重，高级功能收费'],
+    ['135编辑器', '组件丰富', '学习曲线陡峭，会员制'],
+    ['Canva', '设计感强', '偏图片设计，文字排版弱'],
+  ],
+  h2_3: '核心功能：660种原子化排版组合',
+  p5: '传统排版工具提供"模板"。模板的问题是：好看的就那几个，用的人多了就撞款。你的文章和别人看起来一模一样。云中书不做模板，做的是四个维度的自由组合。',
+  code: '排版方案 = 配色(11种) × 排版(5种) × 装饰(4种) × 字体(3种)\n        = 660 种独特组合',
+};
+
+const A = ARTICLE;
+
+// ============================================================
+// 15种布局的HTML生成
+// ============================================================
+
+const layouts = [
+
+// ── L01 极简流线 ──
+{
+  id: 'L01', name: '极简流线', desc: '纯线性流，零装饰，高信息密度',
+  html: `
+<section style="background:#fff;padding:24px 28px;color:${A.text};font-size:15px;line-height:1.75;">
+  <h1 style="font-size:22px;font-weight:700;color:var(--primary);margin:0 0 8px;border-bottom:1px solid var(--secondary);padding-bottom:10px;">${A.title}</h1>
+  <p style="font-size:13px;color:var(--text-muted);margin:0 0 20px;">${A.subtitle}</p>
+  <p style="margin:0 0 16px;color:var(--text);">${A.lead}</p>
+  <section style="border-top:1px solid #e8e0d5;margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 12px;border-bottom:2px solid var(--primary);padding-bottom:6px;">一、${A.h2_1}</h2>
+  <h3 style="font-size:16px;font-weight:600;color:var(--primary);margin:20px 0 10px;border-left:3px solid var(--primary);padding-left:10px;">1.1 ${A.h3_1}</h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p2}</p>
+  <section style="border-left:3px solid var(--secondary);padding:10px 14px;background:rgba(0,0,0,0.02);margin:0 0 14px;">
+    <p style="margin:0;color:var(--text-muted);font-size:14px;">${A.quote}</p>
+  </section>
+  <h3 style="font-size:16px;font-weight:600;color:var(--primary);margin:20px 0 10px;border-left:3px solid var(--primary);padding-left:10px;">1.2 ${A.h3_2}</h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 6px;color:var(--text);padding-left:16px;">● ${i}</p>`).join('')}
+  <section style="border-top:1px solid #e8e0d5;margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 12px;border-bottom:2px solid var(--primary);padding-bottom:6px;">二、${A.h2_2}</h2>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p4}</p>
+</section>`
+},
+
+// ── L02 学术论文 ──
+{
+  id: 'L02', name: '学术论文', desc: '居中标题、编号体系、首行缩进、圈标列表',
+  html: `
+<section style="background:#fff;padding:32px 36px;color:var(--text);font-size:15px;line-height:1.85;">
+  <h1 style="font-size:24px;font-weight:700;color:var(--text);text-align:center;margin:0 0 6px;">${A.title}</h1>
+  <p style="text-align:center;font-size:14px;color:var(--text-muted);margin:0 0 12px;">${A.subtitle}</p>
+  <section style="border-top:1px solid #999;border-bottom:1px solid #999;height:0;margin:16px auto;width:60%;"></section>
+  <p style="margin:0 0 20px;text-indent:2em;color:var(--text);font-size:14px;"><strong>摘要：</strong>${A.lead}</p>
+  <section style="border-top:2px solid var(--text);border-bottom:1px solid #ccc;height:3px;margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--text);margin:0 0 16px;">一、${A.h2_1}</h2>
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 10px;">1.1 ${A.h3_1}</h3>
+  <p style="margin:0 0 16px;text-indent:2em;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 16px;text-indent:2em;color:var(--text);">${A.p2}</p>
+  <section style="background:#f5f0ea;padding:14px 18px;margin:0 0 16px;border-radius:2px;">
+    <p style="margin:0;color:var(--text-muted);font-size:14px;text-indent:2em;">「按」${A.quote}</p>
+  </section>
+  <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 10px;">1.2 ${A.h3_2}</h3>
+  <p style="margin:0 0 16px;text-indent:2em;color:var(--text);">${A.p3}</p>
+  ${A.list.map((item,i)=>`<p style="margin:0 0 8px;color:var(--text);padding-left:24px;">&#${9312+i}; ${item}</p>`).join('')}
+  <section style="border-top:2px solid var(--text);border-bottom:1px solid #ccc;height:3px;margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--text);margin:0 0 16px;">二、${A.h2_2}</h2>
+  <p style="margin:0 0 16px;text-indent:2em;color:var(--text);">${A.p4}</p>
+</section>`
+},
+
+// ── L03 左色条 ──
+{
+  id: 'L03', name: '左色条知识', desc: '标题左侧粗色条，紧凑排版，知识干货感',
+  html: `
+<section style="background:#fff;padding:24px 28px;color:var(--text);font-size:15px;line-height:1.75;">
+  <section style="border-left:5px solid var(--primary);padding-left:16px;margin:0 0 20px;">
+    <h1 style="font-size:22px;font-weight:800;color:var(--primary);margin:0 0 4px;">${A.title}</h1>
+    <p style="font-size:13px;color:var(--text-muted);margin:0;">${A.subtitle}</p>
+  </section>
+  <p style="margin:0 0 16px;color:var(--text);">${A.lead}</p>
+  <section style="height:3px;background:linear-gradient(90deg,var(--primary),transparent);margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 12px;padding-left:14px;border-left:5px solid var(--primary);">一、${A.h2_1}</h2>
+  <h3 style="font-size:15px;font-weight:600;color:var(--accent);margin:18px 0 8px;padding-left:14px;border-left:3px solid var(--accent);">1.1 ${A.h3_1}</h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p2}</p>
+  <section style="border-left:4px solid var(--secondary);background:var(--secondary);padding:12px 16px;margin:0 0 14px;border-radius:0 6px 6px 0;">
+    <p style="margin:0;color:var(--text);font-size:14px;">${A.quote}</p>
+  </section>
+  <h3 style="font-size:15px;font-weight:600;color:var(--accent);margin:18px 0 8px;padding-left:14px;border-left:3px solid var(--accent);">1.2 ${A.h3_2}</h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 6px;color:var(--text);padding-left:20px;"><span style="color:var(--primary);font-weight:bold;">■</span> ${i}</p>`).join('')}
+  <section style="height:3px;background:linear-gradient(90deg,var(--primary),transparent);margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 12px;padding-left:14px;border-left:5px solid var(--primary);">二、${A.h2_2}</h2>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p4}</p>
+</section>`
+},
+
+// ── L04 经典散文 ──
+{
+  id: 'L04', name: '经典散文', desc: '居中大标题、首行缩进、大留白、Pull-quote居中引用',
+  html: `
+<section style="background:#fff;padding:40px 36px;color:var(--text);font-size:16px;line-height:2.0;">
+  <h1 style="font-size:26px;font-weight:700;color:var(--primary);text-align:center;margin:0 0 8px;letter-spacing:2px;">${A.title}</h1>
+  <p style="text-align:center;font-size:14px;color:var(--text-muted);margin:0 0 30px;letter-spacing:1px;">${A.subtitle}</p>
+  <p style="margin:0 0 24px;text-indent:2em;color:var(--text);font-size:17px;">${A.lead.substring(0,60)}……</p>
+  <p style="margin:0 0 24px;text-indent:2em;color:var(--text);">${A.lead.substring(60)}</p>
+  <p style="text-align:center;color:var(--accent);letter-spacing:8px;margin:32px 0;">· · · · ·</p>
+  <h2 style="font-size:20px;font-weight:600;color:var(--primary);text-align:center;margin:40px 0 20px;">${A.h2_1}</h2>
+  <h3 style="font-size:17px;font-weight:600;color:var(--text);text-align:center;margin:28px 0 16px;">— ${A.h3_1} —</h3>
+  <p style="margin:0 0 24px;text-indent:2em;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 24px;text-indent:2em;color:var(--text);">${A.p2}</p>
+  <!-- Pull-quote 居中引用 -->
+  <section style="margin:32px 40px;text-align:center;">
+    <section style="border-top:2px solid var(--primary);border-bottom:2px solid var(--primary);padding:20px 0;">
+      <p style="font-size:18px;font-style:italic;color:var(--primary);margin:0;line-height:1.8;">❝ ${A.quote} ❞</p>
+    </section>
+  </section>
+  <h3 style="font-size:17px;font-weight:600;color:var(--text);text-align:center;margin:28px 0 16px;">— ${A.h3_2} —</h3>
+  <p style="margin:0 0 24px;text-indent:2em;color:var(--text);">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 10px;text-indent:2em;color:var(--text);">• ${i}</p>`).join('')}
+</section>`
+},
+
+// ── L05 日式留白 ──
+{
+  id: 'L05', name: '日式留白', desc: '超大留白、细字体、极致呼吸感',
+  html: `
+<section style="background:#fdfcf9;padding:48px 40px;color:var(--text);font-size:15px;line-height:2.4;letter-spacing:0.5px;">
+  <h1 style="font-size:20px;font-weight:400;color:var(--text);text-align:center;margin:0 0 8px;letter-spacing:4px;">${A.title}</h1>
+  <p style="text-align:center;font-size:12px;color:var(--text-muted);margin:0 0 48px;letter-spacing:2px;">${A.subtitle}</p>
+  <p style="margin:0 0 32px;color:var(--text);font-weight:300;">${A.lead}</p>
+  <p style="text-align:center;color:var(--text-muted);margin:48px 0;font-size:20px;letter-spacing:16px;">○</p>
+  <h2 style="font-size:17px;font-weight:400;color:var(--text);text-align:center;margin:48px 0 24px;letter-spacing:3px;">${A.h2_1}</h2>
+  <h3 style="font-size:14px;font-weight:400;color:var(--text-muted);margin:36px 0 16px;letter-spacing:2px;">${A.h3_1}</h3>
+  <p style="margin:0 0 28px;color:var(--text);font-weight:300;">${A.p1}</p>
+  <p style="margin:0 0 28px;color:var(--text);font-weight:300;">${A.p2}</p>
+  <section style="border:1px dashed var(--secondary);padding:24px 28px;margin:36px 20px;">
+    <p style="margin:0;color:var(--text-muted);font-size:14px;font-weight:300;">${A.quote}</p>
+  </section>
+  <h3 style="font-size:14px;font-weight:400;color:var(--text-muted);margin:36px 0 16px;letter-spacing:2px;">${A.h3_2}</h3>
+  <p style="margin:0 0 28px;color:var(--text);font-weight:300;">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 12px;color:var(--text);padding-left:20px;font-weight:300;">— ${i}</p>`).join('')}
+</section>`
+},
+
+// ── L06 首字下沉 ──
+{
+  id: 'L06', name: '首字下沉', desc: '首段首字放大3倍、装饰花纹标题、大引号引用',
+  html: `
+<section style="background:#fff;padding:32px 30px;color:var(--text);font-size:16px;line-height:1.9;">
+  <p style="text-align:center;color:var(--accent);font-size:18px;margin:0 0 8px;">❧</p>
+  <h1 style="font-size:24px;font-weight:700;color:var(--primary);text-align:center;margin:0 0 6px;">${A.title}</h1>
+  <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 24px;">${A.subtitle}</p>
+  <!-- 首字下沉段落 -->
+  <p style="margin:0 0 20px;color:var(--text);text-indent:0;">
+    <span style="float:left;font-size:52px;line-height:1;font-weight:700;color:var(--primary);margin:0 8px 0 0;padding-top:4px;">${A.lead[0]}</span>
+    ${A.lead.substring(1)}
+  </p>
+  <p style="text-align:center;color:var(--accent);margin:24px 0;">❦ ❦ ❦</p>
+  <h2 style="font-size:20px;font-weight:700;color:var(--primary);text-align:center;margin:32px 0 16px;"><span style="color:var(--accent);">❧</span> ${A.h2_1} <span style="color:var(--accent);">❧</span></h2>
+  <h3 style="font-size:16px;font-weight:600;color:var(--text);margin:24px 0 12px;text-indent:0;">⟡ ${A.h3_1}</h3>
+  <p style="margin:0 0 18px;text-indent:2em;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 18px;text-indent:2em;color:var(--text);">${A.p2}</p>
+  <!-- 大引号引用 -->
+  <section style="margin:24px 20px;padding:16px 20px;position:relative;">
+    <span style="font-size:48px;color:var(--secondary);position:absolute;top:-10px;left:0;line-height:1;">❝</span>
+    <p style="margin:0;padding:0 0 0 32px;color:var(--text-muted);font-style:italic;font-size:15px;">${A.quote}</p>
+    <span style="font-size:48px;color:var(--secondary);float:right;line-height:1;margin-top:-10px;">❞</span>
+    <div style="clear:both;"></div>
+  </section>
+  <h3 style="font-size:16px;font-weight:600;color:var(--text);margin:24px 0 12px;text-indent:0;">⟡ ${A.h3_2}</h3>
+  <p style="margin:0 0 18px;text-indent:2em;color:var(--text);">${A.p3}</p>
+</section>`
+},
+
+// ── L07 杂志编排 ──
+{
+  id: 'L07', name: '杂志编排', desc: 'Banner大标题、编号序号、首段放大、居中pull-quote',
+  html: `
+<section style="background:#fff;padding:0;color:var(--text);font-size:16px;line-height:1.9;">
+  <!-- Banner -->
+  <section style="background:var(--primary);padding:40px 32px;text-align:center;">
+    <h1 style="font-size:28px;font-weight:800;color:#fff;margin:0 0 8px;letter-spacing:1px;">${A.title}</h1>
+    <p style="font-size:14px;color:rgba(255,255,255,0.8);margin:0;">${A.subtitle}</p>
+  </section>
+  <section style="padding:28px 32px;">
+    <!-- 首段放大 -->
+    <p style="margin:0 0 24px;color:var(--text);font-size:18px;line-height:1.8;">${A.lead}</p>
+    <section style="border-top:3px solid var(--primary);margin:28px 0;"></section>
+    <!-- 编号标题 -->
+    <h2 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 16px;"><span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:var(--primary);color:#fff;border-radius:50%;font-size:16px;margin-right:12px;vertical-align:middle;">01</span>${A.h2_1}</h2>
+    <h3 style="font-size:16px;font-weight:600;color:var(--text-muted);margin:20px 0 10px;text-transform:uppercase;letter-spacing:1px;">▎${A.h3_1}</h3>
+    <p style="margin:0 0 20px;color:var(--text);">${A.p1}</p>
+    <p style="margin:0 0 20px;color:var(--text);">${A.p2}</p>
+    <!-- 居中Pull-quote -->
+    <section style="margin:28px 32px;text-align:center;padding:20px 0;">
+      <p style="font-size:22px;color:var(--primary);margin:0 0 4px;line-height:1;">❝</p>
+      <p style="font-size:17px;color:var(--primary);font-style:italic;margin:0;line-height:1.7;">${A.quote}</p>
+      <p style="font-size:22px;color:var(--primary);margin:4px 0 0;line-height:1;">❞</p>
+    </section>
+    <h3 style="font-size:16px;font-weight:600;color:var(--text-muted);margin:20px 0 10px;letter-spacing:1px;">▎${A.h3_2}</h3>
+    <p style="margin:0 0 20px;color:var(--text);">${A.p3}</p>
+    ${A.list.map(i=>`<p style="margin:0 0 8px;color:var(--text);padding-left:20px;"><span style="color:var(--primary);">▸</span> ${i}</p>`).join('')}
+    <section style="border-top:3px solid var(--primary);margin:28px 0;"></section>
+    <h2 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 16px;"><span style="display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;background:var(--primary);color:#fff;border-radius:50%;font-size:16px;margin-right:12px;vertical-align:middle;">02</span>${A.h2_2}</h2>
+    <p style="margin:0 0 20px;color:var(--text);">${A.p4}</p>
+  </section>
+</section>`
+},
+
+// ── L08 色块标签 ──
+{
+  id: 'L08', name: '色块标签', desc: '标题用色块inline标签、引用用圆角色卡、视觉冲击',
+  html: `
+<section style="background:var(--bg);padding:28px 28px;color:var(--text);font-size:15px;line-height:1.8;">
+  <section style="text-align:center;margin:0 0 24px;">
+    <span style="display:inline-block;background:var(--primary);color:#fff;padding:10px 28px;border-radius:8px;font-size:22px;font-weight:800;">${A.title.substring(0,12)}</span>
+    <p style="font-size:14px;color:var(--text-muted);margin:8px 0 0;">${A.subtitle}</p>
+  </section>
+  <p style="margin:0 0 16px;color:var(--text);">${A.lead}</p>
+  <section style="border-top:3px solid var(--accent);margin:20px 0;"></section>
+  <h2 style="margin:0 0 14px;"><span style="background:var(--primary);color:#fff;padding:6px 18px;border-radius:4px;font-size:17px;font-weight:700;display:inline-block;">${A.h2_1}</span></h2>
+  <h3 style="margin:18px 0 10px;"><span style="background:var(--secondary);color:var(--primary);padding:4px 14px;border-radius:3px;font-size:15px;font-weight:600;display:inline-block;">${A.h3_1}</span></h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p2}</p>
+  <section style="background:var(--secondary);padding:16px 20px;border-radius:8px;margin:0 0 16px;">
+    <p style="margin:0;color:var(--text);font-size:14px;">${A.quote}</p>
+  </section>
+  <h3 style="margin:18px 0 10px;"><span style="background:var(--secondary);color:var(--primary);padding:4px 14px;border-radius:3px;font-size:15px;font-weight:600;display:inline-block;">${A.h3_2}</span></h3>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 7px;color:var(--text);padding-left:18px;"><span style="color:var(--primary);font-weight:bold;">■</span> ${i}</p>`).join('')}
+  <section style="border-top:3px solid var(--accent);margin:20px 0;"></section>
+  <h2 style="margin:0 0 14px;"><span style="background:var(--primary);color:#fff;padding:6px 18px;border-radius:4px;font-size:17px;font-weight:700;display:inline-block;">${A.h2_2}</span></h2>
+  <p style="margin:0 0 14px;color:var(--text);">${A.p4}</p>
+</section>`
+},
+
+// ── L09 双线框题 ──
+{
+  id: 'L09', name: '双线框题', desc: '标题上下双横线包裹居中、双线边框引用、规整框架感',
+  html: `
+<section style="background:#fff;padding:28px 32px;color:var(--text);font-size:15px;line-height:1.85;">
+  <section style="border-top:3px double var(--primary);border-bottom:3px double var(--primary);padding:16px 0;text-align:center;margin:0 0 24px;">
+    <h1 style="font-size:22px;font-weight:700;color:var(--primary);margin:0 0 4px;">${A.title}</h1>
+    <p style="font-size:13px;color:var(--text-muted);margin:0;">${A.subtitle}</p>
+  </section>
+  <p style="margin:0 0 18px;color:var(--text);">${A.lead}</p>
+  <p style="text-align:center;color:var(--accent);letter-spacing:6px;margin:24px 0;">◇ ◇ ◇</p>
+  <section style="border-top:3px double var(--primary);border-bottom:3px double var(--primary);padding:10px 0;text-align:center;margin:0 0 18px;">
+    <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0;">一、${A.h2_1}</h2>
+  </section>
+  <h3 style="font-size:15px;font-weight:600;color:var(--primary);margin:20px 0 10px;"><span style="color:var(--primary);margin-right:6px;">▸</span>${A.h3_1}</h3>
+  <p style="margin:0 0 16px;color:var(--text);">${A.p1}</p>
+  <p style="margin:0 0 16px;color:var(--text);">${A.p2}</p>
+  <section style="border:2px double var(--secondary);padding:14px 18px;margin:0 0 16px;">
+    <p style="margin:0;color:var(--text-muted);font-size:14px;">${A.quote}</p>
+  </section>
+  <h3 style="font-size:15px;font-weight:600;color:var(--primary);margin:20px 0 10px;"><span style="color:var(--primary);margin-right:6px;">▸</span>${A.h3_2}</h3>
+  <p style="margin:0 0 16px;color:var(--text);">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 7px;color:var(--text);padding-left:18px;"><span style="color:var(--primary);">▶</span> ${i}</p>`).join('')}
+  <p style="text-align:center;color:var(--accent);letter-spacing:6px;margin:24px 0;">◇ ◇ ◇</p>
+  <section style="border-top:3px double var(--primary);border-bottom:3px double var(--primary);padding:10px 0;text-align:center;margin:0 0 18px;">
+    <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0;">二、${A.h2_2}</h2>
+  </section>
+  <p style="margin:0 0 16px;color:var(--text);">${A.p4}</p>
+</section>`
+},
+
+// ── L10 卡片分区 ──
+{
+  id: 'L10', name: '卡片分区', desc: '每个章节自动包裹成独立卡片、色条标题栏、阴影边框',
+  html: `
+<section style="background:var(--bg);padding:24px 20px;color:var(--text);font-size:15px;line-height:1.8;">
+  <section style="text-align:center;margin:0 0 24px;">
+    <h1 style="font-size:22px;font-weight:700;color:var(--primary);margin:0 0 4px;">${A.title}</h1>
+    <p style="font-size:13px;color:var(--text-muted);margin:0;">${A.subtitle}</p>
+  </section>
+  <section style="background:#fff;border-radius:8px;padding:20px;margin:0 0 16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.06);">
+    <p style="margin:0;color:var(--text);font-size:14px;">${A.lead}</p>
+  </section>
+  <!-- 卡片1 -->
+  <section style="background:#fff;border-radius:10px;overflow:hidden;margin:0 0 20px;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.06);">
+    <section style="background:var(--primary);padding:10px 20px;">
+      <h2 style="font-size:17px;font-weight:700;color:#fff;margin:0;">一、${A.h2_1}</h2>
+    </section>
+    <section style="padding:20px;">
+      <h3 style="font-size:15px;font-weight:600;color:var(--primary);margin:0 0 10px;">⬡ ${A.h3_1}</h3>
+      <p style="margin:0 0 14px;color:var(--text);">${A.p1}</p>
+      <p style="margin:0 0 14px;color:var(--text);">${A.p2}</p>
+      <section style="background:var(--secondary);padding:12px 16px;border-radius:6px;margin:0 0 14px;">
+        <p style="margin:0;color:var(--text);font-size:14px;">💡 ${A.quote}</p>
+      </section>
+      <h3 style="font-size:15px;font-weight:600;color:var(--primary);margin:16px 0 10px;">⬡ ${A.h3_2}</h3>
+      <p style="margin:0 0 14px;color:var(--text);">${A.p3}</p>
+      ${A.list.map(i=>`<p style="margin:0 0 6px;color:var(--text);padding-left:16px;">◦ ${i}</p>`).join('')}
+    </section>
+  </section>
+  <!-- 卡片2 -->
+  <section style="background:#fff;border-radius:10px;overflow:hidden;margin:0 0 20px;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.06);">
+    <section style="background:var(--primary);padding:10px 20px;">
+      <h2 style="font-size:17px;font-weight:700;color:#fff;margin:0;">二、${A.h2_2}</h2>
+    </section>
+    <section style="padding:20px;">
+      <p style="margin:0;color:var(--text);">${A.p4}</p>
+    </section>
+  </section>
+</section>`
+},
+
+// ── L11 交替色带 ──
+{
+  id: 'L11', name: '交替色带', desc: '奇数节白底、偶数节灰底，视觉节奏感，无分割线',
+  html: `
+<section style="background:#fff;color:var(--text);font-size:15px;line-height:1.85;">
+  <section style="padding:28px 32px;text-align:center;">
+    <h1 style="font-size:24px;font-weight:700;color:var(--primary);margin:0 0 4px;">${A.title}</h1>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px;">${A.subtitle}</p>
+    <p style="margin:0;color:var(--text);">${A.lead}</p>
+  </section>
+  <!-- 奇数：白底 -->
+  <section style="background:#fff;padding:24px 32px;">
+    <h2 style="font-size:18px;font-weight:700;margin:0 0 14px;"><span style="background:var(--primary);color:#fff;padding:2px 10px;border-radius:3px;margin-right:8px;font-size:14px;">01</span><span style="color:var(--primary);">${A.h2_1}</span></h2>
+    <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:16px 0 10px;">${A.h3_1}</h3>
+    <p style="margin:0 0 14px;color:var(--text);">${A.p1}</p>
+    <p style="margin:0 0 14px;color:var(--text);">${A.p2}</p>
+    <section style="background:var(--secondary);padding:12px 16px;border-radius:6px;margin:0 0 14px;">
+      <p style="margin:0;color:var(--text);font-size:14px;">${A.quote}</p>
+    </section>
+  </section>
+  <!-- 偶数：灰底 -->
+  <section style="background:var(--bg);padding:24px 32px;">
+    <h3 style="font-size:15px;font-weight:600;color:var(--text);margin:0 0 10px;">${A.h3_2}</h3>
+    <p style="margin:0 0 14px;color:var(--text);">${A.p3}</p>
+    ${A.list.map(i=>`<p style="margin:0 0 6px;color:var(--text);padding-left:16px;">● ${i}</p>`).join('')}
+  </section>
+  <!-- 奇数：白底 -->
+  <section style="background:#fff;padding:24px 32px;">
+    <h2 style="font-size:18px;font-weight:700;margin:0 0 14px;"><span style="background:var(--primary);color:#fff;padding:2px 10px;border-radius:3px;margin-right:8px;font-size:14px;">02</span><span style="color:var(--primary);">${A.h2_2}</span></h2>
+    <p style="margin:0;color:var(--text);">${A.p4}</p>
+  </section>
+</section>`
+},
+
+// ── L12 时间线 ──
+{
+  id: 'L12', name: '时间线', desc: '左侧贯穿竖线、圆形节点、内容缩进',
+  html: `
+<section style="background:#fff;padding:28px 20px 28px 20px;color:var(--text);font-size:15px;line-height:1.8;">
+  <h1 style="font-size:22px;font-weight:700;color:var(--primary);margin:0 0 6px;text-align:center;">${A.title}</h1>
+  <p style="text-align:center;font-size:13px;color:var(--text-muted);margin:0 0 24px;">${A.subtitle}</p>
+  <p style="margin:0 0 20px;color:var(--text);padding-left:36px;">${A.lead}</p>
+  <!-- 时间线容器 -->
+  <section style="border-left:3px solid var(--primary);margin-left:14px;padding-left:28px;">
+    <!-- 节点1 -->
+    <section style="position:relative;margin:0 0 24px;">
+      <span style="position:absolute;left:-38px;top:2px;width:16px;height:16px;background:var(--primary);border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);"></span>
+      <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 10px;">${A.h2_1}</h2>
+      <h3 style="font-size:14px;font-weight:600;color:var(--text-muted);margin:14px 0 8px;">${A.h3_1}</h3>
+      <p style="margin:0 0 12px;color:var(--text);">${A.p1}</p>
+      <p style="margin:0 0 12px;color:var(--text);">${A.p2}</p>
+      <section style="background:var(--secondary);padding:10px 14px;border-radius:6px;margin:0 0 12px;">
+        <p style="margin:0;color:var(--text);font-size:14px;">${A.quote}</p>
+      </section>
+      <h3 style="font-size:14px;font-weight:600;color:var(--text-muted);margin:14px 0 8px;">${A.h3_2}</h3>
+      <p style="margin:0 0 12px;color:var(--text);">${A.p3}</p>
+      ${A.list.map(i=>`<p style="margin:0 0 5px;color:var(--text);padding-left:14px;">→ ${i}</p>`).join('')}
+    </section>
+    <!-- 节点2 -->
+    <section style="position:relative;margin:0 0 24px;">
+      <span style="position:absolute;left:-38px;top:2px;width:16px;height:16px;background:var(--primary);border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--primary);"></span>
+      <h2 style="font-size:18px;font-weight:700;color:var(--primary);margin:0 0 10px;">${A.h2_2}</h2>
+      <p style="margin:0;color:var(--text);">${A.p4}</p>
+    </section>
+  </section>
+</section>`
+},
+
+// ── L13 问答对话 ──
+{
+  id: 'L13', name: '问答对话', desc: '问题气泡+回答缩进区块、对话节奏感',
+  html: `
+<section style="background:#fff;padding:28px 28px;color:var(--text);font-size:15px;line-height:1.8;">
+  <h1 style="font-size:22px;font-weight:700;color:var(--primary);margin:0 0 20px;">${A.title}</h1>
+  <p style="margin:0 0 20px;color:var(--text);">${A.lead}</p>
+  <section style="border-top:2px solid var(--secondary);margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:var(--text);margin:0 0 16px;">${A.h2_1}</h2>
+  <!-- 问题 -->
+  <section style="background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px 8px 8px 0;margin:0 0 4px;display:inline-block;max-width:85%;font-weight:600;">
+    Q：${A.h3_1}有多严重？
+  </section>
+  <div style="clear:both;"></div>
+  <!-- 回答 -->
+  <section style="background:var(--secondary);padding:14px 18px;border-radius:0 8px 8px 8px;margin:4px 0 16px 20px;">
+    <p style="margin:0 0 10px;color:var(--text);font-size:14px;">${A.p1}</p>
+    <p style="margin:0;color:var(--text);font-size:14px;">${A.p2}</p>
+  </section>
+  <!-- 问题 -->
+  <section style="background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px 8px 8px 0;margin:0 0 4px;display:inline-block;max-width:85%;font-weight:600;">
+    Q：你理想中的排版工具是什么样的？
+  </section>
+  <div style="clear:both;"></div>
+  <!-- 回答 -->
+  <section style="background:var(--secondary);padding:14px 18px;border-radius:0 8px 8px 8px;margin:4px 0 16px 20px;">
+    <p style="margin:0;color:var(--text);font-size:14px;">💬 ${A.quote}</p>
+  </section>
+  <!-- 问题 -->
+  <section style="background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px 8px 8px 0;margin:0 0 4px;display:inline-block;max-width:85%;font-weight:600;">
+    Q：${A.h3_2}又是什么情况？
+  </section>
+  <div style="clear:both;"></div>
+  <!-- 回答 -->
+  <section style="background:var(--secondary);padding:14px 18px;border-radius:0 8px 8px 8px;margin:4px 0 16px 20px;">
+    <p style="margin:0 0 8px;color:var(--text);font-size:14px;">${A.p3}</p>
+    ${A.list.map(i=>`<p style="margin:0 0 4px;color:var(--text);font-size:14px;padding-left:12px;">☑ ${i}</p>`).join('')}
+  </section>
+</section>`
+},
+
+// ── L14 复古报刊 ──
+{
+  id: 'L14', name: '复古报刊', desc: '报纸头版感：粗线框标题、小字号、紧凑排版、摘要框',
+  html: `
+<section style="background:#fffef8;padding:24px 28px;color:#333;font-size:14px;line-height:1.7;font-family:Georgia,'宋体',serif;">
+  <section style="border-top:4px solid #333;border-bottom:2px solid #333;padding:12px 0;text-align:center;margin:0 0 16px;">
+    <h1 style="font-size:24px;font-weight:900;color:#111;margin:0 0 4px;letter-spacing:2px;">${A.title}</h1>
+    <p style="font-size:12px;color:#888;margin:0;">${A.subtitle} ｜ 云中书编辑部</p>
+  </section>
+  <!-- 摘要框 -->
+  <section style="border:1px solid #999;padding:12px 16px;margin:0 0 16px;background:#faf8f0;">
+    <p style="margin:0;font-size:13px;color:#555;text-indent:2em;"><strong>【编者按】</strong>${A.lead}</p>
+  </section>
+  <h2 style="font-size:16px;font-weight:900;color:#111;margin:0 0 10px;border-bottom:1px solid #333;padding-bottom:4px;text-align:center;">${A.h2_1}</h2>
+  <h3 style="font-size:14px;font-weight:700;color:#444;margin:14px 0 8px;">● ${A.h3_1}</h3>
+  <p style="margin:0 0 12px;text-indent:2em;color:#333;">${A.p1}</p>
+  <p style="margin:0 0 12px;text-indent:2em;color:#333;">${A.p2}</p>
+  <!-- 摘录框 -->
+  <section style="border:1px solid #aaa;padding:10px 14px;margin:0 0 12px;text-align:center;background:#faf8f0;">
+    <p style="margin:0;font-size:13px;color:#555;font-style:italic;">"${A.quote}"</p>
+  </section>
+  <h3 style="font-size:14px;font-weight:700;color:#444;margin:14px 0 8px;">● ${A.h3_2}</h3>
+  <p style="margin:0 0 12px;text-indent:2em;color:#333;">${A.p3}</p>
+  ${A.list.map((item,i)=>`<p style="margin:0 0 5px;color:#333;padding-left:16px;">${i+1}. ${item}</p>`).join('')}
+  <section style="text-align:center;margin:16px 0;color:#999;font-size:12px;">═══❖═══</section>
+  <h2 style="font-size:16px;font-weight:900;color:#111;margin:0 0 10px;border-bottom:1px solid #333;padding-bottom:4px;text-align:center;">${A.h2_2}</h2>
+  <p style="margin:0 0 12px;text-indent:2em;color:#333;">${A.p4}</p>
+  <section style="border-top:2px solid #333;border-bottom:4px solid #333;padding:4px 0;margin:16px 0;text-align:center;font-size:11px;color:#999;">—— 第 1 版 ——</section>
+</section>`
+},
+
+// ── L15 霓虹科技 ──
+{
+  id: 'L15', name: '霓虹科技', desc: '深色背景、发光色条标题、终端风代码、极客感',
+  html: `
+<section style="background:#0a0a1a;padding:28px 28px;color:#c8d0d8;font-size:15px;line-height:1.8;font-family:'Menlo','Consolas',monospace;">
+  <h1 style="font-size:24px;font-weight:800;color:#00e5ff;margin:0 0 6px;text-shadow:0 0 10px rgba(0,229,255,0.3);">> ${A.title}</h1>
+  <p style="font-size:13px;color:#5a6a78;margin:0 0 20px;">// ${A.subtitle}</p>
+  <p style="margin:0 0 16px;color:#b0bec5;">${A.lead}</p>
+  <section style="height:2px;background:linear-gradient(90deg,#00e5ff,#7c4dff,transparent);margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:#00e5ff;margin:0 0 12px;padding-left:14px;border-left:4px solid #00e5ff;text-shadow:0 0 8px rgba(0,229,255,0.2);">${A.h2_1}</h2>
+  <h3 style="font-size:15px;font-weight:600;color:#7c4dff;margin:18px 0 8px;">## ${A.h3_1}</h3>
+  <p style="margin:0 0 14px;color:#b0bec5;">${A.p1}</p>
+  <p style="margin:0 0 14px;color:#b0bec5;">${A.p2}</p>
+  <section style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);padding:14px 18px;border-radius:6px;margin:0 0 14px;box-shadow:0 0 12px rgba(0,229,255,0.05);">
+    <p style="margin:0;color:#80cbc4;font-size:14px;">💡 ${A.quote}</p>
+  </section>
+  <h3 style="font-size:15px;font-weight:600;color:#7c4dff;margin:18px 0 8px;">## ${A.h3_2}</h3>
+  <p style="margin:0 0 14px;color:#b0bec5;">${A.p3}</p>
+  ${A.list.map(i=>`<p style="margin:0 0 6px;color:#b0bec5;padding-left:18px;"><span style="color:#00e5ff;">▸</span> ${i}</p>`).join('')}
+  <section style="height:2px;background:linear-gradient(90deg,#7c4dff,#00e5ff,transparent);margin:20px 0;"></section>
+  <h2 style="font-size:18px;font-weight:700;color:#00e5ff;margin:0 0 12px;padding-left:14px;border-left:4px solid #00e5ff;text-shadow:0 0 8px rgba(0,229,255,0.2);">${A.h2_2}</h2>
+  <p style="margin:0 0 14px;color:#b0bec5;">${A.p4}</p>
+  <!-- 代码块 -->
+  <section style="background:#0d1117;border:1px solid rgba(0,229,255,0.15);padding:14px 18px;border-radius:4px;margin:14px 0;">
+    <pre style="margin:0;color:#39ff14;font-size:13px;line-height:1.6;font-family:Menlo,Consolas,monospace;white-space:pre-wrap;">${A.code}</pre>
+  </section>
+</section>`
+},
+
+]; // end layouts
+
+// ============================================================
+// 渲染
+// ============================================================
+const grid = document.getElementById('grid');
+layouts.forEach(layout => {
+  const card = document.createElement('div');
+  card.className = 'layout-card';
+  card.id = layout.id;
+  card.innerHTML = `
+    <div class="layout-label">
+      ${layout.id} · ${layout.name}
+      <span>${layout.desc}</span>
+    </div>
+    <div class="layout-body">${layout.html}</div>
+  `;
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>

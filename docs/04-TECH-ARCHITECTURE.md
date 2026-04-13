@@ -479,3 +479,187 @@ async function copyRichText(html: string): Promise<void> {
 2. **页面显示时掩码** — 只显示前4位和后4位
 3. **导出/分享排版时不携带 Key** — HTML 导出中不含任何凭据
 4. **HTTPS only** — Vercel 默认强制 HTTPS，API 调用全部走 HTTPS
+
+---
+
+---
+
+# V2 版本：骨架 × 插槽 技术架构追加
+
+> V2 核心变更：渲染引擎从「平铺循环」升级为「骨架调度 + 插槽注册表」。
+> 原有架构不变，以下为新增/改写的模块。
+
+---
+
+## 1. V2 目录结构变更
+
+```
+yuntype/src/lib/
+├── atoms/
+│   ├── colors.ts           # 不变
+│   ├── layouts.ts          # 不变（保留为基础参数层）
+│   ├── decorations.ts      # 不变（保留为基础兼容层）
+│   ├── typography.ts       # 不变
+│   ├── presets.ts          # 不变
+│   ├── index.ts            # ✏️ 改写：扩展 StyleCombo，加入 blueprint + slots
+│   ├── blueprints.ts       # 🆕 骨架注册表（15+种布局骨架）
+│   ├── slots/              # 🆕 插槽注册表目录
+│   │   ├── index.ts        # 插槽总入口 + 查询函数
+│   │   ├── title.ts        # 标题变体（20+种）
+│   │   ├── quote.ts        # 引用变体（15+种）
+│   │   ├── list.ts         # 列表变体（12+种）
+│   │   ├── divider.ts      # 分割线变体（15+种）
+│   │   ├── paragraph.ts    # 段落变体（8+种）
+│   │   ├── section.ts      # 节区变体（10+种）
+│   │   ├── frame.ts        # 边框装饰变体（9+种）
+│   │   ├── ornament.ts     # 装饰花纹变体（6+种）
+│   │   ├── callout.ts      # 提示框变体（6+种）
+│   │   └── badge.ts        # 标签徽章变体（6+种）
+│   └── coordinator.ts      # 🆕 协调引擎
+├── render/
+│   ├── markdown.ts         # 不变
+│   ├── wechat.ts           # ✏️ 改写：从平铺循环改为骨架调度
+│   └── xiaohongshu.ts      # 后续改写
+└── ...
+
+yuntype/src/components/
+├── ...existing...
+├── LayoutPanel.tsx          # 🆕 骨架选择 + 插槽调节面板
+└── SlotSelector.tsx         # 🆕 单个插槽的下拉选择器组件
+```
+
+---
+
+## 2. 骨架调度器架构
+
+### 渲染流程对比
+
+**V1（当前）: 平铺循环**
+```
+Markdown → parseMarkdown() → MarkdownNode[]
+  → for each node:
+      switch(node.type) → renderHeading/renderParagraph/...
+  → 拼接 HTML
+  → 包裹外层容器
+```
+
+**V2（新）: 骨架调度**
+```
+Markdown → parseMarkdown() → MarkdownNode[]
+  → groupBySection(nodes) → Section[] （按 h2 分组）
+  → blueprint.render.wrapDocument(
+      sections.map((sec, i) =>
+        blueprint.render.wrapSection(
+          slots.title.render(sec.heading),
+          sec.content.map(node => renderNode(node, slots, style)).join(''),
+          i, style
+        )
+      ).join(''),
+      style
+    )
+```
+
+### 核心函数签名
+
+```typescript
+// render/wechat.ts — V2 改写
+
+export function renderWechatHTML(markdown: string, style: StyleComboV2): string {
+  const nodes = parseMarkdown(markdown)
+  const sections = groupBySection(nodes)
+  const { blueprint, slots } = style
+  return blueprint.render.wrapDocument(
+    renderSections(sections, blueprint, slots, style),
+    style
+  )
+}
+
+function groupBySection(nodes: MarkdownNode[]): Section[] { /* h2分组 */ }
+
+function renderNode(node: MarkdownNode, slots: ResolvedSlots, style: StyleComboV2): string {
+  switch (node.type) {
+    case 'heading': return slots.title.render({ ...node, ...style })
+    case 'paragraph': return slots.paragraph.render({ ...node, ...style })
+    case 'blockquote': return slots.quote.render({ ...node, ...style })
+    case 'list': return slots.list.render({ ...node, ...style })
+    case 'hr': return slots.divider.render({ ...style })
+    case 'code': return renderCodeBlock(node, style)
+    default: return ''
+  }
+}
+```
+
+---
+
+## 3. 核心数据结构
+
+```typescript
+// atoms/blueprints.ts
+export interface Blueprint {
+  id: string; name: string; description: string;
+  defaultSlots: SlotConfig; tags: string[];
+  render: {
+    wrapDocument: (sectionsHtml: string, style: StyleComboV2) => string
+    wrapSection: (titleHtml: string, contentHtml: string, index: number, style: StyleComboV2) => string
+  }
+}
+
+// atoms/slots/index.ts
+export interface SlotVariant {
+  id: string; name: string; category: SlotCategory;
+  render: (params: SlotRenderParams) => string;
+  tags: string[]; affinity: Record<string, number>;
+}
+export type SlotCategory = 'title'|'quote'|'list'|'divider'|'paragraph'|'section'|'frame'|'ornament'|'callout'|'badge'
+
+// atoms/coordinator.ts
+export function coordinateSlots(input: {
+  changedSlot: SlotCategory; newVariantId: string;
+  currentConfig: SlotConfig; locks: LockState;
+}): { newConfig: SlotConfig; changes: Partial<SlotConfig> }
+```
+
+---
+
+## 4. 微信兼容：骨架实现方案
+
+| 骨架 | 微信实现方式 |
+|------|------------|
+| B01 经典简约 | 纯 `<section>` + inline style |
+| B02 色带章节 | `<section>` + `border-top: 4px solid` |
+| B03 卡片模块 | `<section>` + `border + border-radius` |
+| B04 左边栏重点 | `<section>` + `border-left: 3px solid` |
+| B05 时间线 | `<table>` 两列：左列圆点+竖线，右列内容 |
+| B06 杂志双栏 | `<table>` 两列 |
+| B07 标签导航 | `<table>` 横排标签 + `<section>` |
+| B08 对话气泡 | `<table>` 左右气泡 + `border-radius` |
+| B09 编号步骤 | `<table>` 两列：左列大编号，右列内容 |
+| B10-B15 | 类似组合策略 |
+
+---
+
+## 5. 状态管理变更
+
+```typescript
+interface AppStateV2 extends AppState {
+  blueprintId: string
+  slotConfig: SlotConfig
+  locks: LockState
+  coordinationMode: 'free' | 'coordinated'
+}
+```
+
+---
+
+## 6. 向后兼容
+
+```typescript
+function upgradeToV2(style: StyleCombo): StyleComboV2 {
+  return {
+    ...style,
+    blueprint: getBlueprint('B01'),
+    slots: getDefaultSlotConfig(style.decoration.id),
+    locks: createUnlockedState(),
+  }
+}
+```
