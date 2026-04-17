@@ -11,12 +11,12 @@ import {
   type AIImageConfig,
   type ImageGenResult,
 } from '../lib/ai/image-gen'
-import type { StyleCombo } from '../lib/atoms'
+import type { StyleComboV2 } from '../lib/atoms'
 
 interface AIImageDialogProps {
   visible: boolean
   onClose: () => void
-  style: StyleCombo
+  style: StyleComboV2
   selectedText?: string  // 用户选中的文字（可选）
 }
 

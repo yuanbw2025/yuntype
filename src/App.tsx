@@ -2,7 +2,6 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import ArticleInput from './components/ArticleInput'
-import StylePanel from './components/StylePanel'
 import LayoutPanel from './components/LayoutPanel'
 import WechatPreview from './components/WechatPreview'
 import ExportPanel from './components/ExportPanel'
@@ -11,18 +10,19 @@ import InfographicPanel from './components/InfographicPanel'
 import AIImageDialog from './components/AIImageDialog'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
-import { randomAtomIds, getStyleCombo, getComboName, TOTAL_COMBOS, type AtomIds, randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
-import { defaultTuneParams, applyTuning, type TuneParams } from './lib/atoms/presets'
-import { pushHistory } from './lib/storage'
+import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 
 type AppMode = 'wechat' | 'xiaohongshu' | 'infographic'
 
 export default function App() {
   const [article, setArticle] = useState('')
-  const [atomIds, setAtomIds] = useState<AtomIds>(randomAtomIds)
-  const [tuneParams, setTuneParams] = useState<TuneParams>(defaultTuneParams)
-  const [atomIdsV2, setAtomIdsV2] = useState<AtomIdsV2>(defaultAtomIdsV2)
-  const [useV2, setUseV2] = useState(true) // 默认启用 V2
+  const [atomIdsV2, setAtomIdsV2] = useState<AtomIdsV2>(() => {
+    try {
+      const raw = localStorage.getItem('yuntype-atom-ids-v2')
+      if (raw) return JSON.parse(raw) as AtomIdsV2
+    } catch {}
+    return defaultAtomIdsV2()
+  })
   const [mode, setMode] = useState<AppMode>('wechat')
   const [showAIImage, setShowAIImage] = useState(false)
   const [showApiConfig, setShowApiConfig] = useState(false)
@@ -39,14 +39,14 @@ export default function App() {
     localStorage.setItem('yuntype-dark-mode', String(darkMode))
   }, [darkMode])
 
+  // 排版配置持久化（含 colorOverride）
+  useEffect(() => {
+    localStorage.setItem('yuntype-atom-ids-v2', JSON.stringify(atomIdsV2))
+  }, [atomIdsV2])
+
   const handleShuffle = useCallback(() => {
-    if (useV2) {
-      setAtomIdsV2(randomAtomIdsV2())
-    } else {
-      setAtomIds(randomAtomIds())
-      setTuneParams(defaultTuneParams)
-    }
-  }, [useV2])
+    setAtomIdsV2(randomAtomIdsV2())
+  }, [])
 
   // 键盘快捷键
   useEffect(() => {
@@ -80,21 +80,10 @@ export default function App() {
     }
   }, [])
 
-  // 计算最终样式（原子 + 微调）
-  const finalStyle = useMemo(() => {
-    const base = getStyleCombo(atomIds)
-    return applyTuning(base, tuneParams)
-  }, [atomIds, tuneParams])
+  const finalStyle = useMemo(() => getStyleComboV2(atomIdsV2), [atomIdsV2])
 
-  const finalStyleV2 = useMemo(() => getStyleComboV2(atomIdsV2), [atomIdsV2])
-
-  const comboName = useV2 ? getComboNameV2(atomIdsV2) : getComboName(atomIds)
-  const totalCombos = useV2 ? TOTAL_COMBOS_V2 : TOTAL_COMBOS
-
-  // 记录历史（atomIds变化时）
-  useEffect(() => {
-    pushHistory({ atomIds, tuneParams, comboName })
-  }, [atomIds.colorId, atomIds.layoutId, atomIds.decorationId, atomIds.typographyId])
+  const comboName = getComboNameV2(atomIdsV2)
+  const totalCombos = TOTAL_COMBOS_V2
 
   return (
     <div style={{
@@ -119,9 +108,8 @@ export default function App() {
         visible={showApiConfig}
         onClose={() => setShowApiConfig(false)}
         article={article}
-        onApplyRecommendation={(ids, tune) => {
-          setAtomIds(ids)
-          if (tune) setTuneParams(tune)
+        onApplyRecommendation={(ids) => {
+          setAtomIdsV2(ids)
           setShowApiConfig(false)
         }}
       />
@@ -144,20 +132,8 @@ export default function App() {
           </span>
         </div>
 
-        {/* V1/V2 切换 + 模式切换 */}
+        {/* 模式切换 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => setUseV2(!useV2)}
-            style={{
-              padding: '5px 10px', fontSize: '11px', fontWeight: 600,
-              color: useV2 ? '#4F46E5' : '#999',
-              background: useV2 ? '#EEF0FF' : '#f5f5f5',
-              border: `1px solid ${useV2 ? '#4F46E530' : '#ddd'}`,
-              borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-          >
-            {useV2 ? '🏗️ V2 骨架' : '⚙️ V1 经典'}
-          </button>
           {([
             { key: 'wechat' as AppMode, label: '📝 公众号', color: '#07C160' },
             { key: 'xiaohongshu' as AppMode, label: '📸 小红书', color: '#FF2442' },
@@ -268,22 +244,12 @@ export default function App() {
             borderRight: '1px solid #e5e5e5',
             overflow: 'hidden',
           }}>
-            {useV2 ? (
-              <LayoutPanel
-                atomIdsV2={atomIdsV2}
-                onChange={setAtomIdsV2}
-                onShuffle={handleShuffle}
-                article={article}
-              />
-            ) : (
-              <StylePanel
-                atomIds={atomIds}
-                tuneParams={tuneParams}
-                onAtomIdsChange={setAtomIds}
-                onTuneChange={setTuneParams}
-                onShuffle={handleShuffle}
-              />
-            )}
+            <LayoutPanel
+              atomIdsV2={atomIdsV2}
+              onChange={setAtomIdsV2}
+              onShuffle={handleShuffle}
+              article={article}
+            />
           </div>
         )}
 
@@ -300,10 +266,7 @@ export default function App() {
                 <WechatPreview
                   markdown={article}
                   style={finalStyle}
-                  styleV2={finalStyleV2}
-                  useV2={useV2}
                   comboName={comboName}
-                  atomIds={atomIds}
                 />
               </div>
               <ExportPanel markdown={article} style={finalStyle} />
@@ -313,10 +276,7 @@ export default function App() {
             <XiaohongshuPreview
               markdown={article}
               style={finalStyle}
-              styleV2={finalStyleV2}
-              useV2={useV2}
               comboName={comboName}
-              atomIds={atomIds}
             />
           )}
           {mode === 'infographic' && (

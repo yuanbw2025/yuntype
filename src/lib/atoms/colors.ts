@@ -1,5 +1,8 @@
 // 11套配色方案 — 浅色系 L1-L8，深色系 D1-D3
 
+/** 用户自定义色值覆盖（部分字段，覆盖预设） */
+export type ColorOverride = Partial<ColorScheme['colors']>
+
 export interface ColorScheme {
   id: string
   name: string

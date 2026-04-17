@@ -1,32 +1,25 @@
 // 公众号预览组件 — 右侧面板，模拟375px手机宽度
-// 支持 V1 (StyleCombo) 和 V2 (StyleComboV2) 双模式
 // 支持缩放滑条 (25%-100%)
 
 import { useState, useMemo } from 'react'
-import { renderWechatHTML, renderWechatV2 } from '../lib/render/wechat'
-import { type StyleCombo, type StyleComboV2, type AtomIds } from '../lib/atoms'
+import { renderWechatV2 } from '../lib/render/wechat'
+import { type StyleComboV2 } from '../lib/atoms'
 
 interface WechatPreviewProps {
   markdown: string
-  style: StyleCombo
-  styleV2?: StyleComboV2
-  useV2?: boolean
+  style: StyleComboV2
   comboName: string
-  atomIds: AtomIds
 }
 
-export default function WechatPreview({ markdown, style, styleV2, useV2, comboName, atomIds }: WechatPreviewProps) {
+export default function WechatPreview({ markdown, style, comboName }: WechatPreviewProps) {
   const [zoom, setZoom] = useState(100)
 
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
-    if (useV2 && styleV2) {
-      return renderWechatV2(markdown, styleV2)
-    }
-    return renderWechatHTML(markdown, style)
-  }, [markdown, style, styleV2, useV2])
+    return renderWechatV2(markdown, style)
+  }, [markdown, style])
 
-  const pageBg = useV2 && styleV2 ? styleV2.color.colors.pageBg : style.color.colors.pageBg
+  const pageBg = style.color.colors.pageBg
   const scale = zoom / 100
 
   return (
@@ -45,13 +38,10 @@ export default function WechatPreview({ markdown, style, styleV2, useV2, comboNa
         flexShrink: 0,
       }}>
         <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>
-          👁️ 公众号预览 {useV2 && <span style={{ fontSize: '10px', background: '#4F46E5', color: '#fff', padding: '1px 6px', borderRadius: '8px', marginLeft: '6px' }}>V2</span>}
+          👁️ 公众号预览
         </span>
         <span style={{ fontSize: '11px', color: '#999' }}>
-          {useV2
-            ? `${styleV2?.blueprint.icon ?? ''} ${styleV2?.blueprint.name ?? ''}`
-            : `${atomIds.colorId} · ${atomIds.layoutId} · ${atomIds.decorationId} · ${atomIds.typographyId}`
-          }
+          {`${style.blueprint.icon} ${style.blueprint.name}`}
         </span>
       </div>
 
