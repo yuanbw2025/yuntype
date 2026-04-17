@@ -1,13 +1,13 @@
 // 导出面板组件 — 复制富文本 + 下载HTML
 
 import { useState, useMemo } from 'react'
-import { renderWechatHTML } from '../lib/render/wechat'
-import { type StyleCombo } from '../lib/atoms'
+import { renderWechatV2 } from '../lib/render/wechat'
+import { type StyleComboV2 } from '../lib/atoms'
 import { copyRichText, downloadHTML } from '../lib/export/clipboard'
 
 interface ExportPanelProps {
   markdown: string
-  style: StyleCombo
+  style: StyleComboV2
 }
 
 export default function ExportPanel({ markdown, style }: ExportPanelProps) {
@@ -15,7 +15,7 @@ export default function ExportPanel({ markdown, style }: ExportPanelProps) {
 
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
-    return renderWechatHTML(markdown, style)
+    return renderWechatV2(markdown, style)
   }, [markdown, style])
 
   const handleCopy = async () => {

@@ -8,14 +8,13 @@ import {
   type AIClientConfig,
 } from '../lib/ai/client'
 import { analyzeArticle, analyzeArticleLocal, type AnalysisResult } from '../lib/ai/analyzer'
-import type { AtomIds } from '../lib/atoms'
-import { defaultTuneParams, type TuneParams } from '../lib/atoms/presets'
+import { defaultAtomIdsV2, type AtomIdsV2 } from '../lib/atoms'
 
 interface ApiConfigDialogProps {
   visible: boolean
   onClose: () => void
   article: string
-  onApplyRecommendation: (ids: AtomIds, tune: TuneParams) => void
+  onApplyRecommendation: (ids: AtomIdsV2) => void
 }
 
 export default function ApiConfigDialog({
@@ -85,7 +84,13 @@ export default function ApiConfigDialog({
 
   const handleApply = () => {
     if (result?.success && result.recommendation) {
-      onApplyRecommendation(result.recommendation.atomIds, defaultTuneParams)
+      // 将 AI 推荐的 colorId/typographyId 应用到 V2 默认骨架配置
+      const base = defaultAtomIdsV2()
+      onApplyRecommendation({
+        ...base,
+        colorId: result.recommendation.atomIds.colorId,
+        typographyId: result.recommendation.atomIds.typographyId,
+      })
       onClose()
     }
   }
@@ -296,7 +301,7 @@ export default function ApiConfigDialog({
                         background: '#EEF0FF', color: '#4F46E5',
                         borderRadius: '6px',
                       }}>
-                        {val}
+                        {String(val)}
                       </span>
                     ))}
                   </div>

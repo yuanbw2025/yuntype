@@ -11,10 +11,10 @@ import {
   type CardData,
   type TimelineData,
 } from '../lib/render/infographic'
-import type { StyleCombo } from '../lib/atoms'
+import type { StyleComboV2 } from '../lib/atoms'
 
 interface InfographicPanelProps {
-  style: StyleCombo
+  style: StyleComboV2
 }
 
 const activeColor = '#4F46E5'

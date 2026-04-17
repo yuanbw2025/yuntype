@@ -1,8 +1,10 @@
 // AI 文章分析模块 — 分析文章气质 → 推荐排版组合
 
 import { chat, type AIClientConfig, type ChatMessage } from './client'
-import type { AtomIds } from '../atoms'
 import { colorSchemes } from '../atoms/colors'
+
+/** AI 推荐的原子 ID（供 ApiConfigDialog 提取 colorId+typographyId 映射到 V2） */
+interface AtomIds { colorId: string; layoutId: string; decorationId: string; typographyId: string }
 import { layoutTemplates } from '../atoms/layouts'
 import { decorationSets } from '../atoms/decorations'
 import { typographySets } from '../atoms/typography'

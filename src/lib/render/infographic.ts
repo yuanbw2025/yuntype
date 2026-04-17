@@ -1,6 +1,9 @@
 // 程序化信息图渲染引擎 — 4种模板，继承当前配色，输出高质量HTML
 
-import type { StyleCombo } from '../atoms'
+import type { StyleComboV2 } from '../atoms'
+
+/** 信息图只需配色，兼容 V2 */
+type InfographicStyle = Pick<StyleComboV2, 'color'>
 
 // ═══════════════════════════════════════
 //  类型定义
@@ -37,7 +40,7 @@ export type InfographicData = FlowData | ComparisonData | CardData | TimelineDat
 
 export interface InfographicConfig {
   data: InfographicData
-  style: StyleCombo
+  style: InfographicStyle
   width: number // 375 for wechat, 1080 for xhs
 }
 
@@ -149,7 +152,7 @@ function hexToRgba(hex: string, alpha: number): string {
 
 function titleSection(
   title: string | undefined,
-  c: StyleCombo['color']['colors'],
+  c: InfographicStyle['color']['colors'],
   scale: number,
   icon?: string
 ): string {
@@ -180,7 +183,7 @@ function titleSection(
 
 function containerWrap(
   inner: string,
-  c: StyleCombo['color']['colors'],
+  c: InfographicStyle['color']['colors'],
   width: number,
   scale: number,
   extraPadBottom = 0
@@ -216,7 +219,7 @@ function containerWrap(
 //  流程图
 // ═══════════════════════════════════════
 
-function renderFlowChart(data: FlowData, style: StyleCombo, width: number, scale: number): string {
+function renderFlowChart(data: FlowData, style: InfographicStyle, width: number, scale: number): string {
   const c = style.color.colors
   const steps = data.steps
 
@@ -289,7 +292,7 @@ function renderFlowChart(data: FlowData, style: StyleCombo, width: number, scale
 //  对比表
 // ═══════════════════════════════════════
 
-function renderComparisonTable(data: ComparisonData, style: StyleCombo, width: number, scale: number): string {
+function renderComparisonTable(data: ComparisonData, style: InfographicStyle, width: number, scale: number): string {
   const c = style.color.colors
   const cols = data.columns
 
@@ -361,7 +364,7 @@ function renderComparisonTable(data: ComparisonData, style: StyleCombo, width: n
 //  知识卡片
 // ═══════════════════════════════════════
 
-function renderKnowledgeCard(data: CardData, style: StyleCombo, width: number, scale: number): string {
+function renderKnowledgeCard(data: CardData, style: InfographicStyle, width: number, scale: number): string {
   const c = style.color.colors
   const icon = data.icon || '📌'
 
@@ -429,7 +432,7 @@ function renderKnowledgeCard(data: CardData, style: StyleCombo, width: number, s
 //  时间线
 // ═══════════════════════════════════════
 
-function renderTimeline(data: TimelineData, style: StyleCombo, width: number, scale: number): string {
+function renderTimeline(data: TimelineData, style: InfographicStyle, width: number, scale: number): string {
   const c = style.color.colors
 
   const eventsHtml = data.events.map((evt, i) => {

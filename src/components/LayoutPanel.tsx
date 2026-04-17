@@ -1,11 +1,12 @@
 // 骨架 + 插槽选择面板 — V2 布局系统 UI（Phase 7: 场景预设 + AI协调 + 品牌预设）
 import { useState, useEffect, useMemo } from 'react'
 import {
-  type AtomIdsV2, blueprints, getBlueprint,
+  type AtomIdsV2, type ColorOverride, blueprints, getBlueprint,
   colorSchemes, typographySets,
   scenePresetsV2, recommendPresets, coordinatedPickByScene,
   coordinatedPickWithBlueprint,
 } from '../lib/atoms'
+import ColorCustomDialog from './ColorCustomDialog'
 import { analyzeArticleTags } from '../lib/atoms/presets-v2'
 import { listSlotVariants, type SlotType, type SlotConfig } from '../lib/atoms/slots'
 import {
@@ -55,6 +56,10 @@ export default function LayoutPanel({ atomIdsV2, onChange, onShuffle, article }:
 
   const setColorId = (id: string) => onChange({ ...atomIdsV2, colorId: id })
   const setTypoId = (id: string) => onChange({ ...atomIdsV2, typographyId: id })
+
+  const setColorCustom = (colorId: string, override: ColorOverride | undefined) => {
+    onChange({ ...atomIdsV2, colorId, colorOverride: override })
+  }
 
   const resetSlots = () => {
     onChange({ ...atomIdsV2, slots: { ...currentBp.defaultSlots } })
@@ -138,6 +143,7 @@ export default function LayoutPanel({ atomIdsV2, onChange, onShuffle, article }:
             setTypoId={setTypoId}
             setSlot={setSlot}
             resetSlots={resetSlots}
+            setColorCustom={setColorCustom}
           />
         )}
         {tab === 'brand' && (
@@ -314,7 +320,7 @@ function PresetCard({ preset, isActive, onClick, badge }: {
 // ═══════════════════════════════════════
 //  组合调整 Tab（原 atoms 面板）
 // ═══════════════════════════════════════
-function AtomsTab({ atomIdsV2, currentBp, setBlueprintId, setColorId, setTypoId, setSlot, resetSlots }: {
+function AtomsTab({ atomIdsV2, currentBp, setBlueprintId, setColorId, setTypoId, setSlot, resetSlots, setColorCustom }: {
   atomIdsV2: AtomIdsV2
   currentBp: ReturnType<typeof getBlueprint>
   setBlueprintId: (id: string) => void
@@ -322,7 +328,11 @@ function AtomsTab({ atomIdsV2, currentBp, setBlueprintId, setColorId, setTypoId,
   setTypoId: (id: string) => void
   setSlot: (key: SlotType, value: string) => void
   resetSlots: () => void
+  setColorCustom: (colorId: string, override: ColorOverride | undefined) => void
 }) {
+  const [colorDialogOpen, setColorDialogOpen] = useState(false)
+  const hasOverride = !!(atomIdsV2.colorOverride && Object.keys(atomIdsV2.colorOverride).length > 0)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* ── 骨架选择 ── */}
@@ -350,32 +360,66 @@ function AtomsTab({ atomIdsV2, currentBp, setBlueprintId, setColorId, setTypoId,
       </div>
 
       {/* ── 配色 + 字体 ── */}
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, marginBottom: '4px', color: '#555' }}>🎨 配色</div>
-          <select
-            value={atomIdsV2.colorId}
-            onChange={e => setColorId(e.target.value)}
-            style={{ width: '100%', padding: '5px 8px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            {colorSchemes.map(c => (
-              <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
-            ))}
-          </select>
+      <div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, marginBottom: '4px', color: '#555' }}>🎨 配色</div>
+            <select
+              value={atomIdsV2.colorId}
+              onChange={e => setColorId(e.target.value)}
+              style={{ width: '100%', padding: '5px 8px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ddd' }}
+            >
+              {colorSchemes.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, marginBottom: '4px', color: '#555' }}>✏️ 字体</div>
+            <select
+              value={atomIdsV2.typographyId}
+              onChange={e => setTypoId(e.target.value)}
+              style={{ width: '100%', padding: '5px 8px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ddd' }}
+            >
+              {typographySets.map(t => (
+                <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, marginBottom: '4px', color: '#555' }}>✏️ 字体</div>
-          <select
-            value={atomIdsV2.typographyId}
-            onChange={e => setTypoId(e.target.value)}
-            style={{ width: '100%', padding: '5px 8px', fontSize: '12px', borderRadius: '4px', border: '1px solid #ddd' }}
-          >
-            {typographySets.map(t => (
-              <option key={t.id} value={t.id}>{t.name} ({t.id})</option>
-            ))}
-          </select>
-        </div>
+        {/* 自定义配色按钮 */}
+        <button
+          onClick={() => setColorDialogOpen(true)}
+          style={{
+            marginTop: '6px', width: '100%', padding: '6px',
+            fontSize: '11px', fontWeight: 600,
+            background: hasOverride ? '#EEF0FF' : '#f8f8f8',
+            color: hasOverride ? '#4F46E5' : '#666',
+            border: `1px solid ${hasOverride ? '#4F46E580' : '#e0e0e0'}`,
+            borderRadius: '6px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+          }}
+        >
+          🎨 自定义配色
+          {hasOverride && (
+            <span style={{
+              fontSize: '10px', background: '#4F46E5', color: '#fff',
+              padding: '1px 5px', borderRadius: '8px',
+            }}>
+              已定制
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* 配色自定义弹窗 */}
+      <ColorCustomDialog
+        visible={colorDialogOpen}
+        onClose={() => setColorDialogOpen(false)}
+        colorId={atomIdsV2.colorId}
+        colorOverride={atomIdsV2.colorOverride}
+        onChange={(id, override) => setColorCustom(id, override)}
+      />
 
       {/* ── 插槽微调 ── */}
       <div>
