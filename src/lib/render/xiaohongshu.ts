@@ -18,9 +18,9 @@ export interface XhsConfig {
 }
 
 export const XHS_PRESETS: Record<string, XhsConfig> = {
-  '3:4': { width: 1080, height: 1440, padding: 60, fontSize: 32, lineHeight: 1.8 },
-  '1:1': { width: 1080, height: 1080, padding: 60, fontSize: 30, lineHeight: 1.8 },
-  '16:9': { width: 1920, height: 1080, padding: 80, fontSize: 32, lineHeight: 1.8 },
+  '3:4': { width: 1080, height: 1440, padding: 48, fontSize: 36, lineHeight: 1.8 },
+  '1:1': { width: 1080, height: 1080, padding: 48, fontSize: 32, lineHeight: 1.8 },
+  '16:9': { width: 1920, height: 1080, padding: 64, fontSize: 34, lineHeight: 1.8 },
 }
 
 /** 页面视觉模板类型（content 页专用） */
@@ -207,8 +207,13 @@ function planPageTemplate(elements: PageElement[]): PageTemplateType {
     return 'text-highlight'
   }
 
-  // 卡片列表：标题 + 段落（适合连贯正文）
+  // 卡片列表：有标题 + 段落
   if (headings.length >= 1 && paragraphs.length >= 1 && lists.length === 0 && blockquotes.length === 0) {
+    return 'card-list'
+  }
+
+  // 纯段落（无标题）：也用卡片列表，让每段独立成卡片
+  if (paragraphs.length >= 1 && headings.length === 0 && lists.length === 0 && blockquotes.length === 0) {
     return 'card-list'
   }
 
@@ -272,50 +277,40 @@ export function splitToPagesV2(markdown: string, config: XhsConfig, style: Style
   // ── 每节转成一张或多张页 ──────────────────────
   for (const sectionNodes of sections) {
     const allEls = sectionNodes.map(n => nodeToPageElementV2(n, config, scale, layout))
-    const totalH = allEls.reduce((s, e) => s + e.estimatedHeight, 0)
+    const headingEl = allEls[0]?.type === 'heading' ? allEls[0] : null
 
-    if (totalH <= availableHeight) {
-      // 整节放一页
+    // 无标题节：每页最多 3 个元素（保证手机可读性）
+    // 有标题节：按高度切割
+    const maxElsPerPage = headingEl ? 999 : 3
+
+    const flushBatch = (batch: PageElement[]) => {
+      if (batch.length === 0) return
       pages.push({
         type: 'content',
-        elements: allEls,
+        elements: batch,
         pageIndex: pages.length,
         totalPages: 0,
-        templateType: planPageTemplate(allEls),
+        templateType: planPageTemplate(batch),
       })
-    } else {
-      // 节过长：保留 heading 在每批首位，按高度补切
-      const headingEl = allEls[0]?.type === 'heading' ? allEls[0] : null
-      let batch: PageElement[] = []
-      let batchH = 0
+    }
 
-      for (const el of allEls) {
-        if (batchH + el.estimatedHeight > availableHeight && batch.length > 0) {
-          pages.push({
-            type: 'content',
-            elements: batch,
-            pageIndex: pages.length,
-            totalPages: 0,
-            templateType: planPageTemplate(batch),
-          })
-          // 续页顶部带上 heading（续）
-          batch = headingEl && el !== headingEl ? [headingEl, el] : [el]
-          batchH = batch.reduce((s, e) => s + e.estimatedHeight, 0)
-        } else {
-          batch.push(el)
-          batchH += el.estimatedHeight
-        }
-      }
-      if (batch.length > 0) {
-        pages.push({
-          type: 'content',
-          elements: batch,
-          pageIndex: pages.length,
-          totalPages: 0,
-          templateType: planPageTemplate(batch),
-        })
+    let batch: PageElement[] = []
+    let batchH = 0
+
+    for (const el of allEls) {
+      const heightFull = batchH + el.estimatedHeight > availableHeight
+      const countFull = batch.length >= maxElsPerPage
+      if ((heightFull || countFull) && batch.length > 0) {
+        flushBatch([...batch])
+        // 续页：有标题节则顶部带上 heading
+        batch = headingEl && el !== headingEl ? [headingEl, el] : [el]
+        batchH = batch.reduce((s, e) => s + e.estimatedHeight, 0)
+      } else {
+        batch.push(el)
+        batchH += el.estimatedHeight
       }
     }
+    flushBatch(batch)
   }
 
   // ── 尾页 ─────────────────────────────────────
@@ -338,25 +333,20 @@ function renderCoverClassic(
   title: string, summary: string, colors: any, titleFont: string, bodyFont: string,
   titleSize: number, subtitleSize: number, separator: string, config: XhsConfig
 ): string {
-  const topY = Math.round(config.height * 0.25)
+  const decorSize = Math.round(config.width * 0.5)
   return `
-    <div style="position: absolute; top: ${config.padding}px; left: ${config.padding}px; right: ${config.padding}px;
-      text-align: center; color: ${colors.primary}; font-size: ${config.fontSize * 0.8}px; opacity: 0.6;">
-      ${separator}
+    <div style="position:absolute;top:-${Math.round(decorSize * 0.25)}px;right:-${Math.round(decorSize * 0.2)}px;width:${decorSize}px;height:${decorSize}px;border-radius:50%;background:${colors.primary};opacity:0.07;"></div>
+    <div style="position:absolute;bottom:-${Math.round(decorSize * 0.2)}px;left:-${Math.round(decorSize * 0.15)}px;width:${Math.round(decorSize * 0.65)}px;height:${Math.round(decorSize * 0.65)}px;border-radius:50%;background:${colors.primary};opacity:0.04;"></div>
+    <div style="position:absolute;top:${config.padding}px;left:${config.padding}px;right:${config.padding}px;text-align:center;color:${colors.primary};font-size:${config.fontSize * 0.8}px;opacity:0.5;">${separator}</div>
+    <div style="position:absolute;top:50%;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;transform:translateY(-50%);text-align:center;">
+      <h1 style="font-family:'${titleFont}','${bodyFont}',sans-serif;font-size:${titleSize}px;font-weight:900;color:${colors.text};line-height:1.3;margin:0 0 ${Math.round(config.padding * 0.8)}px;letter-spacing:2px;">${renderInline(title)}</h1>
+      ${summary ? `
+        <div style="width:${Math.round(config.fontSize * 2)}px;height:3px;background:${colors.primary};margin:0 auto ${Math.round(config.padding * 0.6)}px;border-radius:2px;opacity:0.6;"></div>
+        <p style="font-size:${subtitleSize}px;color:${colors.textMuted};line-height:1.75;margin:0;padding:0 20px;">${renderInline(summary)}</p>` : ''}
     </div>
-    <div style="position: absolute; top: ${topY}px; left: ${config.padding * 1.5}px; right: ${config.padding * 1.5}px; text-align: center;">
-      <h1 style="font-family: '${titleFont}', '${bodyFont}', sans-serif; font-size: ${titleSize}px; font-weight: 800;
-        color: ${colors.text}; line-height: 1.4; margin: 0 0 ${config.padding}px; letter-spacing: 2px;">
-        ${renderInline(title)}
-      </h1>
-      ${summary ? `<p style="font-size: ${subtitleSize}px; color: ${colors.textMuted}; line-height: 1.7; margin: 0; padding: 0 20px;">
-        ${renderInline(summary)}</p>` : ''}
-    </div>
-    <div style="position: absolute; bottom: ${config.padding * 1.5}px; left: 0; right: 0; text-align: center;">
-      <div style="color: ${colors.primary}; font-size: ${config.fontSize * 0.75}px; opacity: 0.5;">${separator}</div>
-      <div style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.7}px; margin-top: 16px; letter-spacing: 1px;">
-        云中书 · YunType
-      </div>
+    <div style="position:absolute;bottom:${config.padding * 1.2}px;left:0;right:0;text-align:center;">
+      <div style="color:${colors.primary};font-size:${config.fontSize * 0.75}px;opacity:0.4;">${separator}</div>
+      <div style="color:${colors.textMuted};font-size:${config.fontSize * 0.68}px;margin-top:14px;letter-spacing:1px;">云中书 · YunType</div>
     </div>
   `
 }
@@ -554,7 +544,81 @@ function renderV2Brand(colors: any, config: XhsConfig, position: 'bottom-center'
 //  视觉模板渲染器 — Phase C
 // ═══════════════════════════════════════════════════════════
 
-/** 特性网格模板 — 标题 + 2列网格卡片 */
+/** 判断是否深色主题（基于 pageBg 亮度） */
+function isDarkTheme(pageBg: string): boolean {
+  const hex = pageBg.replace('#', '')
+  if (hex.length < 6) return false
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  return (r + g + b) / 3 < 128
+}
+
+/** 页面背景装饰（圆形色块） — 所有内容页通用 */
+function renderPageDecorations(colors: any, config: XhsConfig): string {
+  const w = config.width
+  const h = config.height
+  return `
+    <div style="position:absolute;top:-${Math.round(w * 0.15)}px;right:-${Math.round(w * 0.15)}px;width:${Math.round(w * 0.5)}px;height:${Math.round(w * 0.5)}px;border-radius:50%;background:radial-gradient(circle, ${colors.primary}25 0%, ${colors.primary}00 70%);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-${Math.round(w * 0.2)}px;left:-${Math.round(w * 0.1)}px;width:${Math.round(w * 0.45)}px;height:${Math.round(w * 0.45)}px;border-radius:50%;background:radial-gradient(circle, ${colors.primary}18 0%, ${colors.primary}00 70%);pointer-events:none;"></div>
+    <div style="position:absolute;top:${Math.round(h * 0.35)}px;right:${Math.round(w * 0.05)}px;width:${Math.round(w * 0.12)}px;height:${Math.round(w * 0.12)}px;border-radius:50%;background:${colors.primary}15;pointer-events:none;"></div>
+  `
+}
+
+/** 顶部品牌栏 + 页码徽章 */
+function renderPageTopBar(pageIndex: number, totalPages: number, colors: any, config: XhsConfig): string {
+  const fs = config.fontSize
+  const pad = config.padding
+  return `
+    <div style="position:absolute;top:${Math.round(pad * 0.65)}px;left:${pad}px;right:${pad}px;display:flex;justify-content:space-between;align-items:center;z-index:2;">
+      <div style="display:inline-flex;align-items:center;gap:${Math.round(fs * 0.25)}px;padding:${Math.round(fs * 0.22)}px ${Math.round(fs * 0.5)}px;background:${colors.primary};border-radius:${Math.round(fs * 0.7)}px;color:#fff;font-size:${Math.round(fs * 0.5)}px;font-weight:700;letter-spacing:1px;">
+        <span style="font-size:${Math.round(fs * 0.55)}px;">☁️</span>
+        <span>云中书</span>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:${Math.round(fs * 0.3)}px;font-size:${Math.round(fs * 0.55)}px;font-weight:800;color:${colors.textMuted};">
+        <span style="color:${colors.primary};">${String(pageIndex).padStart(2, '0')}</span>
+        <span style="opacity:0.4;">/</span>
+        <span>${String(totalPages - 1).padStart(2, '0')}</span>
+      </div>
+    </div>
+  `
+}
+
+/** 底部品牌 + 装饰线 */
+function renderPageBottomBar(colors: any, config: XhsConfig): string {
+  const fs = config.fontSize
+  const pad = config.padding
+  return `
+    <div style="position:absolute;bottom:${Math.round(pad * 0.55)}px;left:${pad}px;right:${pad}px;display:flex;align-items:center;gap:${Math.round(fs * 0.4)}px;z-index:2;">
+      <div style="flex:1;height:2px;background:linear-gradient(90deg,${colors.primary}00,${colors.primary}30);"></div>
+      <div style="font-size:${Math.round(fs * 0.45)}px;color:${colors.textMuted};letter-spacing:3px;font-weight:600;">YUNTYPE</div>
+      <div style="flex:1;height:2px;background:linear-gradient(90deg,${colors.primary}30,${colors.primary}00);"></div>
+    </div>
+  `
+}
+
+/** 富标题设计（编号徽章 + 标题 + 下划线） */
+function renderRichHeading(title: string, index: number, colors: any, config: XhsConfig): string {
+  const fs = config.fontSize
+  const numberText = String(index).padStart(2, '0')
+  return `
+    <div style="display:flex;align-items:flex-start;gap:${Math.round(fs * 0.5)}px;margin-bottom:${Math.round(fs * 0.7)}px;flex-shrink:0;">
+      <div style="width:${Math.round(fs * 2.2)}px;height:${Math.round(fs * 2.2)}px;border-radius:${Math.round(fs * 0.45)}px;background:linear-gradient(135deg,${colors.primary},${colors.primary}cc);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 ${Math.round(fs * 0.15)}px ${Math.round(fs * 0.5)}px ${colors.primary}40;">
+        <span style="font-size:${Math.round(fs * 1.0)}px;font-weight:900;color:#fff;letter-spacing:-1px;">${numberText}</span>
+      </div>
+      <div style="flex:1;padding-top:${Math.round(fs * 0.15)}px;">
+        <div style="font-size:${Math.round(fs * 1.45)}px;font-weight:900;color:${colors.text};line-height:1.2;margin-bottom:${Math.round(fs * 0.25)}px;letter-spacing:0.5px;">${title}</div>
+        <div style="display:flex;gap:${Math.round(fs * 0.15)}px;align-items:center;">
+          <div style="width:${Math.round(fs * 1.5)}px;height:${Math.round(fs * 0.16)}px;background:${colors.primary};border-radius:${Math.round(fs * 0.08)}px;"></div>
+          <div style="width:${Math.round(fs * 0.3)}px;height:${Math.round(fs * 0.16)}px;background:${colors.primary};opacity:0.5;border-radius:${Math.round(fs * 0.08)}px;"></div>
+          <div style="width:${Math.round(fs * 0.15)}px;height:${Math.round(fs * 0.16)}px;background:${colors.primary};opacity:0.25;border-radius:${Math.round(fs * 0.08)}px;"></div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+/** 特性网格模板 — 标题 + 2列网格卡片，撑满全页 */
 function renderTemplateFeatureGrid(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
@@ -563,98 +627,95 @@ function renderTemplateFeatureGrid(
   const items = listEl?.items ?? []
   const fs = config.fontSize
   const pad = config.padding
+  const isDark = isDarkTheme(colors.pageBg)
 
-  const headingHtml = heading
-    ? `<div style="margin-bottom:${Math.round(fs * 0.9)}px;">
-        <div style="display:inline-block;background:${colors.primary};height:${Math.round(fs * 0.18)}px;width:${Math.round(fs * 1.2)}px;border-radius:4px;vertical-align:middle;margin-right:12px;"></div>
-        <span style="font-size:${Math.round(fs * 1.35)}px;font-weight:800;color:${colors.text};vertical-align:middle;line-height:1.3;">${renderInline(heading.content)}</span>
-      </div>`
-    : ''
+  const cardBg = isDark
+    ? `linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))`
+    : `linear-gradient(135deg,${colors.contentBg},${colors.primary}08)`
+  const cardBorder = isDark ? `rgba(255,255,255,0.14)` : `${colors.primary}28`
+
+  const headingHtml = heading ? renderRichHeading(heading.content, 1, colors, config) : ''
 
   const ICONS = ['💡', '🎯', '✨', '🚀', '🔥', '⚡', '🌟', '💎']
-  const gridCols = items.length <= 4 ? 2 : 2
-  const cardGap = Math.round(fs * 0.45)
-  const cardPad = Math.round(fs * 0.7)
+  const cols = 2
+  const rows = Math.ceil(items.length / cols)
 
   const cards = items.map((item, i) => {
     const icon = ICONS[i % ICONS.length]
-    const isDark = colors.pageBg.startsWith('#0') || colors.pageBg.startsWith('#1')
-    const cardBg = isDark ? `rgba(255,255,255,0.06)` : colors.contentBg
-    const cardBorder = isDark ? `rgba(255,255,255,0.1)` : `${colors.primary}20`
     return `
-      <div style="background:${cardBg};border-radius:${Math.round(fs * 0.5)}px;padding:${cardPad}px;border:1.5px solid ${cardBorder};display:flex;flex-direction:column;gap:${Math.round(fs * 0.3)}px;">
-        <div style="display:flex;align-items:center;gap:${Math.round(fs * 0.35)}px;">
-          <div style="width:${Math.round(fs * 1.1)}px;height:${Math.round(fs * 1.1)}px;border-radius:${Math.round(fs * 0.3)}px;background:${colors.primary}25;display:flex;align-items:center;justify-content:center;font-size:${Math.round(fs * 0.75)}px;flex-shrink:0;">${icon}</div>
-          <span style="font-size:${Math.round(fs * 0.9)}px;font-weight:700;color:${colors.primary};line-height:1.2;">${String(i + 1).padStart(2, '0')}</span>
+      <div style="position:relative;background:${cardBg};border-radius:${Math.round(fs * 0.6)}px;padding:${Math.round(fs * 0.8)}px ${Math.round(fs * 0.85)}px;border:1.5px solid ${cardBorder};display:flex;flex-direction:column;justify-content:center;gap:${Math.round(fs * 0.35)}px;min-height:0;overflow:hidden;">
+        <div style="position:absolute;top:-${Math.round(fs * 0.4)}px;right:-${Math.round(fs * 0.4)}px;width:${Math.round(fs * 2.2)}px;height:${Math.round(fs * 2.2)}px;border-radius:50%;background:${colors.primary};opacity:0.06;"></div>
+        <div style="display:flex;align-items:center;gap:${Math.round(fs * 0.4)}px;position:relative;">
+          <div style="width:${Math.round(fs * 1.3)}px;height:${Math.round(fs * 1.3)}px;border-radius:${Math.round(fs * 0.35)}px;background:linear-gradient(135deg,${colors.primary}30,${colors.primary}15);display:flex;align-items:center;justify-content:center;font-size:${Math.round(fs * 0.85)}px;flex-shrink:0;border:1px solid ${colors.primary}30;">${icon}</div>
+          <div style="display:flex;flex-direction:column;">
+            <span style="font-size:${Math.round(fs * 0.5)}px;font-weight:700;color:${colors.textMuted};letter-spacing:2px;">FEATURE</span>
+            <span style="font-size:${Math.round(fs * 0.9)}px;font-weight:900;color:${colors.primary};line-height:1;">${String(i + 1).padStart(2, '0')}</span>
+          </div>
         </div>
-        <div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.text};line-height:1.6;">${renderInline(item)}</div>
+        <div style="font-size:${Math.round(fs * 0.88)}px;color:${colors.text};line-height:1.6;font-weight:500;position:relative;">${renderInline(item)}</div>
       </div>`
   }).join('')
 
   return `
-    <div style="padding:${pad}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="padding:${Math.round(pad * 0.4)}px ${pad}px ${Math.round(pad * 0.4)}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
       ${headingHtml}
-      <div style="display:grid;grid-template-columns:repeat(${gridCols},1fr);gap:${cardGap}px;flex:1;align-content:start;">
+      <div style="display:grid;grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);gap:${Math.round(fs * 0.5)}px;flex:1;min-height:0;">
         ${cards}
       </div>
     </div>`
 }
 
-/** 流程步骤模板 — 时间线 + 步骤卡片 */
+/** 流程步骤模板 — 步骤均匀撑满全页 */
 function renderTemplateWorkflow(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
   const heading = elements.find(e => e.type === 'heading')
-  const listEl = elements.find(e => e.type === 'list' && e.ordered)
-    ?? elements.find(e => e.type === 'list')
+  const listEl = elements.find(e => e.type === 'list' && e.ordered) ?? elements.find(e => e.type === 'list')
   const items = listEl?.items ?? []
   const fs = config.fontSize
   const pad = config.padding
+  const isDark = isDarkTheme(colors.pageBg)
 
-  const headingHtml = heading
-    ? `<div style="margin-bottom:${Math.round(fs * 0.9)}px;padding-left:${Math.round(fs * 0.5)}px;border-left:${Math.round(fs * 0.2)}px solid ${colors.primary};">
-        <div style="font-size:${Math.round(fs * 1.3)}px;font-weight:800;color:${colors.text};line-height:1.3;">${renderInline(heading.content)}</div>
-      </div>`
-    : ''
+  const stepBg = isDark
+    ? `linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02))`
+    : `linear-gradient(135deg,${colors.contentBg},${colors.primary}06)`
+  const stepBorder = isDark ? `rgba(255,255,255,0.12)` : `${colors.primary}20`
 
-  const isDark = colors.pageBg.startsWith('#0') || colors.pageBg.startsWith('#1')
-  const stepBg = isDark ? `rgba(255,255,255,0.05)` : colors.contentBg
-  const stepBorder = isDark ? `rgba(255,255,255,0.08)` : `${colors.primary}18`
-  const dotSize = Math.round(fs * 0.9)
-  const railLeft = Math.round(dotSize / 2)
+  const headingHtml = heading ? renderRichHeading(heading.content, 1, colors, config) : ''
+
+  const dotSize = Math.round(fs * 1.5)
 
   const steps = items.map((item, i) => {
     const isLast = i === items.length - 1
     return `
-      <div style="display:flex;gap:${Math.round(fs * 0.5)}px;position:relative;padding-bottom:${isLast ? 0 : Math.round(fs * 0.5)}px;">
-        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
-          <div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${colors.primary};display:flex;align-items:center;justify-content:center;font-size:${Math.round(fs * 0.55)}px;font-weight:800;color:#fff;z-index:1;">${i + 1}</div>
-          ${!isLast ? `<div style="width:2px;flex:1;background:${colors.primary}30;margin-top:4px;"></div>` : ''}
+      <div style="display:flex;gap:${Math.round(fs * 0.55)}px;flex:1;min-height:0;position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:${dotSize}px;">
+          <div style="width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:linear-gradient(135deg,${colors.primary},${colors.primary}dd);display:flex;align-items:center;justify-content:center;font-size:${Math.round(fs * 0.7)}px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 ${Math.round(fs * 0.1)}px ${Math.round(fs * 0.35)}px ${colors.primary}50;border:3px solid ${colors.pageBg};">${i + 1}</div>
+          ${!isLast ? `<div style="width:3px;flex:1;background:linear-gradient(${colors.primary}80,${colors.primary}15);margin-top:${Math.round(fs * 0.15)}px;border-radius:2px;"></div>` : ''}
         </div>
-        <div style="background:${stepBg};border-radius:${Math.round(fs * 0.4)}px;padding:${Math.round(fs * 0.45)}px ${Math.round(fs * 0.6)}px;border:1px solid ${stepBorder};flex:1;margin-bottom:${isLast ? 0 : Math.round(fs * 0.25)}px;">
-          <div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.text};line-height:1.6;">${renderInline(item)}</div>
+        <div style="background:${stepBg};border-radius:${Math.round(fs * 0.5)}px;padding:${Math.round(fs * 0.6)}px ${Math.round(fs * 0.8)}px;border:1.5px solid ${stepBorder};flex:1;display:flex;flex-direction:column;justify-content:center;${!isLast ? `margin-bottom:${Math.round(fs * 0.4)}px;` : ''}min-height:0;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:${Math.round(fs * 0.15)}px;background:linear-gradient(${colors.primary},${colors.primary}60);"></div>
+          <div style="font-size:${Math.round(fs * 0.5)}px;color:${colors.primary};font-weight:800;letter-spacing:2px;margin-bottom:${Math.round(fs * 0.15)}px;text-transform:uppercase;">Step ${String(i + 1).padStart(2, '0')}</div>
+          <div style="font-size:${Math.round(fs * 0.92)}px;color:${colors.text};line-height:1.6;font-weight:500;">${renderInline(item)}</div>
         </div>
       </div>`
   }).join('')
 
-  // extra paragraphs below steps
   const extraParas = elements.filter(e => e.type === 'paragraph')
-    .map(e => `<div style="font-size:${Math.round(fs * 0.8)}px;color:${colors.textMuted};line-height:1.6;margin-top:${Math.round(fs * 0.4)}px;">${renderInline(e.content)}</div>`)
+    .map(e => `<div style="font-size:${Math.round(fs * 0.78)}px;color:${colors.textMuted};line-height:1.7;margin-top:${Math.round(fs * 0.4)}px;flex-shrink:0;padding-left:${Math.round(fs * 0.5)}px;border-left:3px solid ${colors.primary}40;">${renderInline(e.content)}</div>`)
     .join('')
 
   return `
-    <div style="padding:${pad}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="padding:${Math.round(pad * 0.4)}px ${pad}px ${Math.round(pad * 0.4)}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
       ${headingHtml}
-      <div style="flex:1;overflow:hidden;">
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
         ${steps}
-        ${extraParas}
       </div>
+      ${extraParas}
     </div>`
-  // suppress unused warning
-  void railLeft
 }
 
-/** 文字强调模板 — 大字引用 + 装饰 */
+/** 文字强调模板 — 大字引用撑满全页 */
 function renderTemplateTextHighlight(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
@@ -663,35 +724,51 @@ function renderTemplateTextHighlight(
   const paras = elements.filter(e => e.type === 'paragraph')
   const fs = config.fontSize
   const pad = config.padding
+  const isDark = isDarkTheme(colors.pageBg)
 
-  const isDark = colors.pageBg.startsWith('#0') || colors.pageBg.startsWith('#1')
-  const quoteBg = isDark ? `rgba(255,255,255,0.04)` : `${colors.primary}08`
+  const quoteBg = isDark
+    ? `linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))`
+    : `linear-gradient(135deg,${colors.primary}0e,${colors.primary}04)`
 
   const headingHtml = heading
-    ? `<div style="font-size:${Math.round(fs * 1.1)}px;font-weight:700;color:${colors.textMuted};margin-bottom:${Math.round(fs * 0.6)}px;text-align:center;letter-spacing:2px;">${renderInline(heading.content)}</div>`
+    ? `<div style="display:flex;align-items:center;justify-content:center;gap:${Math.round(fs * 0.35)}px;margin-bottom:${Math.round(fs * 0.8)}px;flex-shrink:0;">
+        <div style="width:${Math.round(fs * 1.2)}px;height:2px;background:${colors.primary};opacity:0.6;"></div>
+        <div style="font-size:${Math.round(fs * 0.7)}px;font-weight:800;color:${colors.primary};letter-spacing:4px;text-transform:uppercase;">${renderInline(heading.content)}</div>
+        <div style="width:${Math.round(fs * 1.2)}px;height:2px;background:${colors.primary};opacity:0.6;"></div>
+      </div>`
     : ''
 
+  const singleLarge = quotes.length === 1
+  const quoteFs = singleLarge ? Math.round(fs * 1.35) : Math.round(fs * 1.05)
+
   const quotesHtml = quotes.map((q, i) => `
-    <div style="background:${quoteBg};border-radius:${Math.round(fs * 0.5)}px;padding:${Math.round(fs * 0.9)}px ${Math.round(fs * 1.1)}px;margin-bottom:${i < quotes.length - 1 ? Math.round(fs * 0.5) : 0}px;position:relative;">
-      <div style="position:absolute;top:${Math.round(fs * 0.2)}px;left:${Math.round(fs * 0.4)}px;font-size:${Math.round(fs * 2.5)}px;color:${colors.primary};opacity:0.2;line-height:1;font-family:Georgia,serif;">"</div>
-      <div style="font-size:${Math.round(fs * 1.05)}px;color:${colors.text};line-height:1.8;text-align:center;font-weight:500;padding-top:${Math.round(fs * 0.4)}px;">${renderInline(q.content)}</div>
-      <div style="width:${Math.round(fs * 1.5)}px;height:3px;background:${colors.primary};margin:${Math.round(fs * 0.5)}px auto 0;border-radius:2px;opacity:0.6;"></div>
+    <div style="background:${quoteBg};border:2px solid ${colors.primary}25;border-radius:${Math.round(fs * 0.6)}px;padding:${Math.round(fs * 1.3)}px ${Math.round(fs * 1.2)}px;${i < quotes.length - 1 ? `margin-bottom:${Math.round(fs * 0.5)}px;` : ''}position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;overflow:hidden;">
+      <div style="position:absolute;top:${Math.round(fs * 0.3)}px;left:${Math.round(fs * 0.55)}px;font-size:${Math.round(fs * 3.8)}px;color:${colors.primary};opacity:0.18;line-height:1;font-family:Georgia,serif;font-weight:900;">"</div>
+      <div style="position:absolute;bottom:${Math.round(fs * 0.3)}px;right:${Math.round(fs * 0.55)}px;font-size:${Math.round(fs * 3.8)}px;color:${colors.primary};opacity:0.18;line-height:1;font-family:Georgia,serif;font-weight:900;">"</div>
+      <div style="font-size:${quoteFs}px;color:${colors.text};line-height:1.75;text-align:center;font-weight:600;position:relative;padding:0 ${Math.round(fs * 0.4)}px;">${renderInline(q.content)}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:${Math.round(fs * 0.2)}px;margin-top:${Math.round(fs * 0.7)}px;">
+        <div style="width:${Math.round(fs * 0.35)}px;height:${Math.round(fs * 0.35)}px;border-radius:50%;background:${colors.primary};opacity:0.35;"></div>
+        <div style="width:${Math.round(fs * 2.2)}px;height:3px;background:${colors.primary};border-radius:2px;opacity:0.7;"></div>
+        <div style="width:${Math.round(fs * 0.35)}px;height:${Math.round(fs * 0.35)}px;border-radius:50%;background:${colors.primary};opacity:0.35;"></div>
+      </div>
     </div>`
   ).join('')
 
   const parasHtml = paras.map(p =>
-    `<div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.textMuted};line-height:1.7;text-align:center;margin-top:${Math.round(fs * 0.4)}px;">${renderInline(p.content)}</div>`
+    `<div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.textMuted};line-height:1.7;text-align:center;margin-top:${Math.round(fs * 0.5)}px;flex-shrink:0;font-style:italic;">${renderInline(p.content)}</div>`
   ).join('')
 
   return `
-    <div style="padding:${pad}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:${Math.round(pad * 0.4)}px ${pad}px ${Math.round(pad * 0.4)}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;position:relative;">
       ${headingHtml}
-      ${quotesHtml}
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;">
+        ${quotesHtml}
+      </div>
       ${parasHtml}
     </div>`
 }
 
-/** 卡片列表模板 — 标题 + 段落卡片 */
+/** 卡片列表模板 — 标题 + 段落卡片，均匀撑满 */
 function renderTemplateCardList(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
@@ -699,47 +776,58 @@ function renderTemplateCardList(
   const rest = elements.filter(e => e !== heading)
   const fs = config.fontSize
   const pad = config.padding
+  const isDark = isDarkTheme(colors.pageBg)
 
-  const isDark = colors.pageBg.startsWith('#0') || colors.pageBg.startsWith('#1')
-  const cardBg = isDark ? `rgba(255,255,255,0.05)` : colors.contentBg
-  const cardBorder = isDark ? `rgba(255,255,255,0.08)` : `${colors.primary}20`
-  const ACCENT_COLORS = [colors.primary, colors.accent, colors.secondary]
+  const cardBg = isDark
+    ? `linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02))`
+    : `linear-gradient(135deg,${colors.contentBg},${colors.primary}07)`
+  const cardBorder = isDark ? `rgba(255,255,255,0.12)` : `${colors.primary}22`
 
   const headingHtml = heading
-    ? `<div style="margin-bottom:${Math.round(fs * 0.8)}px;">
-        <div style="font-size:${Math.round(fs * 1.45)}px;font-weight:900;color:${colors.text};line-height:1.25;margin-bottom:${Math.round(fs * 0.25)}px;">${renderInline(heading.content)}</div>
-        <div style="width:${Math.round(fs * 2)}px;height:${Math.round(fs * 0.18)}px;background:${colors.primary};border-radius:4px;"></div>
+    ? renderRichHeading(heading.content, 1, colors, config)
+    : `<div style="display:flex;align-items:center;gap:${Math.round(fs * 0.4)}px;margin-bottom:${Math.round(fs * 0.7)}px;flex-shrink:0;">
+        <div style="width:${Math.round(fs * 0.28)}px;height:${Math.round(fs * 1.8)}px;background:linear-gradient(${colors.primary},${colors.primary}60);border-radius:${Math.round(fs * 0.1)}px;"></div>
+        <div style="display:flex;flex-direction:column;gap:${Math.round(fs * 0.15)}px;">
+          <div style="font-size:${Math.round(fs * 0.55)}px;font-weight:800;color:${colors.primary};letter-spacing:3px;">KEY POINTS</div>
+          <div style="font-size:${Math.round(fs * 0.9)}px;font-weight:700;color:${colors.text};">核心要点</div>
+        </div>
       </div>`
-    : ''
+
+  const renderParaCard = (content: string, idx: number) => `
+    <div style="position:relative;display:flex;gap:${Math.round(fs * 0.55)}px;background:${cardBg};border-radius:${Math.round(fs * 0.5)}px;padding:${Math.round(fs * 0.75)}px ${Math.round(fs * 0.85)}px;border:1.5px solid ${cardBorder};flex:1;align-items:center;min-height:0;overflow:hidden;">
+      <div style="position:absolute;top:-${Math.round(fs * 0.3)}px;right:-${Math.round(fs * 0.3)}px;width:${Math.round(fs * 2.0)}px;height:${Math.round(fs * 2.0)}px;border-radius:50%;background:${colors.primary};opacity:0.05;"></div>
+      <div style="width:${Math.round(fs * 1.5)}px;height:${Math.round(fs * 1.5)}px;border-radius:${Math.round(fs * 0.35)}px;background:linear-gradient(135deg,${colors.primary},${colors.primary}cc);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 ${Math.round(fs * 0.1)}px ${Math.round(fs * 0.3)}px ${colors.primary}40;">
+        <span style="font-size:${Math.round(fs * 0.75)}px;font-weight:900;color:#fff;">${String(idx + 1).padStart(2, '0')}</span>
+      </div>
+      <div style="font-size:${Math.round(fs * 0.92)}px;color:${colors.text};line-height:1.65;font-weight:500;position:relative;flex:1;">${renderInline(content)}</div>
+    </div>`
 
   const cards = rest.map((el, i) => {
-    const accentColor = ACCENT_COLORS[i % ACCENT_COLORS.length]
     if (el.type === 'paragraph') {
-      return `
-        <div style="display:flex;gap:${Math.round(fs * 0.45)}px;background:${cardBg};border-radius:${Math.round(fs * 0.4)}px;padding:${Math.round(fs * 0.55)}px ${Math.round(fs * 0.65)}px;border:1px solid ${cardBorder};margin-bottom:${Math.round(fs * 0.3)}px;">
-          <div style="width:${Math.round(fs * 0.18)}px;border-radius:4px;background:${accentColor};flex-shrink:0;"></div>
-          <div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.text};line-height:1.7;">${renderInline(el.content)}</div>
-        </div>`
+      return renderParaCard(el.content, i)
     } else if (el.type === 'list') {
       const listItems = (el.items ?? []).map((item, j) => `
-        <div style="display:flex;align-items:baseline;gap:${Math.round(fs * 0.3)}px;margin-bottom:${Math.round(fs * 0.25)}px;">
-          <span style="color:${accentColor};font-size:${Math.round(fs * 0.65)}px;flex-shrink:0;font-weight:700;">${el.ordered ? `${j + 1}.` : '▸'}</span>
-          <span style="font-size:${Math.round(fs * 0.82)}px;color:${colors.text};line-height:1.6;">${renderInline(item)}</span>
+        <div style="display:flex;align-items:center;gap:${Math.round(fs * 0.45)}px;padding:${Math.round(fs * 0.55)}px ${Math.round(fs * 0.75)}px;background:${cardBg};border-radius:${Math.round(fs * 0.4)}px;border:1px solid ${cardBorder};margin-bottom:${Math.round(fs * 0.25)}px;">
+          <div style="width:${Math.round(fs * 1.1)}px;height:${Math.round(fs * 1.1)}px;border-radius:${Math.round(fs * 0.3)}px;background:${colors.primary};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${Math.round(fs * 0.55)}px;font-weight:900;color:#fff;">${el.ordered ? j + 1 : '✦'}</div>
+          <span style="font-size:${Math.round(fs * 0.9)}px;color:${colors.text};line-height:1.6;font-weight:500;">${renderInline(item)}</span>
         </div>`).join('')
-      return `<div style="margin-bottom:${Math.round(fs * 0.3)}px;">${listItems}</div>`
+      return `<div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;">${listItems}</div>`
     } else if (el.type === 'blockquote') {
       return `
-        <div style="border-left:${Math.round(fs * 0.2)}px solid ${accentColor};padding:${Math.round(fs * 0.4)}px ${Math.round(fs * 0.65)}px;background:${accentColor}10;border-radius:0 ${Math.round(fs * 0.3)}px ${Math.round(fs * 0.3)}px 0;margin-bottom:${Math.round(fs * 0.3)}px;">
-          <div style="font-size:${Math.round(fs * 0.85)}px;color:${colors.text};line-height:1.7;font-style:italic;">${renderInline(el.content)}</div>
+        <div style="position:relative;padding:${Math.round(fs * 0.7)}px ${Math.round(fs * 0.85)}px;background:linear-gradient(135deg,${colors.primary}15,${colors.primary}05);border-radius:${Math.round(fs * 0.45)}px;border:1.5px solid ${colors.primary}30;flex:1;display:flex;align-items:center;min-height:0;overflow:hidden;">
+          <div style="position:absolute;top:${Math.round(fs * 0.1)}px;left:${Math.round(fs * 0.3)}px;font-size:${Math.round(fs * 2.5)}px;color:${colors.primary};opacity:0.25;line-height:1;font-family:Georgia,serif;">"</div>
+          <div style="font-size:${Math.round(fs * 0.92)}px;color:${colors.text};line-height:1.7;font-style:italic;font-weight:500;position:relative;padding-left:${Math.round(fs * 0.6)}px;">${renderInline(el.content)}</div>
         </div>`
     }
     return ''
   }).join('')
 
   return `
-    <div style="padding:${pad}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
+    <div style="padding:${Math.round(pad * 0.4)}px ${pad}px ${Math.round(pad * 0.4)}px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;position:relative;">
       ${headingHtml}
-      <div style="flex:1;overflow:hidden;">${cards}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:${Math.round(fs * 0.4)}px;min-height:0;">
+        ${cards}
+      </div>
     </div>`
 }
 
@@ -762,14 +850,15 @@ export function renderXhsPageV2(page: XhsPage, style: StyleComboV2, config: XhsC
   const bodyFont = typo.xiaohongshu.bodyFont
   const titleFont = typo.xiaohongshu.titleFont
 
-  // 背景样式
+  // 背景样式：所有页面使用微妙渐变
   let bgStyle: string
-  if (page.type === 'cover' || page.type === 'ending') {
+  if (page.type === 'cover') {
+    bgStyle = `background: linear-gradient(160deg, ${colors.pageBg} 0%, ${colors.contentBg} 70%, ${colors.pageBg} 100%);`
+  } else if (page.type === 'ending') {
     bgStyle = `background: linear-gradient(160deg, ${colors.pageBg}, ${colors.contentBg});`
   } else {
-    const bpStyle = bp.containerStyle({ contentBg: colors.contentBg, text: colors.text, pageBg: colors.pageBg })
-    const bgMatch = bpStyle.match(/background[^;]+;/)
-    bgStyle = bgMatch ? bgMatch[0] : `background-color: ${colors.pageBg};`
+    // 内容页：从 pageBg 淡入到略带主题色
+    bgStyle = `background: linear-gradient(165deg, ${colors.pageBg} 0%, ${colors.pageBg} 60%, ${colors.primary}08 100%);`
   }
 
   const containerStyle = `
@@ -787,7 +876,10 @@ export function renderXhsPageV2(page: XhsPage, style: StyleComboV2, config: XhsC
     case 'cover': {
       const title = page.elements[0]?.content || '无标题'
       const summary = page.elements[1]?.content || ''
-      const titleSize = Math.round(config.fontSize * 2.2)
+      // 标题字号按长度自适应，避免长标题撑爆页面
+      const titleLen = title.length
+      const titleMult = titleLen <= 10 ? 2.2 : titleLen <= 18 ? 1.8 : titleLen <= 28 ? 1.4 : 1.1
+      const titleSize = Math.round(config.fontSize * titleMult)
       const subtitleSize = Math.round(config.fontSize * 1.05)
       // 使用骨架 xhs.coverVariant 直接选择
       switch (xhs.coverVariant) {
@@ -812,15 +904,28 @@ export function renderXhsPageV2(page: XhsPage, style: StyleComboV2, config: XhsC
     }
     case 'content': {
       const templateType = page.templateType ?? 'standard'
+      const isTemplateMode = templateType !== 'standard'
 
-      if (templateType === 'feature-grid') {
-        content = renderTemplateFeatureGrid(page.elements, colors, config, ctx)
-      } else if (templateType === 'workflow') {
-        content = renderTemplateWorkflow(page.elements, colors, config, ctx)
-      } else if (templateType === 'text-highlight') {
-        content = renderTemplateTextHighlight(page.elements, colors, config, ctx)
-      } else if (templateType === 'card-list') {
-        content = renderTemplateCardList(page.elements, colors, config, ctx)
+      if (isTemplateMode) {
+        let templateContent = ''
+        if (templateType === 'feature-grid') {
+          templateContent = renderTemplateFeatureGrid(page.elements, colors, config, ctx)
+        } else if (templateType === 'workflow') {
+          templateContent = renderTemplateWorkflow(page.elements, colors, config, ctx)
+        } else if (templateType === 'text-highlight') {
+          templateContent = renderTemplateTextHighlight(page.elements, colors, config, ctx)
+        } else if (templateType === 'card-list') {
+          templateContent = renderTemplateCardList(page.elements, colors, config, ctx)
+        }
+        // 包裹装饰背景 + 顶部栏 + 底部栏
+        content = `
+          ${renderPageDecorations(colors, config)}
+          ${renderPageTopBar(page.pageIndex, page.totalPages, colors, config)}
+          <div style="position:relative;height:100%;box-sizing:border-box;padding-top:${Math.round(config.fontSize * 1.5)}px;padding-bottom:${Math.round(config.fontSize * 1.2)}px;">
+            ${templateContent}
+          </div>
+          ${renderPageBottomBar(colors, config)}
+        `
       } else {
         // standard 模式：保留原有骨架布局逻辑
         content += renderV2HeaderBar(colors, config, bp)

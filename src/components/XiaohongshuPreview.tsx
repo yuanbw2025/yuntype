@@ -360,15 +360,27 @@ export default function XiaohongshuPreview({ markdown, style, comboName }: XhsPr
               <div
                 onClick={() => setShowTemplatePicker(false)}
                 style={{
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: 'top center',
+                  width: `${Math.round(config.width * previewScale)}px`,
+                  height: `${Math.round(config.height * previewScale)}px`,
+                  position: 'relative',
                   flexShrink: 0,
+                  overflow: 'hidden',
                 }}
               >
-                <div
-                  dangerouslySetInnerHTML={{ __html: selectedPageHtml }}
-                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: '8px', overflow: 'hidden' }}
-                />
+                <div style={{
+                  width: `${config.width}px`,
+                  height: `${config.height}px`,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                }}>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: selectedPageHtml }}
+                    style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: '8px', overflow: 'hidden' }}
+                  />
+                </div>
               </div>
             </>
           ) : (
