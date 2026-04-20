@@ -21,6 +21,16 @@ const COLOR_FIELDS: { key: keyof ColorScheme['colors']; label: string; desc: str
   { key: 'textMuted',  label: '辅助文字',   desc: '次要文字、占位符' },
 ]
 
+/** 通用色板 — 点击即应用。分浅底/鲜明/深沉三行，共 36 色。 */
+const SWATCH_PALETTE: string[][] = [
+  // 第一行：浅底/背景色（pageBg / contentBg 友好）
+  ['#FFFFFF', '#FAFAFA', '#F5F5F5', '#F8F5F0', '#FFF8F0', '#F0F7FF', '#F0FAF6', '#FDF5F5', '#F9F0FF', '#FFFDF0', '#F0F4F8', '#FCF8EC'],
+  // 第二行：鲜明色（primary / accent 友好）
+  ['#4F46E5', '#2D9F83', '#D97706', '#DC2626', '#E11D48', '#7C3AED', '#0EA5E9', '#059669', '#F59E0B', '#EC4899', '#8B5CF6', '#14B8A6'],
+  // 第三行：深沉/正文色
+  ['#1F2937', '#111827', '#0F172A', '#2C3E3A', '#3B2F2F', '#4A3F35', '#374151', '#1E293B', '#292524', '#44403C', '#1C1917', '#18181B'],
+]
+
 export default function ColorCustomDialog({
   visible,
   onClose,
@@ -30,6 +40,7 @@ export default function ColorCustomDialog({
 }: ColorCustomDialogProps) {
   const [localColorId, setLocalColorId] = useState(colorId)
   const [localOverride, setLocalOverride] = useState<ColorOverride>(colorOverride ?? {})
+  const [activePaletteField, setActivePaletteField] = useState<keyof ColorScheme['colors'] | null>(null)
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   if (!visible) return null
@@ -182,69 +193,128 @@ export default function ColorCustomDialog({
               {COLOR_FIELDS.map(({ key, label, desc }) => {
                 const isOverridden = key in localOverride
                 const currentValue = effectiveColors[key]
+                const isPaletteOpen = activePaletteField === key
                 return (
-                  <div key={key} style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    padding: '8px 10px', borderRadius: '8px',
-                    background: isOverridden ? '#F8F7FF' : '#fafafa',
-                    border: `1px solid ${isOverridden ? '#4F46E530' : '#f0f0f0'}`,
-                  }}>
-                    {/* 色块（点击打开颜色选择器） */}
-                    <div
-                      onClick={() => inputRefs.current[key]?.click()}
-                      style={{
-                        width: '28px', height: '28px', borderRadius: '6px',
-                        background: currentValue,
-                        border: '2px solid rgba(0,0,0,0.12)',
-                        cursor: 'pointer', flexShrink: 0,
-                        boxShadow: isOverridden ? `0 0 0 2px #4F46E530` : 'none',
-                      }}
-                    />
-                    {/* 隐藏的 input[type=color] */}
-                    <input
-                      type="color"
-                      value={currentValue}
-                      onChange={e => handleColorChange(key, e.target.value)}
-                      ref={el => { inputRefs.current[key] = el }}
-                      style={{ display: 'none' }}
-                    />
-                    {/* 标签 + 描述 */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontSize: '12px', fontWeight: 600,
-                        color: isOverridden ? '#4F46E5' : '#333',
-                      }}>
-                        {label}
-                        {isOverridden && <span style={{ fontSize: '10px', marginLeft: '4px', color: '#4F46E5' }}>●</span>}
-                      </div>
-                      <div style={{ fontSize: '10px', color: '#aaa' }}>{desc}</div>
-                    </div>
-                    {/* 十六进制值 */}
-                    <input
-                      type="text"
-                      value={currentValue}
-                      onChange={e => {
-                        const v = e.target.value
-                        if (/^#[0-9A-Fa-f]{0,8}$/.test(v)) handleColorChange(key, v)
-                      }}
-                      style={{
-                        width: '74px', padding: '4px 6px', fontSize: '11px',
-                        border: '1px solid #e0e0e0', borderRadius: '4px',
-                        fontFamily: 'monospace', color: '#555',
-                        background: '#fff',
-                      }}
-                    />
-                    {/* 重置单项按钮 */}
-                    {isOverridden && (
-                      <button
-                        onClick={() => handleReset(key)}
-                        title="恢复预设值"
+                  <div key={key}>
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '8px 10px', borderRadius: '8px',
+                      background: isOverridden ? '#F8F7FF' : '#fafafa',
+                      border: `1px solid ${isOverridden ? '#4F46E530' : '#f0f0f0'}`,
+                    }}>
+                      {/* 色块（点击打开色板） */}
+                      <div
+                        onClick={() => setActivePaletteField(isPaletteOpen ? null : key)}
+                        title="点击选色"
                         style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          fontSize: '14px', color: '#bbb', padding: '0 2px',
-                          flexShrink: 0,
+                          width: '28px', height: '28px', borderRadius: '6px',
+                          background: currentValue,
+                          border: '2px solid rgba(0,0,0,0.12)',
+                          cursor: 'pointer', flexShrink: 0,
+                          boxShadow: isPaletteOpen
+                            ? `0 0 0 2px #4F46E5`
+                            : isOverridden ? `0 0 0 2px #4F46E530` : 'none',
                         }}
-                      >↩</button>
+                      />
+                      {/* 隐藏的 input[type=color]：供"更多颜色"入口调起 */}
+                      <input
+                        type="color"
+                        value={currentValue}
+                        onChange={e => handleColorChange(key, e.target.value)}
+                        ref={el => { inputRefs.current[key] = el }}
+                        style={{ display: 'none' }}
+                      />
+                      {/* 标签 + 描述 */}
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '12px', fontWeight: 600,
+                          color: isOverridden ? '#4F46E5' : '#333',
+                        }}>
+                          {label}
+                          {isOverridden && <span style={{ fontSize: '10px', marginLeft: '4px', color: '#4F46E5' }}>●</span>}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#aaa' }}>{desc}</div>
+                      </div>
+                      {/* 十六进制值 */}
+                      <input
+                        type="text"
+                        value={currentValue}
+                        onChange={e => {
+                          const v = e.target.value
+                          if (/^#[0-9A-Fa-f]{0,8}$/.test(v)) handleColorChange(key, v)
+                        }}
+                        style={{
+                          width: '74px', padding: '4px 6px', fontSize: '11px',
+                          border: '1px solid #e0e0e0', borderRadius: '4px',
+                          fontFamily: 'monospace', color: '#555',
+                          background: '#fff',
+                        }}
+                      />
+                      {/* 重置单项按钮 */}
+                      {isOverridden && (
+                        <button
+                          onClick={() => handleReset(key)}
+                          title="恢复预设值"
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            fontSize: '14px', color: '#bbb', padding: '0 2px',
+                            flexShrink: 0,
+                          }}
+                        >↩</button>
+                      )}
+                    </div>
+
+                    {/* 色板弹出层：选色用 */}
+                    {isPaletteOpen && (
+                      <div style={{
+                        marginTop: '6px', padding: '10px 12px',
+                        background: '#fff', borderRadius: '8px',
+                        border: '1px solid #E0E7FF',
+                        boxShadow: '0 2px 12px rgba(79,70,229,0.08)',
+                      }}>
+                        <div style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          marginBottom: '8px',
+                        }}>
+                          <span style={{ fontSize: '11px', color: '#666', fontWeight: 600 }}>
+                            选择颜色
+                          </span>
+                          <button
+                            onClick={() => { inputRefs.current[key]?.click(); }}
+                            style={{
+                              fontSize: '11px', color: '#4F46E5', background: 'none',
+                              border: '1px solid #E0E7FF', borderRadius: '4px',
+                              padding: '2px 8px', cursor: 'pointer',
+                            }}
+                          >
+                            🎨 更多颜色…
+                          </button>
+                        </div>
+                        {SWATCH_PALETTE.map((row, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: i < 2 ? '4px' : 0 }}>
+                            {row.map(hex => {
+                              const active = currentValue.toUpperCase() === hex.toUpperCase()
+                              return (
+                                <div
+                                  key={hex}
+                                  onClick={() => {
+                                    handleColorChange(key, hex)
+                                    setActivePaletteField(null)
+                                  }}
+                                  title={hex}
+                                  style={{
+                                    flex: 1, aspectRatio: '1',
+                                    background: hex, borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    border: active ? '2px solid #4F46E5' : '1px solid rgba(0,0,0,0.1)',
+                                    boxShadow: active ? '0 0 0 1px #fff inset' : 'none',
+                                  }}
+                                />
+                              )
+                            })}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )
