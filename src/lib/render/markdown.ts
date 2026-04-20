@@ -171,11 +171,15 @@ export function parseMarkdown(md: string): MarkdownNode[] {
       continue
     }
 
-    // 有序列表 1.
-    if (/^\s*\d+\.\s+/.test(line)) {
+    // 有序列表：
+    //   英文: 1. / 1) / 1)
+    //   中文: 1、 / 1．/ 一、 / 二、 / ①②③…
+    //   组合: (1) / （1）
+    const ORDERED_RE = /^\s*(?:\(\d+\)|（\d+）|\d+[.．、)]|[一二三四五六七八九十百千]+[、.．]|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*/
+    if (ORDERED_RE.test(line)) {
       const items: string[] = []
-      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^\s*\d+\.\s+/, '').trim())
+      while (i < lines.length && ORDERED_RE.test(lines[i])) {
+        items.push(lines[i].replace(ORDERED_RE, '').trim())
         i++
       }
       nodes.push({

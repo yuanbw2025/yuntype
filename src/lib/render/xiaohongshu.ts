@@ -4,6 +4,7 @@ import { parseMarkdown, renderInline, type MarkdownNode } from './markdown'
 import type { StyleComboV2 } from '../atoms'
 import { getSlot, type RenderContext } from '../atoms/slots'
 import type { BlueprintXhsConfig, CoverVariantType, ContentLayoutType } from '../atoms/blueprints'
+import { renderPageWithOrchestrator } from './xhs-orchestrator'
 
 // ═══════════════════════════════════════
 //  类型定义
@@ -493,7 +494,7 @@ const COVER_SEPARATORS: Record<CoverVariantType, string> = {
 }
 
 /** 页码渲染 — 4 种风格 */
-function renderPageNumber(page: XhsPage, style: 'right' | 'center' | 'fraction' | 'dot', colors: any, fontSize: number): string {
+export function renderPageNumber(page: XhsPage, style: 'right' | 'center' | 'fraction' | 'dot', colors: any, fontSize: number): string {
   const idx = page.pageIndex + 1
   const total = page.totalPages
   switch (style) {
@@ -514,7 +515,7 @@ function renderPageNumber(page: XhsPage, style: 'right' | 'center' | 'fraction' 
 }
 
 /** 页面顶部装饰条 */
-function renderV2HeaderBar(colors: any, config: XhsConfig, bp: StyleComboV2['blueprint']): string {
+export function renderV2HeaderBar(colors: any, config: XhsConfig, bp: StyleComboV2['blueprint']): string {
   const xhs = bp.xhs
   if (!xhs.pageDecoration.headerBar) return ''
   // 根据骨架风格选择不同的头部装饰
@@ -528,13 +529,13 @@ function renderV2HeaderBar(colors: any, config: XhsConfig, bp: StyleComboV2['blu
 }
 
 /** 页面底部装饰 */
-function renderV2FooterDecor(colors: any, config: XhsConfig, xhs: BlueprintXhsConfig): string {
+export function renderV2FooterDecor(colors: any, config: XhsConfig, xhs: BlueprintXhsConfig): string {
   if (!xhs.pageDecoration.footerLine) return ''
   return `<div style="position:absolute;bottom:${config.padding}px;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;height:2px;background:linear-gradient(90deg,transparent,${colors.primary}40,transparent);"></div>`
 }
 
 /** 品牌水印 */
-function renderV2Brand(colors: any, config: XhsConfig, position: 'bottom-center' | 'bottom-right' | 'none'): string {
+export function renderV2Brand(colors: any, config: XhsConfig, position: 'bottom-center' | 'bottom-right' | 'none'): string {
   if (position === 'none') return ''
   const align = position === 'bottom-right' ? 'right' : 'center'
   return `<div style="position:absolute;bottom:${config.padding * 0.4}px;left:${config.padding}px;right:${config.padding}px;text-align:${align};color:${colors.textMuted};font-size:${Math.round(config.fontSize * 0.45)}px;opacity:0.4;letter-spacing:1px;">云中书 YunType</div>`
@@ -555,7 +556,7 @@ function isDarkTheme(pageBg: string): boolean {
 }
 
 /** 页面背景装饰（圆形色块） — 所有内容页通用 */
-function renderPageDecorations(colors: any, config: XhsConfig): string {
+export function renderPageDecorations(colors: any, config: XhsConfig): string {
   const w = config.width
   const h = config.height
   return `
@@ -566,7 +567,7 @@ function renderPageDecorations(colors: any, config: XhsConfig): string {
 }
 
 /** 顶部品牌栏 + 页码徽章 */
-function renderPageTopBar(pageIndex: number, totalPages: number, colors: any, config: XhsConfig): string {
+export function renderPageTopBar(pageIndex: number, totalPages: number, colors: any, config: XhsConfig): string {
   const fs = config.fontSize
   const pad = config.padding
   return `
@@ -585,7 +586,7 @@ function renderPageTopBar(pageIndex: number, totalPages: number, colors: any, co
 }
 
 /** 底部品牌 + 装饰线 */
-function renderPageBottomBar(colors: any, config: XhsConfig): string {
+export function renderPageBottomBar(colors: any, config: XhsConfig): string {
   const fs = config.fontSize
   const pad = config.padding
   return `
@@ -619,7 +620,7 @@ function renderRichHeading(title: string, index: number, colors: any, config: Xh
 }
 
 /** 特性网格模板 — 标题 + 2列网格卡片，撑满全页 */
-function renderTemplateFeatureGrid(
+export function renderTemplateFeatureGrid(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
   const heading = elements.find(e => e.type === 'heading')
@@ -666,7 +667,7 @@ function renderTemplateFeatureGrid(
 }
 
 /** 流程步骤模板 — 步骤均匀撑满全页 */
-function renderTemplateWorkflow(
+export function renderTemplateWorkflow(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
   const heading = elements.find(e => e.type === 'heading')
@@ -716,7 +717,7 @@ function renderTemplateWorkflow(
 }
 
 /** 文字强调模板 — 大字引用撑满全页 */
-function renderTemplateTextHighlight(
+export function renderTemplateTextHighlight(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
   const heading = elements.find(e => e.type === 'heading')
@@ -769,7 +770,7 @@ function renderTemplateTextHighlight(
 }
 
 /** 卡片列表模板 — 标题 + 段落卡片，均匀撑满 */
-function renderTemplateCardList(
+export function renderTemplateCardList(
   elements: PageElement[], colors: any, config: XhsConfig, _ctx: RenderContext
 ): string {
   const heading = elements.find(e => e.type === 'heading')
@@ -903,76 +904,10 @@ export function renderXhsPageV2(page: XhsPage, style: StyleComboV2, config: XhsC
       break
     }
     case 'content': {
-      const templateType = page.templateType ?? 'standard'
-      const isTemplateMode = templateType !== 'standard'
-
-      if (isTemplateMode) {
-        let templateContent = ''
-        if (templateType === 'feature-grid') {
-          templateContent = renderTemplateFeatureGrid(page.elements, colors, config, ctx)
-        } else if (templateType === 'workflow') {
-          templateContent = renderTemplateWorkflow(page.elements, colors, config, ctx)
-        } else if (templateType === 'text-highlight') {
-          templateContent = renderTemplateTextHighlight(page.elements, colors, config, ctx)
-        } else if (templateType === 'card-list') {
-          templateContent = renderTemplateCardList(page.elements, colors, config, ctx)
-        }
-        // 包裹装饰背景 + 顶部栏 + 底部栏
-        content = `
-          ${renderPageDecorations(colors, config)}
-          ${renderPageTopBar(page.pageIndex, page.totalPages, colors, config)}
-          <div style="position:relative;height:100%;box-sizing:border-box;padding-top:${Math.round(config.fontSize * 1.5)}px;padding-bottom:${Math.round(config.fontSize * 1.2)}px;">
-            ${templateContent}
-          </div>
-          ${renderPageBottomBar(colors, config)}
-        `
-      } else {
-        // standard 模式：保留原有骨架布局逻辑
-        content += renderV2HeaderBar(colors, config, bp)
-        content += renderPageNumber(page, xhs.pageDecoration.pageNumberStyle, colors, config.fontSize)
-        let hIdx = 0
-        const layout = xhs.contentLayout
-        if (layout === 'card-wrapped') {
-          for (const el of page.elements) {
-            content += `<div style="background:${colors.contentBg};border-radius:12px;padding:16px 20px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">`
-            content += renderElementV2(el, config, style, ctx, hIdx)
-            content += `</div>`
-            if (el.type === 'heading') hIdx++
-          }
-        } else if (layout === 'alternating-bg') {
-          let elIdx = 0
-          for (const el of page.elements) {
-            const altBg = elIdx % 2 === 1 ? `background:${colors.secondary};border-radius:8px;padding:12px 16px;margin-bottom:8px;` : `margin-bottom:8px;`
-            content += `<div style="${altBg}">`
-            content += renderElementV2(el, config, style, ctx, hIdx)
-            content += `</div>`
-            if (el.type === 'heading') hIdx++
-            elIdx++
-          }
-        } else if (layout === 'timeline-rail') {
-          content += `<div style="position:relative;padding-left:36px;">`
-          content += `<div style="position:absolute;left:12px;top:0;bottom:0;width:2px;background:${colors.primary}30;"></div>`
-          for (const el of page.elements) {
-            const isH = el.type === 'heading'
-            const dotSize = isH ? 12 : 6
-            const dotTop = isH ? 8 : 6
-            content += `<div style="position:relative;margin-bottom:8px;">`
-            content += `<div style="position:absolute;left:-30px;top:${dotTop}px;width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${isH ? colors.primary : colors.primary + '50'};"></div>`
-            content += renderElementV2(el, config, style, ctx, hIdx)
-            content += `</div>`
-            if (isH) hIdx++
-          }
-          content += `</div>`
-        } else {
-          for (const el of page.elements) {
-            content += renderElementV2(el, config, style, ctx, hIdx)
-            if (el.type === 'heading') hIdx++
-          }
-        }
-        content += renderV2FooterDecor(colors, config, xhs)
-        content += renderV2Brand(colors, config, xhs.pageDecoration.brandPosition)
-      }
-      break
+      // ─── 新版：走块编排器（orchestrator） ───
+      // 骨架决定 block variant 组合；装饰/顶栏/底栏由编排器处理。
+      // 外层容器仍由本函数包裹（统一字体、比例、背景渐变）。
+      return renderPageWithOrchestrator({ page, config, combo: style, blueprint: bp })
     }
     case 'ending': {
       content = renderEndingV2(page, style, config, ctx, xhs)
@@ -1043,7 +978,7 @@ function renderEndingV2(page: XhsPage, style: StyleComboV2, config: XhsConfig, c
 }
 
 /** V2 元素渲染 — 使用插槽 */
-function renderElementV2(el: PageElement, config: XhsConfig, style: StyleComboV2, ctx: RenderContext, _hIdx: number): string {
+export function renderElementV2(el: PageElement, config: XhsConfig, style: StyleComboV2, ctx: RenderContext, _hIdx: number): string {
   const { slots } = style
 
   switch (el.type) {
