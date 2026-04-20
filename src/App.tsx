@@ -277,6 +277,11 @@ export default function App() {
               markdown={article}
               style={finalStyle}
               comboName={comboName}
+              atomIdsV2={atomIdsV2}
+              onShuffle={handleShuffle}
+              onColorChange={(colorId, override) =>
+                setAtomIdsV2({ ...atomIdsV2, colorId, colorOverride: override })
+              }
             />
           )}
           {mode === 'infographic' && (

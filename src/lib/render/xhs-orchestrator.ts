@@ -28,9 +28,30 @@ import type {
 // ═══════════════════════════════════════
 
 const BLUEPRINT_VARIANT_MAP: Record<string, BlueprintVariantMap> = {
+  // ── 极简系 ──
+  B01: { title: 'plain',          paragraph: 'plain-text',  list: 'timeline-rail',  quote: 'left-bar',   decorator: 'dot-pattern' },
+  B02: { title: 'plain',          paragraph: 'plain-text',  list: 'timeline-rail',  quote: 'big-quotes', decorator: 'dot-pattern' },
+  // ── 线条系 ──
+  B03: { title: 'left-bar',       paragraph: 'plain-text',  list: 'timeline-rail',  quote: 'left-bar',   decorator: 'edge-strip' },
+  B04: { title: 'gradient-box',   paragraph: 'quote-frame', list: 'icon-grid',      quote: 'left-bar',   decorator: 'edge-strip' },
+  // ── 色块系 ──
+  B05: { title: 'gradient-box',   paragraph: 'card-wrap',   list: 'icon-grid',      quote: 'big-quotes', decorator: 'corner-circles' },
+  B06: { title: 'left-bar',       paragraph: 'card-wrap',   list: 'bubble-flow',    quote: 'big-quotes', decorator: 'corner-circles' },
+  // ── 卡片系 ──
   B07: { title: 'left-bar',       paragraph: 'card-wrap',   list: 'numbered-cards', quote: 'left-bar',   decorator: 'corner-circles' },
   B08: { title: 'numbered-badge', paragraph: 'quote-frame', list: 'bubble-flow',    quote: 'big-quotes', decorator: 'corner-circles' },
+  // ── 杂志系 ──
+  B09: { title: 'gradient-box',   paragraph: 'quote-frame', list: 'numbered-cards', quote: 'big-quotes', decorator: 'edge-strip' },
+  B10: { title: 'plain',          paragraph: 'quote-frame', list: 'icon-grid',      quote: 'big-quotes', decorator: 'dot-pattern' },
+  // ── 结构系 ──
   B11: { title: 'numbered-badge', paragraph: 'plain-text',  list: 'numbered-cards', quote: 'left-bar',   decorator: 'edge-strip' },
+  B12: { title: 'left-bar',       paragraph: 'plain-text',  list: 'timeline-rail',  quote: 'left-bar',   decorator: 'edge-strip' },
+  // ── 文学系 ──
+  B13: { title: 'plain',          paragraph: 'quote-frame', list: 'timeline-rail',  quote: 'big-quotes', decorator: 'dot-pattern' },
+  // ── 商务系 ──
+  B14: { title: 'left-bar',       paragraph: 'card-wrap',   list: 'icon-grid',      quote: 'left-bar',   decorator: 'edge-strip' },
+  // ── 几何系 ──
+  B15: { title: 'gradient-box',   paragraph: 'card-wrap',   list: 'icon-grid',      quote: 'big-quotes', decorator: 'corner-circles' },
 }
 
 /** fallback → B07 */

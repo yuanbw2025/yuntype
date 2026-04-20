@@ -3,7 +3,9 @@
 import { useState, useMemo, useRef } from 'react'
 import { splitToPagesV2, renderXhsPageV2, XHS_PRESETS, type XhsConfig, type PageTemplateType } from '../lib/render/xiaohongshu'
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
-import type { StyleComboV2 } from '../lib/atoms'
+import type { StyleComboV2, AtomIdsV2 } from '../lib/atoms'
+import type { ColorOverride } from '../lib/atoms/colors'
+import ColorCustomDialog from './ColorCustomDialog'
 
 const TEMPLATE_OPTIONS: { value: PageTemplateType; label: string }[] = [
   { value: 'standard',       label: '📄 标准' },
@@ -17,12 +19,16 @@ interface XhsPreviewProps {
   markdown: string
   style: StyleComboV2
   comboName: string
+  atomIdsV2?: AtomIdsV2
+  onColorChange?: (colorId: string, override?: ColorOverride) => void
+  onShuffle?: () => void
 }
 
-type AspectRatio = '3:4' | '1:1' | '16:9'
+type AspectRatio = '3:4' | '16:9'
 
-export default function XiaohongshuPreview({ markdown, style, comboName }: XhsPreviewProps) {
+export default function XiaohongshuPreview({ markdown, style, comboName, atomIdsV2, onColorChange, onShuffle }: XhsPreviewProps) {
   const [ratio, setRatio] = useState<AspectRatio>('3:4')
+  const [colorDialogOpen, setColorDialogOpen] = useState(false)
   const [selectedPage, setSelectedPage] = useState(0)
   const [exporting, setExporting] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -140,9 +146,39 @@ export default function XiaohongshuPreview({ markdown, style, comboName }: XhsPr
           </span>
         </div>
 
+        {/* 快捷工具 */}
+        <div style={{ display: 'flex', gap: '6px', marginRight: '8px' }}>
+          {onShuffle && (
+            <button
+              onClick={onShuffle}
+              title="随机换一套排版 (Ctrl+Shift+R)"
+              style={{
+                padding: '4px 10px', fontSize: '11px', fontWeight: 600,
+                color: '#4F46E5', background: '#EEF2FF',
+                border: '1px solid #E0E7FF', borderRadius: '4px', cursor: 'pointer',
+              }}
+            >
+              🎲 随机
+            </button>
+          )}
+          {atomIdsV2 && onColorChange && (
+            <button
+              onClick={() => setColorDialogOpen(true)}
+              title="自定义配色"
+              style={{
+                padding: '4px 10px', fontSize: '11px', fontWeight: 600,
+                color: '#4F46E5', background: '#EEF2FF',
+                border: '1px solid #E0E7FF', borderRadius: '4px', cursor: 'pointer',
+              }}
+            >
+              🎨 配色{atomIdsV2.colorOverride ? ' ✓' : ''}
+            </button>
+          )}
+        </div>
+
         {/* 比例选择 */}
         <div style={{ display: 'flex', gap: '4px' }}>
-          {(['3:4', '1:1', '16:9'] as AspectRatio[]).map((r) => (
+          {(['3:4', '16:9'] as AspectRatio[]).map((r) => (
             <button
               key={r}
               onClick={() => { setRatio(r); setSelectedPage(0) }}
@@ -454,6 +490,17 @@ export default function XiaohongshuPreview({ markdown, style, comboName }: XhsPr
           {exporting ? '⏳ 导出中...' : `📦 打包下载 ZIP (${pagesWithOverrides.length}张)`}
         </button>
       </div>
+
+      {/* 配色自定义弹窗 */}
+      {atomIdsV2 && onColorChange && (
+        <ColorCustomDialog
+          visible={colorDialogOpen}
+          onClose={() => setColorDialogOpen(false)}
+          colorId={atomIdsV2.colorId}
+          colorOverride={atomIdsV2.colorOverride}
+          onChange={(id, override) => onColorChange(id, override)}
+        />
+      )}
     </div>
   )
 }

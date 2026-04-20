@@ -20,7 +20,6 @@ export interface XhsConfig {
 
 export const XHS_PRESETS: Record<string, XhsConfig> = {
   '3:4': { width: 1080, height: 1440, padding: 48, fontSize: 36, lineHeight: 1.8 },
-  '1:1': { width: 1080, height: 1080, padding: 48, fontSize: 32, lineHeight: 1.8 },
   '16:9': { width: 1920, height: 1080, padding: 64, fontSize: 34, lineHeight: 1.8 },
 }
 
