@@ -333,113 +333,100 @@ function renderCoverClassic(
   title: string, summary: string, colors: any, titleFont: string, bodyFont: string,
   titleSize: number, subtitleSize: number, separator: string, config: XhsConfig
 ): string {
-  const decorSize = Math.round(config.width * 0.5)
-  return `
-    <div style="position:absolute;top:-${Math.round(decorSize * 0.25)}px;right:-${Math.round(decorSize * 0.2)}px;width:${decorSize}px;height:${decorSize}px;border-radius:50%;background:${colors.primary};opacity:0.07;"></div>
-    <div style="position:absolute;bottom:-${Math.round(decorSize * 0.2)}px;left:-${Math.round(decorSize * 0.15)}px;width:${Math.round(decorSize * 0.65)}px;height:${Math.round(decorSize * 0.65)}px;border-radius:50%;background:${colors.primary};opacity:0.04;"></div>
-    <div style="position:absolute;top:${config.padding}px;left:${config.padding}px;right:${config.padding}px;text-align:center;color:${colors.primary};font-size:${config.fontSize * 0.8}px;opacity:0.5;">${separator}</div>
-    <div style="position:absolute;top:50%;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;transform:translateY(-50%);text-align:center;">
-      <h1 style="font-family:'${titleFont}','${bodyFont}',sans-serif;font-size:${titleSize}px;font-weight:900;color:${colors.text};line-height:1.3;margin:0 0 ${Math.round(config.padding * 0.8)}px;letter-spacing:2px;">${renderInline(title)}</h1>
-      ${summary ? `
-        <div style="width:${Math.round(config.fontSize * 2)}px;height:3px;background:${colors.primary};margin:0 auto ${Math.round(config.padding * 0.6)}px;border-radius:2px;opacity:0.6;"></div>
-        <p style="font-size:${subtitleSize}px;color:${colors.textMuted};line-height:1.75;margin:0;padding:0 20px;">${renderInline(summary)}</p>` : ''}
+  const band = 90
+  const date = new Date().toLocaleDateString('zh-CN')
+  // 背景径向渐变
+  const bg = `<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,${colors.primary}0D 0%,${colors.pageBg} 70%);"></div>`
+  // 顶色带 + 品牌
+  const topBand = `<div style="position:absolute;top:0;left:0;right:0;height:${band}px;background:${colors.primary};display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-size:${config.fontSize * 0.75}px;letter-spacing:6px;font-weight:600;">YUNTYPE · 云中书</span></div>`
+  // 标题 + 菱形分隔 + 摘要
+  const mid = `<div style="position:absolute;top:50%;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;transform:translateY(-50%);text-align:center;">
+    <h1 style="font-family:'${titleFont}','${bodyFont}',serif;font-size:${titleSize}px;font-weight:900;color:${colors.text};line-height:1.3;margin:0 0 ${Math.round(config.padding * 0.7)}px;letter-spacing:2px;">${renderInline(title)}</h1>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto ${Math.round(config.padding * 0.6)}px;">
+      <div style="width:60px;height:1px;background:${colors.primary};"></div><span style="color:${colors.primary};font-size:18px;">◆</span><div style="width:60px;height:1px;background:${colors.primary};"></div>
     </div>
-    <div style="position:absolute;bottom:${config.padding * 1.2}px;left:0;right:0;text-align:center;">
-      <div style="color:${colors.primary};font-size:${config.fontSize * 0.75}px;opacity:0.4;">${separator}</div>
-      <div style="color:${colors.textMuted};font-size:${config.fontSize * 0.68}px;margin-top:14px;letter-spacing:1px;">云中书 · YunType</div>
-    </div>
-  `
+    ${summary ? `<p style="font-size:${subtitleSize}px;color:${colors.textMuted};line-height:1.75;margin:0;padding:0 20px;">${renderInline(summary)}</p>` : ''}
+  </div>`
+  // 底部色块 + 日期 ${separator}
+  const bottom = `<div style="position:absolute;bottom:${config.padding}px;left:${config.padding}px;right:${config.padding}px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;gap:8px;align-items:center;"><div style="width:28px;height:28px;background:${colors.primary};"></div><div style="width:28px;height:28px;background:${colors.secondary};"></div><div style="width:1px;height:28px;background:${colors.textMuted};opacity:0.4;margin:0 6px;"></div><span style="color:${colors.textMuted};font-size:${config.fontSize * 0.6}px;letter-spacing:2px;">${separator}</span></div>
+    <span style="color:${colors.textMuted};font-size:${config.fontSize * 0.62}px;letter-spacing:1px;">${date}</span>
+  </div>`
+  return bg + topBand + mid + bottom
 }
 
 function renderCoverBold(
   title: string, summary: string, colors: any, titleFont: string, bodyFont: string,
   titleSize: number, subtitleSize: number, separator: string, config: XhsConfig
 ): string {
-  const bigSize = Math.round(titleSize * 1.3)
-  return `
-    <div style="position: absolute; top: 0; left: 0; width: 12px; height: 100%; background: ${colors.primary};"></div>
-    <div style="position: absolute; top: ${config.padding * 1.2}px; left: ${config.padding * 2}px;">
-      <span style="background: ${colors.primary}; color: #fff; padding: 6px 16px; border-radius: 20px;
-        font-size: ${config.fontSize * 0.7}px; font-weight: 600; letter-spacing: 1px;">FEATURED</span>
+  const leftW = Math.round(config.width / 3)
+  const badge = Math.round(config.width * 0.18)
+  // 左侧 1/3 主色块 + 反白标题
+  const leftBlock = `<div style="position:absolute;top:0;left:0;width:${leftW}px;height:100%;background:${colors.primary};padding:${config.padding}px ${Math.round(config.padding * 0.7)}px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
+    <div style="color:#fff;font-size:${config.fontSize * 0.6}px;letter-spacing:4px;opacity:0.8;margin-bottom:20px;">FEATURED</div>
+    <h1 style="font-family:'${titleFont}','${bodyFont}',sans-serif;font-size:${Math.round(titleSize * 0.85)}px;font-weight:900;color:#fff;line-height:1.15;margin:0;letter-spacing:-1px;writing-mode:horizontal-tb;">${renderInline(title)}</h1>
+  </div>`
+  // 右侧 2/3：大编号 + 摘要 + 标签
+  const rightX = leftW + config.padding
+  const rightBlock = `<div style="position:absolute;top:0;left:${leftW}px;right:0;height:100%;background:${colors.contentBg};">
+    <div style="position:absolute;top:${Math.round(config.height * 0.25)}px;right:${config.padding}px;font-family:'${titleFont}',serif;font-size:${Math.round(titleSize * 2.2)}px;font-weight:900;color:${colors.primary};opacity:0.12;line-height:0.85;">01</div>
+    ${summary ? `<div style="position:absolute;top:50%;left:${config.padding}px;right:${config.padding}px;transform:translateY(-50%);border-left:4px solid ${colors.primary};padding-left:20px;"><p style="font-size:${subtitleSize}px;color:${colors.text};line-height:1.75;margin:0;font-weight:500;">${renderInline(summary)}</p></div>` : ''}
+    <div style="position:absolute;bottom:${config.padding}px;left:${config.padding}px;display:flex;gap:10px;">
+      <span style="background:${colors.primary};color:#fff;padding:8px 18px;border-radius:24px;font-size:${config.fontSize * 0.6}px;font-weight:600;letter-spacing:1px;">${separator}</span>
+      <span style="border:2px solid ${colors.primary};color:${colors.primary};padding:6px 18px;border-radius:24px;font-size:${config.fontSize * 0.6}px;font-weight:600;">云中书</span>
     </div>
-    <div style="position: absolute; top: ${Math.round(config.height * 0.2)}px; left: ${config.padding * 2}px; right: ${config.padding * 2}px;">
-      <h1 style="font-family: '${titleFont}', '${bodyFont}', sans-serif; font-size: ${bigSize}px; font-weight: 900;
-        color: ${colors.text}; line-height: 1.2; margin: 0; letter-spacing: -1px;">
-        ${renderInline(title)}
-      </h1>
-    </div>
-    <div style="position: absolute; bottom: ${config.padding * 2}px; left: ${config.padding * 2}px; right: ${config.padding * 2}px;">
-      ${summary ? `
-        <div style="border-top: 3px solid ${colors.primary}; padding-top: 20px; margin-bottom: 20px;">
-          <p style="font-size: ${subtitleSize}px; color: ${colors.textMuted}; line-height: 1.8; margin: 0;">
-            ${renderInline(summary)}</p>
-        </div>` : ''}
-      <div style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.65}px; letter-spacing: 2px;">
-        ${separator}
-      </div>
-    </div>
-  `
+  </div>`
+  // 右上圆徽章
+  const badgeEl = `<div style="position:absolute;top:${config.padding}px;right:${config.padding}px;width:${badge}px;height:${badge}px;border-radius:50%;background:${colors.accent || colors.secondary};display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(0,0,0,0.15);"><span style="color:#fff;font-size:${config.fontSize * 0.7}px;font-weight:800;letter-spacing:1px;">NEW</span></div>`
+  void rightX
+  return leftBlock + rightBlock + badgeEl
 }
 
 function renderCoverMinimal(
   title: string, summary: string, colors: any, titleFont: string, bodyFont: string,
   titleSize: number, subtitleSize: number, config: XhsConfig
 ): string {
-  return `
-    <div style="position: absolute; top: 50%; left: ${config.padding * 2}px; right: ${config.padding * 2}px;
-      transform: translateY(-50%); text-align: center;">
-      <h1 style="font-family: '${titleFont}', '${bodyFont}', sans-serif; font-size: ${titleSize}px; font-weight: 300;
-        color: ${colors.text}; line-height: 1.6; margin: 0; letter-spacing: 4px;">
-        ${renderInline(title)}
-      </h1>
-      ${summary ? `
-        <div style="width: 40px; height: 1px; background: ${colors.primary}; margin: 30px auto;"></div>
-        <p style="font-size: ${Math.round(subtitleSize * 0.9)}px; color: ${colors.textMuted}; line-height: 1.8; margin: 0; font-weight: 300;">
-          ${renderInline(summary)}</p>` : ''}
-    </div>
-    <div style="position: absolute; bottom: ${config.padding}px; left: 0; right: 0; text-align: center;">
-      <div style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.6}px; letter-spacing: 3px; opacity: 0.5;">
-        YUNTYPE
-      </div>
-    </div>
-  `
+  const topY = Math.round(config.height * 0.25)
+  const botY = Math.round(config.height * 0.75)
+  // 细线 + 端点圆点
+  const line = (y: number) => `<div style="position:absolute;top:${y}px;left:${config.padding}px;right:${config.padding}px;height:1px;background:${colors.textMuted};opacity:0.3;"></div>
+    <div style="position:absolute;top:${y - 3}px;left:${config.padding - 3}px;width:7px;height:7px;border-radius:50%;background:${colors.primary};"></div>
+    <div style="position:absolute;top:${y - 3}px;right:${config.padding - 3}px;width:7px;height:7px;border-radius:50%;background:${colors.primary};"></div>`
+  // 居中标题 + 摘要（60% 宽）
+  const mid = `<div style="position:absolute;top:50%;left:20%;right:20%;transform:translateY(-50%);text-align:center;">
+    <h1 style="font-family:'${titleFont}','${bodyFont}',sans-serif;font-size:${titleSize}px;font-weight:300;color:${colors.text};line-height:1.5;margin:0;letter-spacing:6px;">${renderInline(title)}</h1>
+    ${summary ? `<p style="font-size:${Math.round(subtitleSize * 0.85)}px;color:${colors.primary};line-height:1.9;margin:${Math.round(config.padding * 0.8)}px 0 0;font-weight:300;letter-spacing:2px;">${renderInline(summary)}</p>` : ''}
+  </div>`
+  // 底部品牌
+  const brand = `<div style="position:absolute;bottom:${config.padding}px;left:0;right:0;text-align:center;display:flex;align-items:center;justify-content:center;gap:10px;">
+    <div style="width:4px;height:4px;border-radius:50%;background:${colors.primary};"></div>
+    <span style="color:${colors.textMuted};font-size:${config.fontSize * 0.55}px;letter-spacing:6px;opacity:0.6;">YUNTYPE</span>
+  </div>`
+  return line(topY) + line(botY) + mid + brand
 }
 
 function renderCoverCard(
   title: string, summary: string, colors: any, titleFont: string, bodyFont: string,
   titleSize: number, subtitleSize: number, separator: string, config: XhsConfig
 ): string {
-  const cardPad = config.padding * 1.5
-  return `
-    <div style="position: absolute; top: -${config.height * 0.1}px; right: -${config.width * 0.1}px;
-      width: ${config.width * 0.5}px; height: ${config.width * 0.5}px;
-      border-radius: 50%; background: ${colors.primary}; opacity: 0.06;"></div>
-    <div style="position: absolute; bottom: -${config.height * 0.05}px; left: -${config.width * 0.05}px;
-      width: ${config.width * 0.3}px; height: ${config.width * 0.3}px;
-      border-radius: 50%; background: ${colors.primary}; opacity: 0.04;"></div>
-    <div style="position: absolute; top: 50%; left: ${cardPad}px; right: ${cardPad}px;
-      transform: translateY(-50%);
-      background: ${colors.contentBg}; border-radius: 20px; padding: ${config.padding * 1.5}px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08);">
-      <div style="text-align: center; color: ${colors.primary}; font-size: ${config.fontSize * 0.7}px; margin-bottom: 20px; opacity: 0.6;">
-        ${separator}
-      </div>
-      <h1 style="font-family: '${titleFont}', '${bodyFont}', sans-serif; font-size: ${Math.round(titleSize * 0.9)}px;
-        font-weight: 800; color: ${colors.text}; line-height: 1.4; margin: 0 0 16px; text-align: center; letter-spacing: 1px;">
-        ${renderInline(title)}
-      </h1>
-      ${summary ? `<p style="font-size: ${subtitleSize}px; color: ${colors.textMuted}; line-height: 1.7; margin: 0;
-        text-align: center; padding: 0 10px;">${renderInline(summary)}</p>` : ''}
-      <div style="text-align: center; color: ${colors.primary}; font-size: ${config.fontSize * 0.7}px; margin-top: 24px; opacity: 0.6;">
-        ${separator}
-      </div>
-    </div>
-    <div style="position: absolute; bottom: ${config.padding}px; left: 0; right: 0; text-align: center;">
-      <div style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.65}px; letter-spacing: 1px;">
-        云中书 · YunType
-      </div>
-    </div>
-  `
+  const cardPad = config.padding * 1.2
+  void separator
+  // 对角渐变背景
+  const bg = `<div style="position:absolute;inset:0;background:linear-gradient(135deg,${colors.pageBg} 0%,${colors.primary}1F 100%);"></div>`
+  // 4 角几何装饰
+  const corners = `<div style="position:absolute;top:${config.padding}px;left:${config.padding}px;width:24px;height:24px;background:${colors.primary};"></div>
+    <div style="position:absolute;top:${config.padding}px;right:${config.padding}px;width:24px;height:24px;border-radius:50%;background:${colors.secondary};"></div>
+    <div style="position:absolute;bottom:${config.padding}px;left:${config.padding}px;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:24px solid ${colors.accent || colors.primary};"></div>
+    <div style="position:absolute;bottom:${config.padding}px;right:${config.padding}px;width:24px;height:24px;background:${colors.primary};transform:rotate(45deg);"></div>`
+  // 中央悬浮卡片
+  const card = `<div style="position:absolute;top:50%;left:${cardPad}px;right:${cardPad}px;transform:translateY(-50%);background:${colors.contentBg};border-radius:28px;padding:${config.padding * 1.4}px;box-shadow:0 20px 60px rgba(0,0,0,0.12);">
+    <div style="text-align:center;margin-bottom:24px;"><span style="background:${colors.primary};color:#fff;padding:6px 18px;border-radius:20px;font-size:${config.fontSize * 0.55}px;letter-spacing:3px;font-weight:600;">COVER STORY</span></div>
+    <h1 style="font-family:'${titleFont}','${bodyFont}',sans-serif;font-size:${Math.round(titleSize * 0.92)}px;font-weight:800;color:${colors.text};line-height:1.35;margin:0 0 20px;text-align:center;letter-spacing:1px;">${renderInline(title)}</h1>
+    <div style="display:flex;justify-content:center;gap:10px;margin:0 0 20px;"><div style="width:6px;height:6px;border-radius:50%;background:${colors.primary};"></div><div style="width:6px;height:6px;border-radius:50%;background:${colors.primary};opacity:0.6;"></div><div style="width:6px;height:6px;border-radius:50%;background:${colors.primary};opacity:0.3;"></div></div>
+    ${summary ? `<p style="font-size:${subtitleSize}px;color:${colors.textMuted};line-height:1.75;margin:0 0 24px;text-align:center;padding:0 10px;">${renderInline(summary)}</p>` : ''}
+    <div style="text-align:right;color:${colors.primary};font-size:${config.fontSize * 0.9}px;font-weight:700;letter-spacing:2px;">READ →</div>
+  </div>`
+  return bg + corners + card
 }
 
 function renderCoverMagazine(
@@ -447,40 +434,42 @@ function renderCoverMagazine(
   titleSize: number, subtitleSize: number, separator: string, config: XhsConfig
 ): string {
   const firstChar = title.charAt(0)
-  return `
-    <div style="position: absolute; top: 0; left: 0; right: 0; height: 6px; background: ${colors.primary};"></div>
-    <div style="position: absolute; top: ${config.padding * 1.5}px; left: ${config.padding * 1.5}px; right: ${config.padding * 1.5}px;
-      display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: ${config.fontSize * 0.7}px; color: ${colors.textMuted}; letter-spacing: 3px; text-transform: uppercase;">
-        YUNTYPE MAGAZINE
-      </span>
-      <span style="font-size: ${config.fontSize * 0.65}px; color: ${colors.textMuted};">
-        ${new Date().toLocaleDateString('zh-CN')}
-      </span>
+  const date = new Date().toLocaleDateString('zh-CN')
+  void separator
+  // 顶部双细线夹品牌
+  const top = `<div style="position:absolute;top:${config.padding}px;left:${config.padding}px;right:${config.padding}px;text-align:center;">
+    <div style="height:1px;background:${colors.text};opacity:0.6;"></div>
+    <div style="padding:10px 0;font-size:${config.fontSize * 0.65}px;letter-spacing:8px;color:${colors.text};font-weight:600;">YUNTYPE MAGAZINE</div>
+    <div style="height:1px;background:${colors.text};opacity:0.6;"></div>
+  </div>`
+  // 大首字水印
+  const watermark = `<div style="position:absolute;top:${Math.round(config.height * 0.14)}px;left:0;right:0;text-align:center;font-family:'${titleFont}',serif;font-size:${Math.round(titleSize * 2.5)}px;font-weight:900;color:${colors.primary};opacity:0.15;line-height:1;letter-spacing:-4px;">${firstChar}</div>`
+  // 标题 + 三列信息条
+  const midTop = Math.round(config.height * 0.32)
+  const mid = `<div style="position:absolute;top:${midTop}px;left:${config.padding}px;right:${config.padding}px;text-align:center;">
+    <h1 style="font-family:'${titleFont}','${bodyFont}',serif;font-size:${titleSize}px;font-weight:800;color:${colors.text};line-height:1.25;margin:0 0 ${Math.round(config.padding * 0.8)}px;letter-spacing:1px;">${renderInline(title)}</h1>
+    <div style="display:flex;justify-content:center;align-items:center;gap:0;font-size:${config.fontSize * 0.55}px;color:${colors.textMuted};letter-spacing:3px;">
+      <span style="padding:0 18px;">主题</span><span style="width:1px;height:16px;background:${colors.textMuted};opacity:0.5;"></span>
+      <span style="padding:0 18px;">${date}</span><span style="width:1px;height:16px;background:${colors.textMuted};opacity:0.5;"></span>
+      <span style="padding:0 18px;">No.01</span>
     </div>
-    <div style="position: absolute; top: ${Math.round(config.height * 0.22)}px; left: ${config.padding * 1.5}px; right: ${config.padding * 1.5}px;">
-      <div style="display: flex; align-items: flex-start; gap: 4px;">
-        <span style="font-family: '${titleFont}', serif; font-size: ${Math.round(titleSize * 2)}px; font-weight: 900;
-          color: ${colors.primary}; line-height: 0.85; opacity: 0.15;">
-          ${firstChar}
-        </span>
-      </div>
-      <h1 style="font-family: '${titleFont}', '${bodyFont}', sans-serif; font-size: ${titleSize}px; font-weight: 800;
-        color: ${colors.text}; line-height: 1.3; margin: -${Math.round(titleSize * 0.5)}px 0 0; letter-spacing: 1px;">
-        ${renderInline(title)}
-      </h1>
-      ${summary ? `
-        <div style="margin-top: 24px; padding-left: 20px; border-left: 3px solid ${colors.primary};">
-          <p style="font-size: ${subtitleSize}px; color: ${colors.textMuted}; line-height: 1.8; margin: 0;">
-            ${renderInline(summary)}</p>
-        </div>` : ''}
+  </div>`
+  // pull-quote 摘要
+  const quote = summary ? `<div style="position:absolute;top:${Math.round(config.height * 0.62)}px;left:${config.padding * 1.5}px;right:${config.padding * 1.5}px;text-align:center;">
+    <span style="font-family:'${titleFont}',serif;font-size:${Math.round(titleSize * 1.6)}px;color:${colors.primary};line-height:0.5;opacity:0.6;">“</span>
+    <p style="font-size:${subtitleSize}px;color:${colors.text};line-height:1.75;margin:10px 30px;font-style:italic;">${renderInline(summary)}</p>
+    <span style="font-family:'${titleFont}',serif;font-size:${Math.round(titleSize * 1.6)}px;color:${colors.primary};line-height:0.5;opacity:0.6;">”</span>
+  </div>` : ''
+  // 底部横线 + 三点 + 页码
+  const bottom = `<div style="position:absolute;bottom:${config.padding}px;left:${config.padding}px;right:${config.padding}px;">
+    <div style="height:2px;background:${colors.text};opacity:0.8;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <span style="color:${colors.textMuted};font-size:${config.fontSize * 0.6}px;letter-spacing:2px;">云中书 YUNTYPE</span>
+      <div style="display:flex;gap:6px;"><div style="width:5px;height:5px;border-radius:50%;background:${colors.primary};"></div><div style="width:5px;height:5px;border-radius:50%;background:${colors.primary};"></div><div style="width:5px;height:5px;border-radius:50%;background:${colors.primary};"></div></div>
+      <span style="color:${colors.primary};font-size:${config.fontSize * 0.7}px;font-weight:700;letter-spacing:2px;">No.01</span>
     </div>
-    <div style="position: absolute; bottom: ${config.padding * 1.5}px; left: ${config.padding * 1.5}px; right: ${config.padding * 1.5}px;
-      border-top: 1px solid ${colors.primary}30; padding-top: 12px; display: flex; justify-content: space-between;">
-      <span style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.6}px;">${separator}</span>
-      <span style="color: ${colors.textMuted}; font-size: ${config.fontSize * 0.6}px;">云中书 YunType</span>
-    </div>
-  `
+  </div>`
+  return top + watermark + mid + quote + bottom
 }
 
 /** 将封面变体映射到分隔符 */
