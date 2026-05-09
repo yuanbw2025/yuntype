@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>云中书 · 第6张 · 使用方法</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:720px; overflow:hidden; font-family:'Noto Sans SC','PingFang SC',sans-serif; background:#16141F; color:#D8D4CC; position:relative; }
+  .bg { position:absolute; inset:0; background:radial-gradient(ellipse 560px 400px at -5% 0%, rgba(5,150,105,.09) 0%,transparent 65%), radial-gradient(ellipse 480px 380px at 105% 100%, rgba(79,70,229,.08) 0%,transparent 65%); }
+  .stripe { position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#059669,#10B981,#34D399); }
+  .page { position:relative; z-index:1; width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; padding:36px 48px 32px; }
+  .page::after { content:''; position:absolute; left:50%; top:36px; bottom:32px; width:1px; background:#252338; }
+  .col { display:flex; flex-direction:column; gap:12px; }
+  .left { padding-right:40px; }
+  .right { padding-left:40px; }
+  .grow { flex:1; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .bico { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#059669,#10B981); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .bname { font-size:14px; color:#5C5878; }
+  .eyebrow { font-size:11px; font-weight:700; color:#10B981; letter-spacing:4px; margin-bottom:8px; }
+  .headline { font-size:52px; font-weight:900; line-height:1.1; letter-spacing:-1.5px; color:#E8E4DC; }
+  .headline .hi { background:linear-gradient(135deg,#34D399,#6EE7B7); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subline { font-size:13px; color:#6A6480; line-height:1.75; }
+  .r-label { font-size:10px; font-weight:700; color:#48455A; letter-spacing:3px; margin-bottom:8px; }
+  /* steps */
+  .steps { display:flex; flex-direction:column; flex:1; }
+  .step { display:flex; align-items:flex-start; gap:14px; padding:10px 0; border-bottom:1px solid #1C1A28; flex:1; }
+  .step:last-child { border-bottom:none; }
+  .step-num { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,#059669,#10B981); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; margin-top:1px; }
+  .step-title { font-size:14px; font-weight:500; color:#C8C4D0; margin-bottom:3px; }
+  .step-desc { font-size:12px; color:#484460; line-height:1.5; }
+  .step-tip { display:inline-block; margin-top:4px; padding:2px 8px; border-radius:4px; background:#0E2A1E; border:1px solid #163A28; font-size:10px; color:#34D399; }
+  .tags { display:flex; gap:7px; flex-wrap:wrap; }
+  .tag { padding:6px 13px; border-radius:8px; font-size:12px; }
+  .tg { background:#0E2A1E; border:1px solid #163A28; color:#34D399; }
+  .td { background:#1C1A28; border:1px solid #262438; color:#504C64; }
+  /* shortcuts */
+  .shortcuts { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .sc { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:12px 14px; }
+  .sc-key { display:inline-block; padding:3px 8px; border-radius:5px; background:#13111E; border:1px solid #252338; font-size:11px; font-weight:700; color:#34D399; font-family:monospace; margin-bottom:6px; }
+  .sc-desc { font-size:11px; color:#484460; line-height:1.5; }
+  /* scenarios */
+  .scenes { display:flex; flex-direction:column; gap:0; flex:1; }
+  .scene { display:flex; align-items:flex-start; gap:12px; padding:14px 15px; background:#1C1A2A; border:1px solid #262440; border-radius:10px; flex:1; }
+  .scene:last-child { border-bottom:none; }
+  .scene-num { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .scene-title { font-size:13px; font-weight:500; color:#C8C4D0; margin-bottom:3px; }
+  .scene-desc { font-size:11px; color:#484460; line-height:1.5; }
+  /* tip */
+  .tip-box { background:#0E2A1E; border:1px solid #163A28; border-radius:10px; padding:12px 14px; display:flex; gap:10px; align-items:flex-start; }
+  .tip-ico { font-size:16px; flex-shrink:0; }
+  .tip-text { font-size:11px; color:#2D6A4F; line-height:1.6; }
+  .tip-text b { color:#34D399; font-weight:500; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="stripe"></div>
+<div class="page">
+  <div class="col left">
+    <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · 使用方法</div></div>
+    <div>
+      <div class="eyebrow">HOW TO USE · 使用指南</div>
+      <div class="headline">三步上手<br><span class="hi">五分钟出图</span></div>
+    </div>
+    <div class="subline">打开即用，无需安装，无需注册<br>建议在电脑端使用，截图效果最佳</div>
+    <div class="grow">
+      <div class="r-label">操作流程</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div><div class="step-title">打开工具，选择平台</div><div class="step-desc">选择小红书图文或公众号文章模式</div></div></div>
+        <div class="step"><div class="step-num">2</div><div><div class="step-title">粘贴内容，点击生成</div><div class="step-desc">将文章内容粘贴进输入框，点击生成按钮</div><div class="step-tip">AI 自动解析结构并分配样式</div></div></div>
+        <div class="step"><div class="step-num">3</div><div><div class="step-title">微调样式和内容</div><div class="step-desc">切换配色 / 随机骨架 / 点击文字直接改</div></div></div>
+        <div class="step"><div class="step-num">4</div><div><div class="step-title">截图保存，直接发布</div><div class="step-desc">按页截图，上传小红书或公众号即可</div></div></div>
+      </div>
+    </div>
+    <div class="tags">
+      <div class="tag tg"># 零门槛上手</div><div class="tag tg"># 五分钟出图</div><div class="tag td"># 电脑端最佳</div>
+    </div>
+  </div>
+  <div class="col right">
+    <div>
+      <div class="r-label">常用快捷操作</div>
+      <div class="shortcuts">
+        <div class="sc"><div class="sc-key">Ctrl + Z</div><div class="sc-desc">撤销上一步操作，支持 50 步历史</div></div>
+        <div class="sc"><div class="sc-key">Ctrl + Y</div><div class="sc-desc">重做，恢复撤销前的状态</div></div>
+        <div class="sc"><div class="sc-key">点击文字</div><div class="sc-desc">编辑模式下直接修改任意文字内容</div></div>
+        <div class="sc"><div class="sc-key">随机按钮</div><div class="sc-desc">骨架 + 配色同时切换，一键焕新版面</div></div>
+      </div>
+    </div>
+    <div class="grow">
+      <div class="r-label">适合什么内容？</div>
+      <div class="scenes">
+        <div class="scene"><div class="scene-num" style="background:linear-gradient(135deg,#4F46E5,#6366F1)">📱</div><div><div class="scene-title">小红书种草 / 干货笔记</div><div class="scene-desc">多图图文，封面吸睛，内容结构清晰</div></div></div>
+        <div class="scene"><div class="scene-num" style="background:linear-gradient(135deg,#2563EB,#3B82F6)">📝</div><div><div class="scene-title">公众号长文 / 周报总结</div><div class="scene-desc">文章排版一键完成，复制进后台直接用</div></div></div>
+        <div class="scene"><div class="scene-num" style="background:linear-gradient(135deg,#D97706,#F59E0B)">✍️</div><div><div class="scene-title">任何有结构的文字内容</div><div class="scene-desc">有标题有段落就能排，工具自动识别结构</div></div></div>
+      </div>
+    </div>
+    <div class="tip-box">
+      <div class="tip-ico">💡</div>
+      <div class="tip-text"><b>小提示：</b>建议在 Chrome 浏览器使用，截图缩放比例设为 100%，图片清晰度最佳。</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
