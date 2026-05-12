@@ -2,114 +2,79 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1080">
+<meta name="viewport" content="width=540">
 <title>云中书 · 第2张 · 公众号排版1</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { width:1080px; height:720px; overflow:hidden; font-family:'Noto Sans SC','PingFang SC',sans-serif; background:#16141F; color:#D8D4CC; position:relative; }
-  .bg { position:absolute; inset:0; background:radial-gradient(ellipse 560px 400px at -5% 0%, rgba(37,99,235,.10) 0%,transparent 65%), radial-gradient(ellipse 480px 380px at 105% 100%, rgba(79,70,229,.09) 0%,transparent 65%); }
-  .stripe { position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#2563EB,#3B82F6,#60A5FA); }
-  .page { position:relative; z-index:1; width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; padding:36px 48px 32px; }
-  .page::after { content:''; position:absolute; left:50%; top:36px; bottom:32px; width:1px; background:#252338; }
-  .col { display:flex; flex-direction:column; gap:12px; }
-  .left { padding-right:40px; }
-  .right { padding-left:40px; }
-  .grow { flex:1; display:flex; flex-direction:column; }
-  .brand { display:flex; align-items:center; gap:10px; }
-  .bico { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#2563EB,#3B82F6); display:flex; align-items:center; justify-content:center; font-size:14px; }
-  .bname { font-size:14px; color:#5C5878; }
-  .eyebrow { font-size:11px; font-weight:700; color:#3B82F6; letter-spacing:4px; margin-bottom:8px; }
-  .headline { font-size:50px; font-weight:900; line-height:1.1; letter-spacing:-1.5px; color:#E8E4DC; }
-  .headline .hi { background:linear-gradient(135deg,#60A5FA,#93C5FD); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .subline { font-size:13px; color:#6A6480; line-height:1.75; }
-  .r-label { font-size:10px; font-weight:700; color:#48455A; letter-spacing:3px; margin-bottom:8px; }
-  /* 骨架预览 */
-  .skeleton-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; flex:1; }
-  .sk { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:14px; display:flex; flex-direction:column; gap:6px; }
-  .sk-title { height:10px; border-radius:3px; background:#3B82F630; }
-  .sk-bar { height:5px; border-radius:3px; background:#252340; }
-  .sk-label { font-size:9px; color:#3B82F6; font-weight:700; letter-spacing:1px; margin-top:3px; }
-  .tags { display:flex; gap:7px; flex-wrap:wrap; }
-  .tag { padding:6px 13px; border-radius:8px; font-size:12px; }
-  .tb { background:#141E35; border:1px solid #1E3050; color:#60A5FA; }
-  .td { background:#1C1A28; border:1px solid #262438; color:#504C64; }
-  /* variants */
-  .variants { display:flex; flex-direction:column; gap:7px; flex:1; }
-  .vt { background:#1C1A2A; border-left:3px solid #3B82F6; border-radius:0 10px 10px 0; padding:11px 15px; flex:1; }
-  .vt-name { font-size:12px; font-weight:600; color:#60A5FA; margin-bottom:4px; }
-  .vt-demo { font-size:11px; color:#484460; line-height:1.5; }
-  /* feat */
-  .feat-list { display:flex; flex-direction:column; gap:7px; }
-  .feat { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:12px 16px; display:flex; align-items:flex-start; gap:12px; }
-  .feat-ico { font-size:15px; flex-shrink:0; }
-  .feat-title { font-size:13px; font-weight:500; color:#C0BCD0; margin-bottom:3px; }
-  .feat-desc { font-size:11px; color:#484460; line-height:1.5; }
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
+  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563EB,#3B82F6,#60A5FA)}
+  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:10px}
+  .brand{display:flex;align-items:center;gap:6px}
+  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#2563EB,#3B82F6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bname{font-size:11px;color:#8A8698;font-weight:500}
+  .head .ey{font-size:9px;font-weight:700;color:#2563EB;letter-spacing:3px;margin-bottom:2px}
+  .head h1{font-size:32px;font-weight:900;line-height:1.15;color:#1A1A2E}
+  .head h1 b{font-weight:900;background:linear-gradient(135deg,#2563EB,#60A5FA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:11px;color:#6B6880;line-height:1.6}
+  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
+  .sk-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .sk{background:#fff;border:1px solid #E0DEFF;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .sk-t{height:7px;border-radius:2px;background:#3B82F620}
+  .sk-b{height:4px;border-radius:2px;background:#E8E4DC}
+  .sk-l{font-size:8px;color:#2563EB;font-weight:700;letter-spacing:1px;margin-top:2px}
+  .vts{display:flex;flex-direction:column;gap:4px;flex:1}
+  .vt{background:#fff;border-left:3px solid #3B82F6;border-radius:0 8px 8px 0;padding:8px 10px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .vt-n{font-size:10px;font-weight:600;color:#2563EB;margin-bottom:2px}
+  .vt-d{font-size:9px;color:#6B6880;line-height:1.4}
+  .feats{display:flex;flex-direction:column;gap:4px}
+  .ft{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .ft .fi{font-size:12px;flex-shrink:0}
+  .ft .fn{font-size:11px;font-weight:600;color:#2D2A3E}
+  .ft .fd{font-size:9px;color:#6B6880}
+  .tags{display:flex;gap:5px}
+  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
+  .tb{background:#E8F0FE;border:1px solid #C8DAFA;color:#2563EB}
+  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
 </style>
 </head>
 <body>
-<div class="bg"></div>
 <div class="stripe"></div>
 <div class="page">
-  <div class="col left">
-    <div class="brand"><div class="bico">📄</div><div class="bname">云中书 · 公众号排版</div></div>
-    <div>
-      <div class="eyebrow">WECHAT ARTICLE · 01</div>
-      <div class="headline">公众号排版<br>不再<span class="hi">对着空白发愁</span></div>
-    </div>
-    <div class="subline">多套排版骨架，一键生成完整文章框架<br>标题 / 正文 / 引用 / 列表，结构自动配齐</div>
-    <div class="grow">
-      <div class="r-label">骨架预览</div>
-      <div class="skeleton-grid">
-        <div class="sk">
-          <div class="sk-title"></div>
-          <div class="sk-bar" style="width:90%"></div>
-          <div class="sk-bar" style="width:80%"></div>
-          <div class="sk-bar" style="width:60%"></div>
-          <div class="sk-label">经典文章型</div>
-        </div>
-        <div class="sk">
-          <div class="sk-bar" style="height:13px;background:#3B82F620;border-left:3px solid #3B82F6;width:70%"></div>
-          <div class="sk-bar" style="width:90%"></div>
-          <div class="sk-bar" style="width:70%"></div>
-          <div class="sk-label">竖条标题型</div>
-        </div>
-        <div class="sk">
-          <div style="display:flex;gap:5px;align-items:center"><div style="width:14px;height:14px;border-radius:50%;background:#3B82F630;flex-shrink:0"></div><div class="sk-bar" style="flex:1;margin:0"></div></div>
-          <div class="sk-bar" style="width:90%"></div>
-          <div class="sk-bar" style="width:70%"></div>
-          <div class="sk-label">编号徽章型</div>
-        </div>
-        <div class="sk">
-          <div style="background:linear-gradient(90deg,#1E3A5A,#1A2A3A);border-radius:4px;padding:5px 8px"><div class="sk-bar" style="width:70%;background:#60A5FA40"></div></div>
-          <div class="sk-bar" style="width:90%"></div>
-          <div class="sk-bar" style="width:60%"></div>
-          <div class="sk-label">渐变色块型</div>
-        </div>
-      </div>
-    </div>
-    <div class="tags">
-      <div class="tag tb"># 公众号排版</div><div class="tag tb"># 一键生成</div><div class="tag td"># 多套骨架</div>
+  <div class="brand"><div class="bico">📄</div><div class="bname">云中书 · 公众号排版</div></div>
+  <div class="head">
+    <div class="ey">WECHAT ARTICLE · 01</div>
+    <h1>公众号排版<br>不再<b>对着空白发愁</b></h1>
+  </div>
+  <div class="sub">多套排版骨架，一键生成完整文章框架<br>标题 / 正文 / 引用 / 列表，结构自动配齐</div>
+  <div>
+    <div class="label">骨 架 预 览</div>
+    <div class="sk-grid">
+      <div class="sk"><div class="sk-t"></div><div class="sk-b" style="width:90%"></div><div class="sk-b" style="width:75%"></div><div class="sk-b" style="width:55%"></div><div class="sk-l">经典文章型</div></div>
+      <div class="sk"><div class="sk-b" style="height:8px;background:#3B82F618;border-left:3px solid #3B82F6;width:65%"></div><div class="sk-b" style="width:90%"></div><div class="sk-b" style="width:70%"></div><div class="sk-l">竖条标题型</div></div>
+      <div class="sk"><div style="display:flex;gap:4px;align-items:center"><div style="width:10px;height:10px;border-radius:50%;background:#3B82F620;flex-shrink:0"></div><div class="sk-b" style="flex:1"></div></div><div class="sk-b" style="width:85%"></div><div class="sk-b" style="width:65%"></div><div class="sk-l">编号徽章型</div></div>
+      <div class="sk"><div style="background:linear-gradient(90deg,#E8F0FE,#F5F2ED);border-radius:3px;padding:4px 6px"><div class="sk-b" style="width:65%;background:#60A5FA25"></div></div><div class="sk-b" style="width:85%"></div><div class="sk-b" style="width:55%"></div><div class="sk-l">渐变色块型</div></div>
     </div>
   </div>
-  <div class="col right">
-    <div class="grow">
-      <div class="r-label">内容块类型</div>
-      <div class="variants">
-        <div class="vt"><div class="vt-name">📌 标题块 · 4种样式</div><div class="vt-demo">大字居中 / 左竖条 / 编号徽章 / 渐变色块，每种骨架绑定不同组合</div></div>
-        <div class="vt"><div class="vt-name">📝 段落块 · 3种样式</div><div class="vt-demo">普通正文 / 首字下沉 / 紧凑密排，适配不同阅读习惯</div></div>
-        <div class="vt"><div class="vt-name">📋 列表块 · 4种样式</div><div class="vt-demo">编号卡片 / 气泡流 / 时间轴 / 两列图标格，结构化内容一键呈现</div></div>
-        <div class="vt"><div class="vt-name">❝ 引用块 · 2种样式</div><div class="vt-demo">侧边竖线引用 / 卡片引用，金句段落自动突出显示</div></div>
-      </div>
+  <div style="flex:1;display:flex;flex-direction:column">
+    <div class="label">内 容 块 类 型</div>
+    <div class="vts">
+      <div class="vt"><div class="vt-n">📌 标题块 · 4种样式</div><div class="vt-d">大字居中 / 左竖条 / 编号徽章 / 渐变色块</div></div>
+      <div class="vt"><div class="vt-n">📝 段落块 · 3种样式</div><div class="vt-d">普通正文 / 首字下沉 / 紧凑密排</div></div>
+      <div class="vt"><div class="vt-n">📋 列表块 · 4种样式</div><div class="vt-d">编号卡片 / 气泡流 / 时间轴 / 两列图标格</div></div>
+      <div class="vt"><div class="vt-n">❝ 引用块 · 2种样式</div><div class="vt-d">侧边竖线引用 / 卡片引用</div></div>
     </div>
-    <div>
-      <div class="r-label">核心特性</div>
-      <div class="feat-list">
-        <div class="feat"><div class="feat-ico">⚡</div><div><div class="feat-title">随机一键，结构完全不同</div><div class="feat-desc">骨架和 Block 样式同时切换，每次生成都是全新版式</div></div></div>
-        <div class="feat"><div class="feat-ico">📋</div><div><div class="feat-title">生成结果直接复制进后台</div><div class="feat-desc">输出格式兼容微信编辑器，粘贴即用，无需二次调整</div></div></div>
-        <div class="feat"><div class="feat-ico">✏️</div><div><div class="feat-title">点击文字直接修改</div><div class="feat-desc">内联编辑模式，所见即所得，格式实时保留</div></div></div>
-      </div>
+  </div>
+  <div>
+    <div class="label">核 心 特 性</div>
+    <div class="feats">
+      <div class="ft"><div class="fi">⚡</div><div><span class="fn">随机一键，结构完全不同</span> <span class="fd">· 每次全新版式</span></div></div>
+      <div class="ft"><div class="fi">📋</div><div><span class="fn">生成结果直接复制进后台</span> <span class="fd">· 粘贴即用</span></div></div>
+      <div class="ft"><div class="fi">✏️</div><div><span class="fn">点击文字直接修改</span> <span class="fd">· 所见即所得</span></div></div>
     </div>
+  </div>
+  <div class="tags">
+    <div class="tag tb"># 公众号排版</div><div class="tag tb"># 一键生成</div><div class="tag td"># 多套骨架</div><div class="tag td"># 粘贴即用</div>
   </div>
 </div>
 </body>
