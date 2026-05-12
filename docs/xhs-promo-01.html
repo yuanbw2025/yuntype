@@ -2,82 +2,90 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=540">
-<title>云中书 · 第1张 · 综述</title>
+<meta name="viewport" content="width=1080">
+<title>云中书 · 第1张 · 综述总览</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
-  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366F1,#818CF8,#A5B4FC)}
-  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:10px}
-  .brand{display:flex;align-items:center;gap:6px}
-  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#6366F1,#818CF8);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .bname{font-size:11px;color:#8A8698;font-weight:500}
-  .head .ey{font-size:9px;font-weight:700;color:#6366F1;letter-spacing:3px;margin-bottom:2px}
-  .head h1{font-size:32px;font-weight:900;line-height:1.15;color:#1A1A2E}
-  .head h1 b{font-weight:900;background:linear-gradient(135deg,#6366F1,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .sub{font-size:11px;color:#6B6880;line-height:1.6}
-  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-  .st{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .st-n{font-size:28px;font-weight:900;color:#6366F1;line-height:1}
-  .st-n span{font-size:10px;font-weight:400;color:#9A96A8}
-  .st-l{font-size:9px;color:#6B6880;margin-top:3px}
-  .platforms{display:flex;gap:6px}
-  .plat{flex:1;border-radius:8px;padding:10px;display:flex;align-items:flex-start;gap:8px}
-  .pw{background:#EDF4FF;border:1px solid #D0E2FF}
-  .px{background:#FFF0F3;border:1px solid #FFD6DE}
-  .plat .ico{font-size:14px;flex-shrink:0}
-  .plat .nm{font-size:11px;font-weight:600;margin-bottom:2px}
-  .pw .nm{color:#2563EB} .px .nm{color:#E11D48}
-  .plat .ds{font-size:9px;color:#6B6880;line-height:1.5}
-  .advs{display:flex;flex-direction:column;gap:4px;flex:1}
-  .adv{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .adv .ai{font-size:12px;flex-shrink:0}
-  .adv .at{font-size:11px;font-weight:600;color:#2D2A3E}
-  .adv .ad{font-size:9px;color:#6B6880}
-  .tags{display:flex;gap:5px}
-  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
-  .ti{background:#EDEDFC;border:1px solid #D4D4F8;color:#6366F1}
-  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; height: 720px; overflow: hidden; font-family: 'Noto Sans SC','PingFang SC',sans-serif; background: #16141F; color: #D8D4CC; position: relative; }
+  .bg { position: absolute; inset: 0; background: radial-gradient(ellipse 600px 400px at -5% 0%, rgba(99,102,241,.10) 0%, transparent 65%), radial-gradient(ellipse 500px 380px at 105% 100%, rgba(79,70,229,.09) 0%, transparent 65%); }
+  .stripe { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg,#6366F1,#818CF8,#A5B4FC); }
+  .page { position: relative; z-index:1; width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; padding:36px 48px 32px; }
+  .page::after { content:''; position:absolute; left:50%; top:36px; bottom:32px; width:1px; background:#252338; }
+  .col { display:flex; flex-direction:column; gap:12px; }
+  .left { padding-right:40px; }
+  .right { padding-left:40px; }
+  .grow { flex:1; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .bico { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#6366F1,#818CF8); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .bname { font-size:14px; color:#5C5878; }
+  .eyebrow { font-size:11px; font-weight:700; color:#818CF8; letter-spacing:4px; margin-bottom:8px; }
+  .headline { font-size:48px; font-weight:900; line-height:1.1; letter-spacing:-1.5px; color:#E8E4DC; }
+  .headline .hi { background:linear-gradient(135deg,#818CF8,#C4B5FD); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subline { font-size:13px; color:#6A6480; line-height:1.75; }
+  .r-label { font-size:10px; font-weight:700; color:#48455A; letter-spacing:3px; margin-bottom:8px; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; flex:1; }
+  .stat { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:14px 16px; display:flex; flex-direction:column; justify-content:center; }
+  .stat-num { font-size:34px; font-weight:900; line-height:1; color:#818CF8; letter-spacing:-1px; }
+  .stat-num span { font-size:14px; font-weight:400; color:#48455A; }
+  .stat-label { font-size:11px; color:#484460; margin-top:5px; }
+  .tags { display:flex; gap:7px; flex-wrap:wrap; }
+  .tag { padding:6px 13px; border-radius:8px; font-size:12px; }
+  .ti { background:#1A1838; border:1px solid #2A2850; color:#818CF8; }
+  .td { background:#1C1A28; border:1px solid #262438; color:#504C64; }
+  .platform { border-radius:12px; padding:16px 18px; display:flex; align-items:flex-start; gap:14px; margin-bottom:8px; }
+  .pt-wx { background:#141E35; border:1px solid #1E3050; }
+  .pt-xhs { background:#2A1020; border:1px solid #401830; }
+  .pt-ico { font-size:20px; flex-shrink:0; margin-top:1px; }
+  .pt-name { font-size:14px; font-weight:500; margin-bottom:5px; }
+  .pt-wx .pt-name { color:#60A5FA; }
+  .pt-xhs .pt-name { color:#FB7185; }
+  .pt-desc { font-size:11px; color:#484460; line-height:1.6; }
+  .advs { display:flex; flex-direction:column; gap:7px; flex:1; }
+  .adv { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:11px 15px; display:flex; align-items:center; gap:10px; flex:1; }
+  .adv-ico { font-size:15px; flex-shrink:0; }
+  .adv-title { font-size:13px; font-weight:500; color:#C0BCD0; margin-bottom:2px; }
+  .adv-desc { font-size:11px; color:#484460; }
 </style>
 </head>
 <body>
+<div class="bg"></div>
 <div class="stripe"></div>
 <div class="page">
-  <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · AI 排版工具</div></div>
-  <div class="head">
-    <div class="ey">YUNTYPE · AI LAYOUT TOOL</div>
-    <h1>排版从此<br>告别<b>「素人感」</b></h1>
-  </div>
-  <div class="sub">公众号文章 + 小红书图文，一个工具全搞定<br>粘贴内容 → 一键生成 → 五分钟出图</div>
-  <div>
-    <div class="label">核 心 数 据</div>
-    <div class="stats">
-      <div class="st"><div class="st-n">15<span>套</span></div><div class="st-l">排版骨架</div></div>
-      <div class="st"><div class="st-n">13<span>种</span></div><div class="st-l">Block 变体</div></div>
-      <div class="st"><div class="st-n">36<span>款</span></div><div class="st-l">内置配色</div></div>
-      <div class="st"><div class="st-n">5<span>种</span></div><div class="st-l">封面风格</div></div>
+  <div class="col left">
+    <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · AI 排版工具</div></div>
+    <div>
+      <div class="eyebrow">YUNTYPE · AI LAYOUT TOOL</div>
+      <div class="headline">排版从此<br>告别<span class="hi">「素人感」</span></div>
+    </div>
+    <div class="subline">公众号文章 + 小红书图文，一个工具全搞定<br>粘贴内容，一键生成，五分钟出图</div>
+    <div class="grow">
+      <div class="r-label">核心数据</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">15<span> 套</span></div><div class="stat-label">排版骨架</div></div>
+        <div class="stat"><div class="stat-num">13<span> 种</span></div><div class="stat-label">Block 变体</div></div>
+        <div class="stat"><div class="stat-num">36<span> 款</span></div><div class="stat-label">内置配色</div></div>
+        <div class="stat"><div class="stat-num">5<span> 种</span></div><div class="stat-label">封面风格</div></div>
+      </div>
+    </div>
+    <div class="tags">
+      <div class="tag ti"># 公众号排版</div><div class="tag ti"># 小红书图文</div><div class="tag td"># 打开即用</div>
     </div>
   </div>
-  <div>
-    <div class="label">支 持 平 台</div>
-    <div class="platforms">
-      <div class="plat pw"><div class="ico">📄</div><div><div class="nm">微信公众号</div><div class="ds">多套骨架随机生成文章框架<br>粘贴进后台直接用</div></div></div>
-      <div class="plat px"><div class="ico">📸</div><div><div class="nm">小红书图文</div><div class="ds">封面+内容页一键生成<br>按页截图直接上传</div></div></div>
+  <div class="col right">
+    <div>
+      <div class="r-label">支持平台</div>
+      <div class="platform pt-wx"><div class="pt-ico">📄</div><div><div class="pt-name">微信公众号排版</div><div class="pt-desc">多套骨架 × 多种 Block 样式，随机生成完整文章框架<br>输出格式直接粘贴进公众号后台，无需二次排版</div></div></div>
+      <div class="platform pt-xhs"><div class="pt-ico">📸</div><div><div class="pt-name">小红书图文排版</div><div class="pt-desc">封面 + 内容页一键生成，5 种封面风格 + 36 款配色<br>按页截图直接上传，图文风格全程统一</div></div></div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column">
-    <div class="label">核 心 优 势</div>
-    <div class="advs">
-      <div class="adv"><div class="ai">⚡</div><div><span class="at">零门槛，打开即用</span> <span class="ad">· 无需安装注册</span></div></div>
-      <div class="adv"><div class="ai">🎲</div><div><span class="at">随机一键，版式全换</span> <span class="ad">· 骨架+配色同时切</span></div></div>
-      <div class="adv"><div class="ai">✏️</div><div><span class="at">生成后可继续编辑</span> <span class="ad">· Ctrl+Z 50步撤销</span></div></div>
-      <div class="adv"><div class="ai">🎨</div><div><span class="at">36款配色一键换</span> <span class="ad">· 所有页面同步更新</span></div></div>
+    <div class="grow">
+      <div class="r-label">核心优势</div>
+      <div class="advs">
+        <div class="adv"><div class="adv-ico">⚡</div><div><div class="adv-title">零门槛，打开即用</div><div class="adv-desc">无需安装，无需注册，浏览器直接打开</div></div></div>
+        <div class="adv"><div class="adv-ico">🎲</div><div><div class="adv-title">随机一键，版式全换</div><div class="adv-desc">骨架 + 配色同时切换，告别千篇一律</div></div></div>
+        <div class="adv"><div class="adv-ico">✏️</div><div><div class="adv-title">生成后可继续编辑</div><div class="adv-desc">点击文字直接改，Ctrl+Z 撤销 50 步历史</div></div></div>
+      </div>
     </div>
-  </div>
-  <div class="tags">
-    <div class="tag ti"># 公众号排版</div><div class="tag ti"># 小红书图文</div><div class="tag td"># 打开即用</div><div class="tag td"># AI排版</div>
   </div>
 </div>
 </body>

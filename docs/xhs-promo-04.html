@@ -2,98 +2,115 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=540">
+<meta name="viewport" content="width=1080">
 <title>云中书 · 第4张 · 小红书排版1</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
-  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#E11D48,#F43F5E,#FB7185)}
-  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:10px}
-  .brand{display:flex;align-items:center;gap:6px}
-  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#E11D48,#F43F5E);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .bname{font-size:11px;color:#8A8698;font-weight:500}
-  .head .ey{font-size:9px;font-weight:700;color:#E11D48;letter-spacing:3px;margin-bottom:2px}
-  .head h1{font-size:32px;font-weight:900;line-height:1.15;color:#1A1A2E}
-  .head h1 b{font-weight:900;background:linear-gradient(135deg,#E11D48,#FB7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .sub{font-size:11px;color:#6B6880;line-height:1.6}
-  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
-  .combo{background:#fff;border:1px solid #FFD6DE;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .combo-n{font-size:48px;font-weight:900;line-height:1;background:linear-gradient(135deg,#E11D48,#FB7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0}
-  .combo-t{font-size:12px;font-weight:600;color:#2D2A3E;margin-bottom:2px}
-  .combo-d{font-size:9px;color:#6B6880;line-height:1.5}
-  .combo-eq{font-size:10px;color:#8A8698;margin-top:3px}
-  .combo-eq span{color:#E11D48;font-weight:600}
-  .covers{display:flex;gap:4px}
-  .cover{flex:1;height:52px;border-radius:6px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;overflow:hidden}
-  .cv-l{font-size:7px;font-weight:700;opacity:.9}
-  .c1{background:linear-gradient(135deg,#1E1B4B,#4F46E5);color:#C4B5FD}
-  .c2{background:linear-gradient(90deg,#E11D48 38%,#FFF0F3 38%);color:#fff}
-  .c3{background:#FAFAF8;border:1px solid #E0DCD4;color:#8A8698}
-  .c4{background:linear-gradient(135deg,#2A2010,#3A2818);color:#FCD34D}
-  .c5{background:#FAFAF8;border-top:2px solid #2D2A3E;color:#6B6880}
-  .swatches{display:flex;gap:3px;flex-wrap:wrap}
-  .sw{width:22px;height:22px;border-radius:4px;border:1px solid rgba(0,0,0,.06)}
-  .feats{display:flex;flex-direction:column;gap:4px;flex:1}
-  .ft{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .ft .fi{font-size:12px;flex-shrink:0}
-  .ft .fn{font-size:11px;font-weight:600;color:#2D2A3E}
-  .ft .fd{font-size:9px;color:#6B6880}
-  .tags{display:flex;gap:5px}
-  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
-  .tr{background:#FFF0F3;border:1px solid #FFD6DE;color:#E11D48}
-  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:720px; overflow:hidden; font-family:'Noto Sans SC','PingFang SC',sans-serif; background:#16141F; color:#D8D4CC; position:relative; }
+  .bg { position:absolute; inset:0; background:radial-gradient(ellipse 560px 400px at -5% 0%, rgba(225,29,72,.08) 0%,transparent 65%), radial-gradient(ellipse 480px 380px at 105% 100%, rgba(244,63,94,.07) 0%,transparent 65%); }
+  .stripe { position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#E11D48,#F43F5E,#FB7185); }
+  .page { position:relative; z-index:1; width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; padding:36px 48px 32px; }
+  .page::after { content:''; position:absolute; left:50%; top:36px; bottom:32px; width:1px; background:#252338; }
+  .col { display:flex; flex-direction:column; gap:12px; }
+  .left { padding-right:40px; }
+  .right { padding-left:40px; }
+  .grow { flex:1; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .bico { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#E11D48,#F43F5E); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .bname { font-size:14px; color:#5C5878; }
+  .eyebrow { font-size:11px; font-weight:700; color:#F43F5E; letter-spacing:4px; margin-bottom:8px; }
+  .headline { font-size:50px; font-weight:900; line-height:1.1; letter-spacing:-1.5px; color:#E8E4DC; }
+  .headline .hi { background:linear-gradient(135deg,#FB7185,#FDA4AF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subline { font-size:13px; color:#6A6480; line-height:1.75; }
+  .r-label { font-size:10px; font-weight:700; color:#48455A; letter-spacing:3px; margin-bottom:8px; }
+  .combo-box { background:#1C1A2A; border:1px solid #2A1828; border-radius:14px; padding:20px; display:flex; align-items:center; gap:20px; flex:1; }
+  .combo-num { font-size:68px; font-weight:900; line-height:1; background:linear-gradient(135deg,#F43F5E,#FB7185); -webkit-background-clip:text; -webkit-text-fill-color:transparent; flex-shrink:0; }
+  .combo-title { font-size:15px; font-weight:600; color:#C8C4D0; margin-bottom:6px; }
+  .combo-desc { font-size:12px; color:#484460; line-height:1.6; }
+  .combo-eq { font-size:13px; color:#6A6480; margin-top:6px; }
+  .combo-eq span { color:#FB7185; font-weight:600; }
+  .tags { display:flex; gap:7px; flex-wrap:wrap; }
+  .tag { padding:6px 13px; border-radius:8px; font-size:12px; }
+  .tr { background:#2A1020; border:1px solid #401830; color:#FB7185; }
+  .td { background:#1C1A28; border:1px solid #262438; color:#504C64; }
+  /* covers */
+  .covers { display:flex; gap:7px; }
+  .cover { flex:1; height:68px; border-radius:8px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; position:relative; overflow:hidden; }
+  .cv-label { font-size:8px; font-weight:700; opacity:.85; }
+  .c1 { background:linear-gradient(135deg,#1E1B4B,#4F46E5); color:#C4B5FD; }
+  .c2 { background:linear-gradient(90deg,#E11D48 38%,#1a1018 38%); color:#fff; }
+  .c3 { background:#0D0D12; border:1px solid #252535; color:#555; }
+  .c4 { background:linear-gradient(135deg,#1a1a28,#2a1810); border:1px solid #3a2218; color:#FCD34D; }
+  .c5 { background:#0D0D12; border-top:2px solid #E0DDD8; color:#555; }
+  /* swatches */
+  .color-strip { display:flex; gap:5px; flex-wrap:wrap; }
+  .swatch { width:28px; height:28px; border-radius:6px; }
+  /* feat */
+  .feat-list { display:flex; flex-direction:column; gap:7px; flex:1; }
+  .feat { background:#1C1A2A; border:1px solid #2A1828; border-radius:10px; padding:11px 15px; display:flex; align-items:flex-start; gap:12px; flex:1; }
+  .feat-ico { font-size:15px; flex-shrink:0; }
+  .feat-title { font-size:13px; font-weight:500; color:#C0BCD0; margin-bottom:2px; }
+  .feat-desc { font-size:11px; color:#484460; line-height:1.5; }
 </style>
 </head>
 <body>
+<div class="bg"></div>
 <div class="stripe"></div>
 <div class="page">
-  <div class="brand"><div class="bico">📸</div><div class="bname">云中书 · 小红书图文</div></div>
-  <div class="head">
-    <div class="ey">XHS LAYOUT · 01</div>
-    <h1>小红书出图<br><b>效率直接翻倍</b></h1>
-  </div>
-  <div class="sub">15套骨架 × 13种变体，海量结构组合<br>多页图文同步生成，封面内容风格统一</div>
-  <div>
-    <div class="label">版 面 组 合</div>
-    <div class="combo">
-      <div class="combo-n">195<span style="font-size:22px">+</span></div>
-      <div>
-        <div class="combo-t">版面结构组合</div>
-        <div class="combo-d">每次随机，骨架与内容块同时切换<br>不只是换色，是完全不同的页面结构</div>
-        <div class="combo-eq"><span>15</span> 骨架 × <span>13</span> Block 变体</div>
+  <div class="col left">
+    <div class="brand"><div class="bico">📸</div><div class="bname">云中书 · 小红书图文</div></div>
+    <div>
+      <div class="eyebrow">XHS LAYOUT · 01</div>
+      <div class="headline">小红书出图<br><span class="hi">效率直接翻倍</span></div>
+    </div>
+    <div class="subline">15套骨架 × 13种变体，海量结构组合<br>多页图文同步生成，封面内容风格统一</div>
+    <div class="grow">
+      <div class="r-label">版面组合数量</div>
+      <div class="combo-box">
+        <div class="combo-num">195<span style="font-size:32px;color:#F4365880">+</span></div>
+        <div>
+          <div class="combo-title">版面结构组合</div>
+          <div class="combo-desc">每次随机，骨架与内容块同时切换<br>不只是换色，是完全不同的页面结构</div>
+          <div class="combo-eq"><span>15</span> 骨架 × <span>13</span> Block 变体</div>
+        </div>
       </div>
     </div>
-  </div>
-  <div>
-    <div class="label">5 种 封 面 风 格</div>
-    <div class="covers">
-      <div class="cover c1"><div class="cv-l">经典</div></div>
-      <div class="cover c2"><div class="cv-l">大字</div></div>
-      <div class="cover c3"><div class="cv-l">极简</div></div>
-      <div class="cover c4"><div class="cv-l">卡片</div></div>
-      <div class="cover c5"><div class="cv-l">杂志</div></div>
+    <div class="tags">
+      <div class="tag tr"># 小红书图文</div><div class="tag tr"># 多页生成</div><div class="tag td"># 海量组合</div>
     </div>
   </div>
-  <div>
-    <div class="label">36 款 配 色 · 一 键 整 套 换 色</div>
-    <div class="swatches">
-      <div class="sw" style="background:#1E1B4B"></div><div class="sw" style="background:#312E81"></div><div class="sw" style="background:#1E3A5F"></div><div class="sw" style="background:#0F172A"></div><div class="sw" style="background:#064E3B"></div><div class="sw" style="background:#14532D"></div><div class="sw" style="background:#451A03"></div><div class="sw" style="background:#3B0764"></div><div class="sw" style="background:#4A1D1D"></div><div class="sw" style="background:#1C1917"></div>
-      <div class="sw" style="background:#F8FAFC"></div><div class="sw" style="background:#F0EDE8"></div><div class="sw" style="background:#FFFBEB"></div><div class="sw" style="background:#F0FDF4"></div><div class="sw" style="background:#EFF6FF"></div><div class="sw" style="background:#FFF1F2"></div><div class="sw" style="background:#FEFCE8"></div><div class="sw" style="background:#F5F3FF"></div>
+  <div class="col right">
+    <div>
+      <div class="r-label">5种封面风格</div>
+      <div class="covers">
+        <div class="cover c1"><div class="cv-label">经典</div></div>
+        <div class="cover c2"><div class="cv-label">大字</div></div>
+        <div class="cover c3"><div class="cv-label">极简</div></div>
+        <div class="cover c4"><div class="cv-label">卡片</div></div>
+        <div class="cover c5"><div class="cv-label">杂志</div></div>
+      </div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column">
-    <div class="label">核 心 特 性</div>
-    <div class="feats">
-      <div class="ft"><div class="fi">🖼️</div><div><span class="fn">封面+内容页一键生成</span> <span class="fd">· 自动分页，风格统一</span></div></div>
-      <div class="ft"><div class="fi">🎨</div><div><span class="fn">36色板整套同步换色</span> <span class="fd">· 深色浅色随心切</span></div></div>
-      <div class="ft"><div class="fi">🔀</div><div><span class="fn">随机一键结构完全不同</span> <span class="fd">· 告别千篇一律</span></div></div>
-      <div class="ft"><div class="fi">✏️</div><div><span class="fn">生成后可直接编辑</span> <span class="fd">· 所见即所得</span></div></div>
-      <div class="ft"><div class="fi">📐</div><div><span class="fn">多页图文按页截图</span> <span class="fd">· 直接发布小红书</span></div></div>
+    <div>
+      <div class="r-label">36款配色，一键整套换色</div>
+      <div class="color-strip">
+        <div class="swatch" style="background:#1E1B4B"></div><div class="swatch" style="background:#312E81"></div>
+        <div class="swatch" style="background:#1E3A5F"></div><div class="swatch" style="background:#0F172A"></div>
+        <div class="swatch" style="background:#064E3B"></div><div class="swatch" style="background:#14532D"></div>
+        <div class="swatch" style="background:#451A03"></div><div class="swatch" style="background:#3B0764"></div>
+        <div class="swatch" style="background:#4A1D1D"></div><div class="swatch" style="background:#F8FAFC"></div>
+        <div class="swatch" style="background:#F0EDE8"></div><div class="swatch" style="background:#FFFBEB"></div>
+        <div class="swatch" style="background:#F0FDF4"></div><div class="swatch" style="background:#EFF6FF"></div>
+      </div>
     </div>
-  </div>
-  <div class="tags">
-    <div class="tag tr"># 小红书图文</div><div class="tag tr"># 多页生成</div><div class="tag td"># 海量组合</div><div class="tag td"># 36款配色</div>
+    <div class="grow">
+      <div class="r-label">核心特性</div>
+      <div class="feat-list">
+        <div class="feat"><div class="feat-ico">🖼️</div><div><div class="feat-title">封面 + 内容页一键生成</div><div class="feat-desc">输入内容后自动分页，封面标题、内容卡片风格全程统一</div></div></div>
+        <div class="feat"><div class="feat-ico">🎨</div><div><div class="feat-title">36色板，整套同步换色</div><div class="feat-desc">点击色板，所有页面配色同步更新，深色浅色撞色随心切</div></div></div>
+        <div class="feat"><div class="feat-ico">🔀</div><div><div class="feat-title">随机一键，结构完全不同</div><div class="feat-desc">每次随机生成的骨架和内容块组合都不同，告别千篇一律</div></div></div>
+      </div>
+    </div>
   </div>
 </div>
 </body>

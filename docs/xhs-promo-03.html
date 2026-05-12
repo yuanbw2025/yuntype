@@ -2,89 +2,127 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=540">
+<meta name="viewport" content="width=1080">
 <title>云中书 · 第3张 · 公众号排版2</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
-  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563EB,#3B82F6,#60A5FA)}
-  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:10px}
-  .brand{display:flex;align-items:center;gap:6px}
-  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#2563EB,#3B82F6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
-  .bname{font-size:11px;color:#8A8698;font-weight:500}
-  .head .ey{font-size:9px;font-weight:700;color:#2563EB;letter-spacing:3px;margin-bottom:2px}
-  .head h1{font-size:32px;font-weight:900;line-height:1.15;color:#1A1A2E}
-  .head h1 b{font-weight:900;background:linear-gradient(135deg,#2563EB,#60A5FA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .sub{font-size:11px;color:#6B6880;line-height:1.6}
-  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
-  .themes{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-  .theme{border-radius:8px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-  .theme-n{font-size:9px;font-weight:600;margin-bottom:5px}
-  .tl{height:4px;border-radius:2px;margin-bottom:3px}
-  .tl.tt{height:6px}
-  .t1{background:#1A1A2E;border:1px solid #2A2A40} .t1 .theme-n{color:#818CF8} .t1 .tl{background:#2A2A40} .t1 .tl.tt{background:linear-gradient(90deg,#6366F1,#818CF8);width:70%}
-  .t2{background:#FAFAF8;border:1px solid #E0DCD4} .t2 .theme-n{color:#2563EB} .t2 .tl{background:#E0DCD4} .t2 .tl.tt{background:linear-gradient(90deg,#2563EB,#60A5FA);width:75%}
-  .t3{background:#2A2010;border:1px solid #3A3018} .t3 .theme-n{color:#F59E0B} .t3 .tl{background:#3A3018} .t3 .tl.tt{background:linear-gradient(90deg,#D97706,#F59E0B);width:65%}
-  .t4{background:#0A2818;border:1px solid #144028} .t4 .theme-n{color:#10B981} .t4 .tl{background:#144028} .t4 .tl.tt{background:linear-gradient(90deg,#059669,#10B981);width:80%}
-  .feats{display:flex;flex-direction:column;gap:4px;flex:1}
-  .ft{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .ft .fi{font-size:12px;flex-shrink:0}
-  .ft .fn{font-size:11px;font-weight:600;color:#2D2A3E;margin-bottom:1px}
-  .ft .fd{font-size:9px;color:#6B6880;line-height:1.4}
-  .undo{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:10px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .undo-t{font-size:10px;font-weight:600;color:#2563EB;margin-bottom:6px}
-  .undo-s{display:flex;flex-direction:column;gap:4px}
-  .us{display:flex;align-items:center;gap:6px}
-  .sn{width:16px;height:16px;border-radius:50%;background:#E8F0FE;border:1px solid #C8DAFA;color:#2563EB;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .st{font-size:10px;color:#6B6880}
-  .sa{font-size:9px;color:#10B981;margin-left:auto}
-  .tags{display:flex;gap:5px}
-  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
-  .tb{background:#E8F0FE;border:1px solid #C8DAFA;color:#2563EB}
-  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:720px; overflow:hidden; font-family:'Noto Sans SC','PingFang SC',sans-serif; background:#16141F; color:#D8D4CC; position:relative; }
+  .bg { position:absolute; inset:0; background:radial-gradient(ellipse 560px 400px at -5% 100%, rgba(37,99,235,.09) 0%,transparent 65%), radial-gradient(ellipse 480px 380px at 105% 0%, rgba(79,70,229,.09) 0%,transparent 65%); }
+  .stripe { position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#2563EB,#3B82F6,#60A5FA); }
+  .page { position:relative; z-index:1; width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; padding:36px 48px 32px; }
+  .page::after { content:''; position:absolute; left:50%; top:36px; bottom:32px; width:1px; background:#252338; }
+  .col { display:flex; flex-direction:column; gap:12px; }
+  .left { padding-right:40px; }
+  .right { padding-left:40px; }
+  .grow { flex:1; display:flex; flex-direction:column; }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .bico { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#2563EB,#3B82F6); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .bname { font-size:14px; color:#5C5878; }
+  .eyebrow { font-size:11px; font-weight:700; color:#3B82F6; letter-spacing:4px; margin-bottom:8px; }
+  .headline { font-size:52px; font-weight:900; line-height:1.1; letter-spacing:-1.5px; color:#E8E4DC; }
+  .headline .hi { background:linear-gradient(135deg,#60A5FA,#93C5FD); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .subline { font-size:13px; color:#6A6480; line-height:1.75; }
+  .r-label { font-size:10px; font-weight:700; color:#48455A; letter-spacing:3px; margin-bottom:8px; }
+  /* themes */
+  .themes { display:grid; grid-template-columns:1fr 1fr; gap:8px; flex:1; }
+  .theme { border-radius:10px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; }
+  .theme-name { font-size:11px; font-weight:600; margin-bottom:8px; }
+  .tb-line { height:5px; border-radius:2px; margin-bottom:4px; }
+  .tb-line.title { height:8px; }
+  .t-dark { background:#0F0F18; border:1px solid #1E1E30; }
+  .t-dark .theme-name { color:#6366F1; }
+  .t-dark .tb-line { background:#252538; }
+  .t-dark .tb-line.title { background:linear-gradient(90deg,#6366F1,#818CF8); width:70%; }
+  .t-light { background:#F0EDE5; border:1px solid #DDD8CC; }
+  .t-light .theme-name { color:#2563EB; }
+  .t-light .tb-line { background:#D8D4CC; }
+  .t-light .tb-line.title { background:linear-gradient(90deg,#2563EB,#60A5FA); width:75%; }
+  .t-warm { background:#1A1208; border:1px solid #2A2010; }
+  .t-warm .theme-name { color:#F59E0B; }
+  .t-warm .tb-line { background:#2A2010; }
+  .t-warm .tb-line.title { background:linear-gradient(90deg,#D97706,#F59E0B); width:65%; }
+  .t-green { background:#081A10; border:1px solid #0E2A18; }
+  .t-green .theme-name { color:#10B981; }
+  .t-green .tb-line { background:#0E2018; }
+  .t-green .tb-line.title { background:linear-gradient(90deg,#059669,#10B981); width:80%; }
+  .tags { display:flex; gap:7px; flex-wrap:wrap; }
+  .tag { padding:6px 13px; border-radius:8px; font-size:12px; }
+  .tb { background:#141E35; border:1px solid #1E3050; color:#60A5FA; }
+  .td { background:#1C1A28; border:1px solid #262438; color:#504C64; }
+  /* feat */
+  .feat-list { display:flex; flex-direction:column; gap:7px; flex:1; }
+  .feat { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:12px 16px; display:flex; align-items:flex-start; gap:12px; flex:1; }
+  .feat-ico { font-size:15px; flex-shrink:0; }
+  .feat-title { font-size:13px; font-weight:500; color:#C0BCD0; margin-bottom:3px; }
+  .feat-desc { font-size:11px; color:#484460; line-height:1.5; }
+  /* undo */
+  .undo-demo { background:#1C1A2A; border:1px solid #262440; border-radius:10px; padding:14px; }
+  .undo-title { font-size:12px; font-weight:600; color:#60A5FA; margin-bottom:10px; }
+  .undo-steps { display:flex; flex-direction:column; gap:7px; }
+  .step { display:flex; align-items:center; gap:8px; }
+  .sn { width:18px; height:18px; border-radius:50%; background:#1E3050; border:1px solid #2A4070; color:#60A5FA; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .st { font-size:11px; color:#484460; }
+  .sa { font-size:10px; color:#262440; margin-left:auto; }
 </style>
 </head>
 <body>
+<div class="bg"></div>
 <div class="stripe"></div>
 <div class="page">
-  <div class="brand"><div class="bico">📄</div><div class="bname">云中书 · 公众号排版</div></div>
-  <div class="head">
-    <div class="ey">WECHAT ARTICLE · 02</div>
-    <h1>每次不同<br><b>每次都好看</b></h1>
-  </div>
-  <div class="sub">随机一键，骨架结构和配色同时更换<br>不是换皮，是完全不同的版面结构</div>
-  <div>
-    <div class="label">配 色 主 题 预 览</div>
-    <div class="themes">
-      <div class="theme t1"><div class="theme-n">深色极简</div><div><div class="tl tt"></div><div class="tl" style="width:90%"></div><div class="tl" style="width:70%"></div></div></div>
-      <div class="theme t2"><div class="theme-n">浅色清爽</div><div><div class="tl tt"></div><div class="tl" style="width:85%"></div><div class="tl" style="width:65%"></div></div></div>
-      <div class="theme t3"><div class="theme-n">暖色复古</div><div><div class="tl tt"></div><div class="tl" style="width:80%"></div><div class="tl" style="width:75%"></div></div></div>
-      <div class="theme t4"><div class="theme-n">清绿自然</div><div><div class="tl tt"></div><div class="tl" style="width:85%"></div><div class="tl" style="width:70%"></div></div></div>
+  <div class="col left">
+    <div class="brand"><div class="bico">📄</div><div class="bname">云中书 · 公众号排版</div></div>
+    <div>
+      <div class="eyebrow">WECHAT ARTICLE · 02</div>
+      <div class="headline">每次不同<br><span class="hi">每次都好看</span></div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column">
-    <div class="label">编 辑 功 能</div>
-    <div class="feats">
-      <div class="ft"><div class="fi">✏️</div><div><div class="fn">点击文字直接编辑</div><div class="fd">开启编辑模式，点击标题或段落直接修改，格式完整保留</div></div></div>
-      <div class="ft"><div class="fi">🧱</div><div><div class="fn">块级面板重排顺序</div><div class="fd">侧栏列出所有内容块，上移/下移/复制/删除，底部可追加</div></div></div>
-      <div class="ft"><div class="fi">➕</div><div><div class="fn">随时追加内容块</div><div class="fd">标题、段落、列表、引用、分隔线，一键插入任意位置</div></div></div>
-    </div>
-  </div>
-  <div>
-    <div class="label">撤 销 / 重 做</div>
-    <div class="undo">
-      <div class="undo-t">↶ Ctrl+Z 随时反悔 · 50步历史</div>
-      <div class="undo-s">
-        <div class="us"><div class="sn">1</div><div class="st">修改了标题文字</div><div class="sa">✓</div></div>
-        <div class="us"><div class="sn">2</div><div class="st">删除了一段引用块</div><div class="sa">✓</div></div>
-        <div class="us"><div class="sn">3</div><div class="st">切换了配色主题</div><div class="sa">✓</div></div>
-        <div class="us" style="opacity:.4"><div class="sn">…</div><div class="st">最多保留 50 步操作历史</div></div>
+    <div class="subline">随机一键，骨架结构和配色同时更换<br>不是换皮，是完全不同的版面结构</div>
+    <div class="grow">
+      <div class="r-label">配色主题预览</div>
+      <div class="themes">
+        <div class="theme t-dark">
+          <div class="theme-name">深色极简</div>
+          <div><div class="tb-line title"></div><div class="tb-line" style="width:90%"></div><div class="tb-line" style="width:70%"></div></div>
+        </div>
+        <div class="theme t-light">
+          <div class="theme-name">浅色清爽</div>
+          <div><div class="tb-line title"></div><div class="tb-line" style="background:#C0C8D8;width:85%"></div><div class="tb-line" style="background:#C0C8D8;width:65%"></div></div>
+        </div>
+        <div class="theme t-warm">
+          <div class="theme-name">暖色复古</div>
+          <div><div class="tb-line title"></div><div class="tb-line" style="width:80%"></div><div class="tb-line" style="width:75%"></div></div>
+        </div>
+        <div class="theme t-green">
+          <div class="theme-name">清绿自然</div>
+          <div><div class="tb-line title"></div><div class="tb-line" style="width:85%"></div><div class="tb-line" style="width:70%"></div></div>
+        </div>
       </div>
     </div>
+    <div class="tags">
+      <div class="tag tb"># 多套配色</div><div class="tag tb"># 随机生成</div><div class="tag td"># 公众号排版</div>
+    </div>
   </div>
-  <div class="tags">
-    <div class="tag tb"># 多套配色</div><div class="tag tb"># 随机生成</div><div class="tag td"># 编辑功能</div><div class="tag td"># 公众号排版</div>
+  <div class="col right">
+    <div class="grow">
+      <div class="r-label">编辑功能</div>
+      <div class="feat-list">
+        <div class="feat"><div class="feat-ico">✏️</div><div><div class="feat-title">点击文字直接编辑</div><div class="feat-desc">开启编辑模式后，点击任意标题或段落直接修改，粗体斜体格式完整保留</div></div></div>
+        <div class="feat"><div class="feat-ico">🧱</div><div><div class="feat-title">块级面板重排顺序</div><div class="feat-desc">侧栏列出所有内容块，支持上移 / 下移 / 复制 / 删除，底部可追加新块</div></div></div>
+        <div class="feat"><div class="feat-ico">➕</div><div><div class="feat-title">随时追加内容块</div><div class="feat-desc">标题、段落、列表、引用、分隔线，一键插入到任意位置</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="r-label">撤销 / 重做</div>
+      <div class="undo-demo">
+        <div class="undo-title">↶ Ctrl+Z 随时反悔 · 50步历史</div>
+        <div class="undo-steps">
+          <div class="step"><div class="sn">1</div><div class="st">修改了标题文字</div><div class="sa">✓</div></div>
+          <div class="step"><div class="sn">2</div><div class="st">删除了一段引用块</div><div class="sa">✓</div></div>
+          <div class="step"><div class="sn">3</div><div class="st">切换了配色主题</div><div class="sa">✓</div></div>
+          <div class="step" style="opacity:.4"><div class="sn">…</div><div class="st">最多保留 50 步操作历史</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </body>
