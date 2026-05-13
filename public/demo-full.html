@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云中书 YunType — 全功能演示</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --accent: #06B6D4;
+      --green: #10B981;
+      --orange: #F59E0B;
+      --red: #FF2442;
+      --purple: #7C3AED;
+      --bg: #0F172A;
+      --card: #1E293B;
+      --text: #F1F5F9;
+      --muted: #94A3B8;
+      --gradient: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #000; overflow: hidden;
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .deck {
+      width: 960px; height: 540px;
+      position: relative; overflow: hidden;
+      background: var(--bg);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .slide {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      padding: 50px 70px;
+      display: flex; flex-direction: column; justify-content: center;
+      opacity: 0; transform: translateX(60px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .slide.prev { opacity: 0; transform: translateX(-60px); }
+
+    .slide.active .an { animation: fadeUp 0.5s ease forwards; opacity: 0; }
+    .slide.active .an:nth-child(1) { animation-delay: 0.08s; }
+    .slide.active .an:nth-child(2) { animation-delay: 0.2s; }
+    .slide.active .an:nth-child(3) { animation-delay: 0.32s; }
+    .slide.active .an:nth-child(4) { animation-delay: 0.44s; }
+    .slide.active .an:nth-child(5) { animation-delay: 0.56s; }
+    .slide.active .an:nth-child(6) { animation-delay: 0.68s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 { font-size: 40px; font-weight: 800; color: var(--text); line-height: 1.25; }
+    h2 { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    p  { font-size: 16px; color: var(--muted); line-height: 1.7; }
+    .small { font-size: 13px; }
+    .accent { color: var(--accent); }
+    .green  { color: var(--green); }
+    .purple { color: var(--purple); }
+
+    .tag {
+      display: inline-block; padding: 4px 12px;
+      font-size: 12px; font-weight: 600; border-radius: 16px;
+      margin: 3px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 18px; }
+
+    .card {
+      background: var(--card); border-radius: 10px; padding: 18px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .card .icon { font-size: 24px; margin-bottom: 8px; }
+    .card h3 { font-size: 16px; font-weight: 600; color: var(--primary-light); margin-bottom: 4px; }
+    .card p { font-size: 13px; line-height: 1.55; }
+
+    .stat { text-align: center; }
+    .stat .num {
+      font-size: 32px; font-weight: 800;
+      background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .stat .label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    .flow { display: flex; align-items: center; gap: 6px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
+    .flow-step { background: var(--card); padding: 8px 12px; border-radius: 6px; font-size: 13px; color: var(--text); border: 1px solid rgba(255,255,255,0.05); }
+    .flow-arrow { color: var(--primary-light); font-size: 16px; }
+
+    /* 导航 */
+    .nav-dots { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 100; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; }
+    .dot.active { background: var(--primary-light); width: 20px; border-radius: 3px; }
+    .page-num { position: absolute; bottom: 16px; right: 24px; font-size: 12px; color: rgba(255,255,255,0.2); z-index: 100; }
+    .progress { position: absolute; top: 0; left: 0; height: 2px; background: var(--gradient); transition: width 0.5s ease; z-index: 100; }
+
+    /* 特殊页面 */
+    .slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 30%, rgba(79,70,229,0.12) 0%, transparent 70%); }
+    .slide-cover .emoji { font-size: 56px; margin-bottom: 12px; }
+    .slide-cover h1 { font-size: 44px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .slide-cover .sub { font-size: 18px; color: var(--muted); margin-top: 8px; }
+
+    .slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, rgba(6,182,212,0.08) 0%, transparent 70%); }
+
+    /* 模式标签条 */
+    .mode-bar { display: flex; gap: 0; margin: 14px 0; }
+    .mode-btn { padding: 6px 14px; font-size: 12px; font-weight: 600; border: none; color: rgba(255,255,255,0.5); background: var(--card); }
+    .mode-btn.active { color: #fff; }
+    .mode-btn:first-child { border-radius: 6px 0 0 6px; }
+    .mode-btn:last-child  { border-radius: 0 6px 6px 0; }
+
+    /* 竖线列表 */
+    .vlist { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .vitem { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); }
+    .vitem .vi { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .vitem .vt { font-weight: 600; }
+    .vitem .vd { font-size: 12px; color: var(--muted); margin-left: 4px; }
+
+    /* 提供商网格 */
+    .provider-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .provider { padding: 4px 10px; font-size: 11px; background: var(--card); border-radius: 4px; color: var(--muted); border: 1px solid rgba(255,255,255,0.05); }
+
+    /* 分栏布局 */
+    .split { display: flex; gap: 28px; align-items: flex-start; }
+    .split-left { flex: 1; }
+    .split-right { flex: 1; }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <div class="progress" id="progress"></div>
+
+    <!-- 1: 封面 -->
+    <section class="slide slide-cover active">
+      <div class="an emoji">☁️</div>
+      <h1 class="an">云中书 YunType</h1>
+      <p class="an sub">AI 驱动的创作者工具集 · 排版 · 配图 · 建站 · 演示</p>
+      <div class="an" style="margin-top: 20px;">
+        <span class="tag" style="background:rgba(79,70,229,0.15);color:var(--primary-light)">零后端</span>
+        <span class="tag" style="background:rgba(79,70,229,0.15);color:var(--primary-light)">零账号</span>
+        <span class="tag" style="background:rgba(79,70,229,0.15);color:var(--primary-light)">开源免费</span>
+        <span class="tag" style="background:rgba(79,70,229,0.15);color:var(--primary-light)">11个AI提供商</span>
+      </div>
+    </section>
+
+    <!-- 2: 六大模式概览 -->
+    <section class="slide">
+      <h2 class="an">🎯 六大模式，一站搞定</h2>
+      <p class="an" style="margin-top:6px;">从文章排版到网站建设，创作者需要的工具这里都有</p>
+      <div class="an grid-3">
+        <div class="card">
+          <div class="icon">📝</div>
+          <h3 style="color:#07C160">公众号</h3>
+          <p>Markdown → 微信兼容富文本<br>复制粘贴直接用</p>
+        </div>
+        <div class="card">
+          <div class="icon">📸</div>
+          <h3 style="color:#FF2442">小红书</h3>
+          <p>自动分页图片组<br>5 种封面 · ZIP 打包</p>
+        </div>
+        <div class="card">
+          <div class="icon">📊</div>
+          <h3>信息图</h3>
+          <p>流程图 · 对比表<br>知识卡片 · 时间线</p>
+        </div>
+        <div class="card">
+          <div class="icon">🎨</div>
+          <h3>AI 配图</h3>
+          <p>5 场景 11 模板<br>结构化 Prompt 生图</p>
+        </div>
+        <div class="card">
+          <div class="icon">🌐</div>
+          <h3 style="color:var(--green)">网页生成</h3>
+          <p>一句话生成网站<br>内嵌建站教程</p>
+        </div>
+        <div class="card">
+          <div class="icon">🎬</div>
+          <h3 style="color:var(--purple)">演示稿</h3>
+          <p>交互式幻灯片<br>全屏放映</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3: V2 骨架引擎 -->
+    <section class="slide">
+      <h2 class="an">🏗️ V2 骨架引擎</h2>
+      <p class="an" style="margin-top:4px;font-size:14px;" class="accent">
+        <span style="color:var(--accent)">排版方案 = 骨架蓝图 × 插槽变体 × 配色 × 字体 = 百万级组合</span>
+      </p>
+      <div class="an grid-2" style="margin-top:16px;">
+        <div class="card">
+          <div class="icon">📐</div>
+          <h3>15 套骨架蓝图</h3>
+          <p>极简清爽 · 日式留白 · 卡片模块 · 杂志编辑 · 时间线 · 几何装饰 ···</p>
+        </div>
+        <div class="card">
+          <div class="icon">🧩</div>
+          <h3>6 类 · 48 种插槽</h3>
+          <p>标题(10) · 引用(8) · 列表(8) · 分隔(8) · 正文(6) · 节标题(6)</p>
+        </div>
+        <div class="card">
+          <div class="icon">🌈</div>
+          <h3>11 套配色方案</h3>
+          <p>8 浅色 + 3 深色 · 奶茶温柔 · 薄荷清新 · 墨夜金字 · 深空科技 ···</p>
+        </div>
+        <div class="card">
+          <div class="icon">✒️</div>
+          <h3>3 种字体气质</h3>
+          <p>现代简约 → 科技 · 文艺优雅 → 散文 · 活泼趣味 → 美食</p>
+        </div>
+      </div>
+      <div class="an grid-3" style="margin-top:12px;">
+        <div class="stat"><div class="num">495+</div><div class="label">排版组合</div></div>
+        <div class="stat"><div class="num">10</div><div class="label">套场景预设</div></div>
+        <div class="stat"><div class="num">20</div><div class="label">品牌预设槽</div></div>
+      </div>
+    </section>
+
+    <!-- 4: 公众号模式 -->
+    <section class="slide">
+      <div class="an split">
+        <div class="split-left">
+          <h2>📝 公众号模式</h2>
+          <p style="margin-top:8px;font-size:14px;">粘贴 Markdown，输出微信兼容的内联 CSS 富文本</p>
+          <div class="flow" style="justify-content:flex-start;">
+            <span class="flow-step">📋 粘贴</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">🪄 整理</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">🎨 AI推荐</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">📎 复制</span>
+          </div>
+          <div class="vlist" style="margin-top:16px;">
+            <div class="vitem"><div class="vi" style="background:rgba(16,185,129,0.15)">🪄</div><span class="vt">纯文本整理</span><span class="vd">粘贴杂乱文本 → 结构化 Markdown</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(79,70,229,0.15)">🤖</div><span class="vt">AI 智能推荐</span><span class="vd">分析文章自动匹配最佳排版</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(245,158,11,0.15)">🎚️</div><span class="vt">滑条微调</span><span class="vd">调"感觉"而不是调参数</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(6,182,212,0.15)">📋</div><span class="vt">一键复制</span><span class="vd">富文本直接粘贴到公众号编辑器</span></div>
+          </div>
+        </div>
+        <div class="split-right" style="display:flex;align-items:center;justify-content:center;">
+          <div style="width:200px;background:#fff;border-radius:8px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <div style="font-size:18px;font-weight:800;color:#8B6914;text-align:center;margin-bottom:8px;border-bottom:2px solid #D4A853;padding-bottom:6px;">如何高效阅读</div>
+            <div style="font-size:10px;color:#555;line-height:1.7;margin-top:6px;">阅读是一种<b>终身学习</b>的方式。掌握正确的阅读方法…</div>
+            <div style="font-size:9px;color:#8B6914;font-weight:700;margin-top:8px;border-left:3px solid #D4A853;padding-left:6px;">选书：找到值得读的书</div>
+            <div style="font-size:9px;color:#666;margin-top:4px;line-height:1.6;">• 看目录，判断结构<br>• 看序言，了解动机<br>• 看评价，但不盲从</div>
+            <div style="margin-top:8px;padding:6px 8px;background:#FFF8E7;border-radius:4px;font-size:8px;color:#8B6914;line-height:1.5;font-style:italic;">一本好书，是作者用几年时间浓缩的思考…</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: 小红书模式 -->
+    <section class="slide">
+      <div class="an split">
+        <div class="split-left">
+          <h2>📸 小红书模式</h2>
+          <p style="margin-top:8px;font-size:14px;">文章自动分页为图片组，一键导出发布小红书</p>
+          <div class="vlist" style="margin-top:14px;">
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">📐</div><span class="vt">双比例</span><span class="vd">3:4 竖屏 / 16:9 横屏</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">🎨</div><span class="vt">独立配色</span><span class="vd">11 套配色方案自由切换</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">📰</div><span class="vt">5 种封面</span><span class="vd">居中 · 左对齐 · 杂志 · 极简 · 引用</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">📦</div><span class="vt">ZIP 打包</span><span class="vd">一键下载全部图片</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">🏗️</div><span class="vt">V2 骨架</span><span class="vd">15 蓝图共享排版系统</span></div>
+          </div>
+        </div>
+        <div class="split-right" style="display:flex;gap:8px;justify-content:center;align-items:center;">
+          <div style="width:90px;height:120px;background:linear-gradient(135deg,#FFF5F5,#FFF0F3);border-radius:6px;padding:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;justify-content:center;align-items:center;">
+            <div style="font-size:10px;font-weight:800;color:#1a1a2e;text-align:center;line-height:1.3;">如何高效<br>阅读一本书</div>
+            <div style="font-size:6px;color:#888;margin-top:4px;">封面</div>
+          </div>
+          <div style="width:90px;height:120px;background:#fff;border-radius:6px;padding:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);font-size:7px;color:#555;line-height:1.5;overflow:hidden;">
+            <div style="font-size:8px;font-weight:700;color:#333;margin-bottom:3px;">选书：找到值得读的书</div>
+            不是所有书都值得从头读到尾…<br>• 看目录<br>• 看序言<br>• 看评价
+          </div>
+          <div style="width:90px;height:120px;background:#fff;border-radius:6px;padding:8px;box-shadow:0 2px 10px rgba(0,0,0,0.2);font-size:7px;color:#555;line-height:1.5;overflow:hidden;">
+            <div style="font-size:8px;font-weight:700;color:#333;margin-bottom:3px;">阅读：主动阅读四步法</div>
+            第一步：略读<br>花15分钟快速翻阅…<br><br>第二步：精读
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6: 信息图模式 -->
+    <section class="slide">
+      <h2 class="an">📊 信息图模式</h2>
+      <p class="an" style="margin-top:6px;">四种类型，编辑数据即可生成精美信息图，导出 1080px PNG</p>
+      <div class="an grid-2" style="margin-top:14px;">
+        <div class="card" style="display:flex;gap:14px;align-items:center;">
+          <div style="font-size:28px;">🔄</div>
+          <div>
+            <h3>流程图</h3>
+            <p>展示步骤流程，适合操作指南、开发流程</p>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:14px;align-items:center;">
+          <div style="font-size:28px;">⚖️</div>
+          <div>
+            <h3>对比表</h3>
+            <p>两方案/产品对比分析，优劣一目了然</p>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:14px;align-items:center;">
+          <div style="font-size:28px;">📌</div>
+          <div>
+            <h3>知识卡片</h3>
+            <p>核心要点、知识总结，适合学习笔记</p>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:14px;align-items:center;">
+          <div style="font-size:28px;">📅</div>
+          <div>
+            <h3>时间线</h3>
+            <p>时间轴发展历程，适合回顾与故事</p>
+          </div>
+        </div>
+      </div>
+      <p class="an small" style="margin-top:12px;text-align:center;color:var(--muted);">
+        所有信息图跟随当前配色方案 · 编辑即预览 · 支持添加/删除条目
+      </p>
+    </section>
+
+    <!-- 7: AI 配图 -->
+    <section class="slide">
+      <h2 class="an">🎨 AI 智能配图</h2>
+      <p class="an" style="margin-top:6px;">场景化模板 + 结构化 Prompt，有没有 API Key 都能用</p>
+      <div class="an split" style="margin-top:14px;">
+        <div class="split-left">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;">5 大场景分类</div>
+          <div class="vlist" style="margin-top:0;">
+            <div class="vitem"><div class="vi" style="background:rgba(79,70,229,0.15)">📰</div><span class="vt">文章配图</span><span class="vd">· 题图 · 段落插图</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(255,36,66,0.1)">📱</div><span class="vt">社交封面</span><span class="vd">· 小红书 · 公众号 · 朋友圈</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(245,158,11,0.15)">👤</div><span class="vt">头像/形象</span><span class="vd">· 卡通头像 · 品牌吉祥物</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(124,58,237,0.15)">🎨</div><span class="vt">海报/卡片</span><span class="vd">· 活动海报 · 节日贺卡</span></div>
+            <div class="vitem"><div class="vi" style="background:rgba(6,182,212,0.15)">📦</div><span class="vt">产品展示</span><span class="vd">· 白底图 · 场景图</span></div>
+          </div>
+        </div>
+        <div class="split-right">
+          <div class="card" style="border:1px solid rgba(79,70,229,0.2);">
+            <div style="font-size:11px;font-weight:600;color:var(--primary-light);margin-bottom:6px;">✨ 无 Key 降级模式</div>
+            <p style="font-size:12px;">没有图片 API Key？<br>系统自动渲染完整 Prompt，<br>一键复制到 Midjourney / DALL-E / 通义万相等任意工具使用。</p>
+          </div>
+          <div style="margin-top:10px;font-size:11px;font-weight:600;color:var(--muted);">支持提供商</div>
+          <div class="provider-grid" style="margin-top:4px;">
+            <span class="provider">🌐 通义万相</span>
+            <span class="provider">🫘 豆包</span>
+            <span class="provider">🤖 DALL-E 3</span>
+            <span class="provider">💎 Gemini</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8: 网页生成 -->
+    <section class="slide">
+      <h2 class="an">🌐 AI 网页生成</h2>
+      <p class="an" style="margin-top:6px;">描述需求 → AI 生成完整 HTML → 实时预览 → 下载部署</p>
+      <div class="an grid-3" style="margin-top:14px;">
+        <div class="card" style="text-align:center;"><div class="icon">👤</div><h3 style="color:var(--green)">个人介绍</h3><p>个人主页<br>一句话建站</p></div>
+        <div class="card" style="text-align:center;"><div class="icon">📄</div><h3 style="color:var(--green)">在线简历</h3><p>专业简历页<br>求职利器</p></div>
+        <div class="card" style="text-align:center;"><div class="icon">🚀</div><h3 style="color:var(--green)">产品落地页</h3><p>功能展示<br>转化引导</p></div>
+        <div class="card" style="text-align:center;"><div class="icon">🎉</div><h3 style="color:var(--green)">活动邀请</h3><p>活动页面<br>报名表单</p></div>
+        <div class="card" style="text-align:center;"><div class="icon">🖼️</div><h3 style="color:var(--green)">作品集</h3><p>设计师<br>创意展示</p></div>
+        <div class="card" style="text-align:center;"><div class="icon">🔗</div><h3 style="color:var(--green)">链接聚合</h3><p>Linktree 式<br>多平台入口</p></div>
+      </div>
+      <p class="an small" style="margin-top:10px;text-align:center;">
+        <span style="color:var(--green)">📖 内嵌 GitHub + Vercel 建站教程</span> · 从零到上线五步搞定
+      </p>
+    </section>
+
+    <!-- 9: 演示稿 + AI 能力 -->
+    <section class="slide">
+      <h2 class="an">🎬 AI 演示稿 & 🤖 AI 矩阵</h2>
+      <div class="an grid-2" style="margin-top:12px;">
+        <div>
+          <div class="card" style="height:100%;">
+            <h3 style="color:var(--purple);margin-bottom:8px;">交互式演示</h3>
+            <div class="vlist" style="margin-top:0;gap:6px;">
+              <div class="vitem" style="font-size:13px;"><span>🖥️</span><span>16:9 比例 · 全屏放映</span></div>
+              <div class="vitem" style="font-size:13px;"><span>⌨️</span><span>键盘导航 · 点击翻页</span></div>
+              <div class="vitem" style="font-size:13px;"><span>✨</span><span>CSS 动画 · 元素依次出现</span></div>
+              <div class="vitem" style="font-size:13px;"><span>📊</span><span>CSS 图表 · 数据可视化</span></div>
+              <div class="vitem" style="font-size:13px;"><span>⬇️</span><span>下载 HTML · 离线可用</span></div>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--muted);">6 种预设：产品介绍 · 工作汇报 · 教学课件 · 方案提案 · 故事叙述 · 数据展示</div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="height:100%;">
+            <h3 style="color:var(--accent);margin-bottom:8px;">11 个 AI 提供商</h3>
+            <div class="provider-grid" style="margin-top:0;">
+              <span class="provider">🌐 通义千问</span>
+              <span class="provider">🔍 DeepSeek</span>
+              <span class="provider">🫘 豆包</span>
+              <span class="provider">🤖 OpenAI</span>
+              <span class="provider">💎 Gemini</span>
+              <span class="provider">🟤 Claude</span>
+              <span class="provider">𝕏 Grok</span>
+              <span class="provider">🌙 Kimi</span>
+              <span class="provider">🧠 智谱</span>
+              <span class="provider">⚡ SiliconFlow</span>
+              <span class="provider">🔧 自定义</span>
+            </div>
+            <div style="margin-top:10px;padding:8px;background:rgba(6,182,212,0.1);border-radius:6px;">
+              <p style="font-size:11px;color:var(--accent);">🔐 自带 API Key 模式<br>浏览器直连提供商，内容不经中间服务器<br>100% 隐私安全</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10: 结尾 -->
+    <section class="slide slide-end">
+      <div class="an" style="font-size:48px;">☁️</div>
+      <h1 class="an" style="font-size:34px;margin-top:8px;">云中谁寄锦书来？</h1>
+      <p class="an" style="margin-top:12px;font-size:16px;">
+        开源免费 · MIT 协议 · React 19 + TypeScript + Vite 6
+      </p>
+      <div class="an grid-3" style="margin-top:24px;max-width:600px;">
+        <div class="stat"><div class="num">6</div><div class="label">创作模式</div></div>
+        <div class="stat"><div class="num">11</div><div class="label">AI 提供商</div></div>
+        <div class="stat"><div class="num">495+</div><div class="label">排版组合</div></div>
+      </div>
+      <div class="an" style="margin-top:24px;">
+        <span class="tag" style="background:rgba(79,70,229,0.2);color:var(--primary-light);font-size:14px;padding:8px 20px;">
+          GitHub: yuanbw2025/yuntype
+        </span>
+      </div>
+      <p class="an" style="margin-top:16px;font-size:12px;color:rgba(255,255,255,0.25);">
+        MCP Server · Prompt Skill · PWA 离线可用 · 移动端适配
+      </p>
+    </section>
+
+    <div class="nav-dots" id="navDots"></div>
+    <div class="page-num" id="pageNum"></div>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const dotsC = document.getElementById('navDots');
+    const pageNum = document.getElementById('pageNum');
+    const progress = document.getElementById('progress');
+    let cur = 0;
+
+    slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (i === 0 ? ' active' : '');
+      d.addEventListener('click', () => go(i));
+      dotsC.appendChild(d);
+    });
+
+    function go(idx) {
+      if (idx < 0 || idx >= slides.length || idx === cur) return;
+      const prev = cur; cur = idx;
+      slides.forEach((s, i) => {
+        s.classList.remove('active', 'prev');
+        if (i === cur) s.classList.add('active');
+        else if (i === prev) s.classList.add('prev');
+      });
+      dotsC.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+      pageNum.textContent = `${cur + 1} / ${slides.length}`;
+      progress.style.width = `${((cur + 1) / slides.length) * 100}%`;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(cur - 1); }
+      else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+    });
+
+    document.querySelector('.deck').addEventListener('click', (e) => {
+      if (e.target.closest('.nav-dots')) return;
+      const r = e.currentTarget.getBoundingClientRect();
+      if (e.clientX - r.left > r.width / 2) go(cur + 1); else go(cur - 1);
+    });
+
+    pageNum.textContent = `1 / ${slides.length}`;
+    progress.style.width = `${(1 / slides.length) * 100}%`;
+  </script>
+</body>
+</html>
