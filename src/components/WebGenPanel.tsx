@@ -65,11 +65,11 @@ export default function WebGenPanel() {
   }, [result?.html])
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div className="panel-split" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       <DeployGuide visible={showGuide} onClose={() => setShowGuide(false)} />
 
       {/* 左栏：需求输入 */}
-      <div style={{
+      <div className="panel-split-left" style={{
         width: '340px', flexShrink: 0,
         background: '#fff', borderRight: `1px solid ${borderColor}`,
         display: 'flex', flexDirection: 'column', overflow: 'hidden',

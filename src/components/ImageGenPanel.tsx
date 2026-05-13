@@ -118,9 +118,9 @@ export default function ImageGenPanel() {
     .every(f => fieldValues[f.key]?.trim())
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div className="panel-split" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       {/* 左栏：模板选择 + 参数输入 */}
-      <div style={{
+      <div className="panel-split-left" style={{
         width: '360px', flexShrink: 0,
         background: '#fff', borderRight: `1px solid ${borderColor}`,
         display: 'flex', flexDirection: 'column', overflow: 'hidden',

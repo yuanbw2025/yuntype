@@ -12,10 +12,10 @@ interface GuideStep {
 }
 
 const steps: GuideStep[] = [
-  { icon: '📝', title: '粘贴文章', desc: '在左侧输入框粘贴你的 Markdown 文章，支持标题、列表、引用等格式。' },
-  { icon: '🎨', title: '选择风格', desc: '在中间面板选择预设风格，或手动调整配色、排版、装饰、字体四个维度。' },
-  { icon: '👀', title: '实时预览', desc: '右侧实时显示排版效果。支持公众号、小红书图片组、信息图三种模式。' },
-  { icon: '📋', title: '一键导出', desc: '复制富文本粘贴到微信公众号，或导出PNG图片用于小红书发帖。' },
+  { icon: '📝', title: '粘贴文章', desc: '在左侧输入框粘贴你的 Markdown 文章，支持标题、列表、引用等格式。也可粘贴纯文本一键整理。' },
+  { icon: '🎨', title: '选择风格', desc: '在中间面板选择预设风格，或手动调整配色、排版、装饰、字体四个维度。支持 AI 一键推荐最佳排版。' },
+  { icon: '👀', title: '六大模式', desc: '公众号排版 · 小红书图片组 · 信息图 · AI 配图 · 网页生成 · 演示稿，点击顶栏切换。' },
+  { icon: '📋', title: '一键导出', desc: '复制富文本到微信，下载小红书图片组，生成网页 HTML，或全屏放映演示稿。' },
 ]
 
 export default function GuideOverlay() {

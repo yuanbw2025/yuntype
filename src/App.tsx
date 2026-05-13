@@ -8,7 +8,6 @@ import ExportPanel from './components/ExportPanel'
 import XiaohongshuPreview from './components/XiaohongshuPreview'
 import InfographicPanel from './components/InfographicPanel'
 import WebGenPanel from './components/WebGenPanel'
-import AIImageDialog from './components/AIImageDialog'
 import ImageGenPanel from './components/ImageGenPanel'
 import PresentationPanel from './components/PresentationPanel'
 import ApiConfigDialog from './components/ApiConfigDialog'
@@ -27,7 +26,6 @@ export default function App() {
     return defaultAtomIdsV2()
   })
   const [mode, setMode] = useState<AppMode>('wechat')
-  const [showAIImage, setShowAIImage] = useState(false)
   const [showApiConfig, setShowApiConfig] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -98,14 +96,6 @@ export default function App() {
       {/* 新手引导 */}
       <GuideOverlay />
 
-      {/* AI 生图对话框 */}
-      <AIImageDialog
-        visible={showAIImage}
-        onClose={() => setShowAIImage(false)}
-        style={finalStyle}
-        selectedText={article.slice(0, 200)}
-      />
-
       {/* AI 文章分析对话框 */}
       <ApiConfigDialog
         visible={showApiConfig}
@@ -166,38 +156,24 @@ export default function App() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* AI 分析按钮 */}
-          <button
-            onClick={() => setShowApiConfig(true)}
-            style={{
-              padding: '5px 12px',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#059669',
-              background: '#ECFDF5',
-              border: '1px solid #05966930',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            🤖 AI分析
-          </button>
-          {/* AI 生图按钮 */}
-          <button
-            onClick={() => setShowAIImage(true)}
-            style={{
-              padding: '5px 12px',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#4F46E5',
-              background: '#EEF0FF',
-              border: '1px solid #4F46E530',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            🎨 AI生图
-          </button>
+          {/* AI 分析按钮 — 仅排版模式下显示 */}
+          {(mode === 'wechat' || mode === 'xiaohongshu') && (
+            <button
+              onClick={() => setShowApiConfig(true)}
+              style={{
+                padding: '5px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#059669',
+                background: '#ECFDF5',
+                border: '1px solid #05966930',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              🤖 AI分析
+            </button>
+          )}
           {/* 深色模式切换 */}
           <button
             onClick={() => setDarkMode(prev => !prev)}
@@ -213,9 +189,11 @@ export default function App() {
           >
             {darkMode ? '☀️' : '🌙'}
           </button>
-          <div style={{ fontSize: '12px', color: '#999' }}>
-            当前: {comboName}
-          </div>
+          {(mode === 'wechat' || mode === 'xiaohongshu') && (
+            <div style={{ fontSize: '12px', color: '#999' }}>
+              当前: {comboName}
+            </div>
+          )}
         </div>
       </header>
 

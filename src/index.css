@@ -126,10 +126,16 @@ body {
     display: none !important;
   }
 
-  /* 模式切换按钮变小 */
+  /* 模式切换按钮：允许滚动 */
+  header > div:nth-child(2) {
+    overflow-x: auto;
+    flex-shrink: 1;
+    -webkit-overflow-scrolling: touch;
+  }
   header > div:nth-child(2) button {
     padding: 4px 8px !important;
     font-size: 11px !important;
+    white-space: nowrap;
   }
 
   /* 右侧按钮组 */
@@ -143,6 +149,19 @@ body {
   }
   header > div:last-child > div:last-child {
     display: none; /* 隐藏"当前: xxx" */
+  }
+
+  /* 双栏面板（网页/配图/演示）→ 纵向堆叠 */
+  .panel-split {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+  .panel-split-left {
+    width: 100% !important;
+    max-height: 45vh;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e5e5;
+    overflow-y: auto !important;
   }
 }
 
