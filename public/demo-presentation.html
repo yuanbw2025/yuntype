@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云中书 YunType — 产品介绍</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --accent: #06B6D4;
+      --bg-dark: #0F172A;
+      --bg-card: #1E293B;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --gradient: linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #000;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .deck {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .slide.prev {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* 入场动画 */
+    .slide.active .anim {
+      animation: fadeUp 0.6s ease forwards;
+      opacity: 0;
+    }
+    .slide.active .anim:nth-child(1) { animation-delay: 0.1s; }
+    .slide.active .anim:nth-child(2) { animation-delay: 0.25s; }
+    .slide.active .anim:nth-child(3) { animation-delay: 0.4s; }
+    .slide.active .anim:nth-child(4) { animation-delay: 0.55s; }
+    .slide.active .anim:nth-child(5) { animation-delay: 0.7s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 文字样式 */
+    h1 { font-size: 42px; font-weight: 800; color: var(--text); line-height: 1.3; }
+    h2 { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    h3 { font-size: 20px; font-weight: 600; color: var(--primary-light); margin-bottom: 8px; }
+    p  { font-size: 18px; color: var(--text-muted); line-height: 1.7; }
+    .highlight { color: var(--accent); font-weight: 600; }
+    .tag {
+      display: inline-block;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 20px;
+      margin: 4px;
+    }
+
+    /* 网格 */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .card .icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .card h3 { margin-bottom: 6px; }
+    .card p  { font-size: 14px; line-height: 1.6; }
+
+    /* 导航指示器 */
+    .nav-dots {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .dot.active {
+      background: var(--primary-light);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    /* 页码 */
+    .page-num {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.25);
+      z-index: 100;
+    }
+
+    /* Slide 1 特殊样式 */
+    .slide-1 {
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 30%, rgba(79,70,229,0.15) 0%, transparent 70%);
+    }
+    .slide-1 .emoji-big { font-size: 64px; margin-bottom: 16px; }
+    .slide-1 h1 { font-size: 48px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .slide-1 .subtitle { font-size: 20px; color: var(--text-muted); margin-top: 12px; }
+    .slide-1 .tags { margin-top: 24px; }
+    .slide-1 .tag { background: rgba(79,70,229,0.15); color: var(--primary-light); }
+
+    /* Slide 5 特殊样式 */
+    .slide-5 {
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 60%, rgba(6,182,212,0.1) 0%, transparent 70%);
+    }
+
+    /* 进度条 */
+    .progress {
+      position: absolute;
+      top: 0; left: 0;
+      height: 3px;
+      background: var(--gradient);
+      transition: width 0.5s ease;
+      z-index: 100;
+    }
+
+    /* 统计数字 */
+    .stat { text-align: center; }
+    .stat .num {
+      font-size: 36px;
+      font-weight: 800;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat .label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* 流程 */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      justify-content: center;
+    }
+    .flow-step {
+      background: var(--bg-card);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .flow-arrow { color: var(--primary-light); font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <div class="progress" id="progress"></div>
+
+    <!-- Slide 1: 封面 -->
+    <section class="slide slide-1 active">
+      <div class="anim emoji-big">☁️</div>
+      <h1 class="anim">云中书 YunType</h1>
+      <p class="anim subtitle">AI 驱动的骨架排版引擎 · 百万级组合 · 粘贴即排版</p>
+      <div class="anim tags">
+        <span class="tag">零后端</span>
+        <span class="tag">零账号</span>
+        <span class="tag">零付费墙</span>
+        <span class="tag">开源免费</span>
+      </div>
+    </section>
+
+    <!-- Slide 2: 痛点与方案 -->
+    <section class="slide">
+      <h2 class="anim">🪄 粘贴文章，一键排版</h2>
+      <p class="anim" style="margin-top: 12px; font-size: 16px;">
+        不需要设计能力，不需要开会员。公众号 & 小红书创作者的排版终极方案。
+      </p>
+      <div class="anim flow">
+        <span class="flow-step">📋 粘贴文章</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">🪄 纯文本整理</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">🎨 AI 推荐排版</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">🔧 微调风格</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step">📎 复制 / 📸 下载</span>
+      </div>
+      <div class="anim grid-3" style="margin-top: 32px;">
+        <div class="stat">
+          <div class="num">15</div>
+          <div class="label">骨架蓝图</div>
+        </div>
+        <div class="stat">
+          <div class="num">百万+</div>
+          <div class="label">排版组合</div>
+        </div>
+        <div class="stat">
+          <div class="num">11</div>
+          <div class="label">AI 提供商</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: V2 引擎 -->
+    <section class="slide">
+      <h2 class="anim">🏗️ V2 骨架引擎</h2>
+      <p class="anim" style="margin-top: 8px; font-size: 15px; color: var(--accent);">
+        排版方案 = 骨架蓝图 × 插槽变体 × 配色 × 字体 = 百万级组合
+      </p>
+      <div class="anim grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <div class="icon">📐</div>
+          <h3>15 套骨架蓝图</h3>
+          <p>极简清爽 · 日式留白 · 线条主导 · 卡片模块 · 杂志编辑 · 时间线 ···<br>每套定义独立的页面结构框架</p>
+        </div>
+        <div class="card">
+          <div class="icon">🧩</div>
+          <h3>6 类 · 48 种插槽</h3>
+          <p>标题(10) · 引用(8) · 列表(8) · 分隔(8) · 正文(6) · 节标题(6)<br>独立控制每种元素的视觉表现</p>
+        </div>
+        <div class="card">
+          <div class="icon">🌈</div>
+          <h3>11 套配色方案</h3>
+          <p>8 浅色 + 3 深色<br>奶茶温柔 · 薄荷清新 · 墨夜金字 · 深空科技 ···</p>
+        </div>
+        <div class="card">
+          <div class="icon">✒️</div>
+          <h3>3 种字体气质</h3>
+          <p>现代简约 → 科技商务<br>文艺优雅 → 散文书评<br>活泼趣味 → 美食美妆</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: 四种使用方式 -->
+    <section class="slide">
+      <h2 class="anim">🚀 四种使用方式</h2>
+      <div class="anim grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <div class="icon">📱</div>
+          <h3>在线 Web App</h3>
+          <p>打开浏览器，粘贴文章，选择风格，复制走人。最简单的方式。</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔌</div>
+          <h3>MCP Server</h3>
+          <p>Cline / Claude Code / Cursor 直接调用排版能力，无需额外 API Key。</p>
+        </div>
+        <div class="card">
+          <div class="icon">📜</div>
+          <h3>Prompt Skill</h3>
+          <p>导入到 claude.ai / AI Studio，用订阅额度代替 API Key，画布中实时预览。</p>
+        </div>
+        <div class="card">
+          <div class="icon">🤖</div>
+          <h3>扔给 AI 自行处理</h3>
+          <p>把仓库链接扔给 AI 助手，让它自己读代码、理解逻辑、帮你排版。</p>
+        </div>
+      </div>
+      <p class="anim" style="margin-top: 16px; font-size: 13px; text-align: center; color: var(--text-muted);">
+        覆盖从零代码到深度集成的所有场景
+      </p>
+    </section>
+
+    <!-- Slide 5: 结尾 CTA -->
+    <section class="slide slide-5">
+      <div class="anim emoji-big" style="font-size: 56px;">☁️</div>
+      <h1 class="anim" style="font-size: 36px; margin-top: 8px;">
+        云中谁寄锦书来？
+      </h1>
+      <p class="anim" style="margin-top: 16px; font-size: 18px; color: var(--text-muted);">
+        开源免费 · MIT 协议 · 零门槛使用
+      </p>
+      <div class="anim" style="margin-top: 32px; display: flex; gap: 16px; justify-content: center;">
+        <span class="tag" style="background: rgba(79,70,229,0.2); color: var(--primary-light); font-size: 15px; padding: 8px 20px;">
+          GitHub: yuanbw2025/yuntype
+        </span>
+      </div>
+      <p class="anim" style="margin-top: 20px; font-size: 14px; color: rgba(255,255,255,0.3);">
+        React 19 · TypeScript · Vite 6 · 11 AI Providers · MCP Ready
+      </p>
+    </section>
+
+    <!-- 导航圆点 -->
+    <div class="nav-dots" id="navDots"></div>
+    <div class="page-num" id="pageNum"></div>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('navDots');
+    const pageNum = document.getElementById('pageNum');
+    const progress = document.getElementById('progress');
+    let current = 0;
+
+    // 创建导航圆点
+    slides.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    });
+
+    function goTo(index) {
+      if (index < 0 || index >= slides.length || index === current) return;
+      const prev = current;
+      current = index;
+
+      slides.forEach((s, i) => {
+        s.classList.remove('active', 'prev');
+        if (i === current) s.classList.add('active');
+        else if (i === prev) s.classList.add('prev');
+      });
+
+      // 更新圆点
+      dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === current);
+      });
+
+      // 更新页码和进度条
+      pageNum.textContent = `${current + 1} / ${slides.length}`;
+      progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+    }
+
+    // 键盘导航
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        goTo(current + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        goTo(current - 1);
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    });
+
+    // 点击导航
+    document.querySelector('.deck').addEventListener('click', (e) => {
+      if (e.target.closest('.nav-dots')) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      if (x > rect.width / 2) goTo(current + 1);
+      else goTo(current - 1);
+    });
+
+    // 初始化
+    pageNum.textContent = `1 / ${slides.length}`;
+    progress.style.width = `${(1 / slides.length) * 100}%`;
+  </script>
+</body>
+</html>

@@ -192,7 +192,7 @@ async function callOpenAICompatible(
       model: config.model,
       messages,
       temperature: 0.3,
-      max_tokens: 1024,
+      max_tokens: 4096,
     }),
   })
 
@@ -229,7 +229,7 @@ async function callClaude(
 
   const body: any = {
     model: config.model,
-    max_tokens: 1024,
+    max_tokens: 4096,
     messages: chatMsgs,
   }
   if (systemMsg) {

@@ -7,12 +7,15 @@ import WechatPreview from './components/WechatPreview'
 import ExportPanel from './components/ExportPanel'
 import XiaohongshuPreview from './components/XiaohongshuPreview'
 import InfographicPanel from './components/InfographicPanel'
+import WebGenPanel from './components/WebGenPanel'
 import AIImageDialog from './components/AIImageDialog'
+import ImageGenPanel from './components/ImageGenPanel'
+import PresentationPanel from './components/PresentationPanel'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
 import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 
-type AppMode = 'wechat' | 'xiaohongshu' | 'infographic'
+type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation'
 
 export default function App() {
   const [article, setArticle] = useState('')
@@ -138,6 +141,9 @@ export default function App() {
             { key: 'wechat' as AppMode, label: '📝 公众号', color: '#07C160' },
             { key: 'xiaohongshu' as AppMode, label: '📸 小红书', color: '#FF2442' },
             { key: 'infographic' as AppMode, label: '📊 信息图', color: '#4F46E5' },
+            { key: 'imagegen' as AppMode, label: '🎨 配图', color: '#4F46E5' },
+            { key: 'webpage' as AppMode, label: '🌐 网页', color: '#059669' },
+            { key: 'presentation' as AppMode, label: '🎬 演示', color: '#7C3AED' },
           ]).map(({ key, label, color }, i, arr) => (
             <button
               key={key}
@@ -219,8 +225,8 @@ export default function App() {
         display: 'flex',
         overflow: 'hidden',
       }}>
-        {/* 左栏：文章输入（信息图模式下隐藏） */}
-        {mode !== 'infographic' && (
+        {/* 左栏：文章输入（信息图/网页模式下隐藏） */}
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && (
           <div style={{
             width: '30%',
             minWidth: '280px',
@@ -233,8 +239,8 @@ export default function App() {
           </div>
         )}
 
-        {/* 中栏：风格面板（信息图模式下隐藏） */}
-        {mode !== 'infographic' && (
+        {/* 中栏：风格面板（信息图/网页/配图模式下隐藏） */}
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && (
           <div style={{
             width: '260px',
             flexShrink: 0,
@@ -286,6 +292,15 @@ export default function App() {
           )}
           {mode === 'infographic' && (
             <InfographicPanel style={finalStyle} />
+          )}
+          {mode === 'imagegen' && (
+            <ImageGenPanel />
+          )}
+          {mode === 'webpage' && (
+            <WebGenPanel />
+          )}
+          {mode === 'presentation' && (
+            <PresentationPanel />
           )}
         </div>
       </div>
