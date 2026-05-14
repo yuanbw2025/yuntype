@@ -25,6 +25,9 @@ DUAL_FILES = [
 SINGLE_FILES = [
     "xhs-promo-07.html",
     "xhs-promo-08.html",
+    "xhs-promo-09.html",
+    "xhs-promo-10.html",
+    "xhs-promo-11.html",
 ]
 
 SCALE = 2   # deviceScaleFactor: CSS px → physical 1080x1440

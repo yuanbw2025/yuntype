@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=540">
+<title>云中书 · 第10张 · AI 智能配图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
+  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#7C3AED,#A78BFA,#C4B5FD)}
+  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:8px}
+  .brand{display:flex;align-items:center;gap:6px}
+  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bname{font-size:11px;color:#8A8698;font-weight:500}
+  .head .ey{font-size:9px;font-weight:700;color:#7C3AED;letter-spacing:3px;margin-bottom:2px}
+  .head h1{font-size:30px;font-weight:900;line-height:1.15;color:#1A1A2E}
+  .head h1 b{font-weight:900;background:linear-gradient(135deg,#7C3AED,#A78BFA);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:11px;color:#6B6880;line-height:1.6}
+  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
+  .cats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+  .cat-wide{grid-column:span 2}
+  .cat{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .cat .ci{font-size:16px;flex-shrink:0}
+  .cat .cn{font-size:10px;font-weight:600;color:#2D2A3E}
+  .cat .cd{font-size:8px;color:#8A8698}
+  .providers{display:flex;gap:6px;flex-wrap:wrap}
+  .prov{background:#fff;border:1px solid #E8E4DC;border-radius:20px;padding:5px 12px;font-size:9px;font-weight:500;color:#2D2A3E;display:flex;align-items:center;gap:4px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .prov .dot{width:8px;height:8px;border-radius:50%}
+  .nokey{background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:12px 14px}
+  .nokey-title{font-size:12px;font-weight:700;color:#7C3AED;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+  .nokey-flow{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .nf-step{background:#fff;border:1px solid #E8E4DC;border-radius:6px;padding:6px 10px;text-align:center}
+  .nf-step .ni{font-size:14px}
+  .nf-step .nt{font-size:8px;font-weight:600;color:#2D2A3E;margin-top:1px}
+  .nf-arr{font-size:12px;color:#A78BFA;font-weight:700}
+  .nokey-desc{font-size:9px;color:#6B6880;margin-top:6px;line-height:1.5}
+  .mockimg{background:linear-gradient(135deg,#E0E7FF,#C4B5FD,#DDD6FE);border-radius:10px;flex:1;display:flex;align-items:center;justify-content:center;min-height:80px;position:relative;overflow:hidden}
+  .mockimg::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 40%,rgba(124,58,237,.15),transparent 60%),radial-gradient(circle at 70% 60%,rgba(99,102,241,.12),transparent 50%)}
+  .mockimg-text{font-size:11px;color:#7C3AED;font-weight:600;text-align:center;z-index:1}
+  .mockimg-text .big{font-size:32px;display:block;margin-bottom:4px}
+  .tags{display:flex;gap:5px}
+  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
+  .tp{background:#F5F3FF;border:1px solid #DDD6FE;color:#7C3AED}
+  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="page">
+  <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · AI 配图</div></div>
+  <div class="head">
+    <div class="ey">AI IMAGE GENERATOR</div>
+    <h1>选模板 填参数<br><b>三步出图</b></h1>
+  </div>
+  <div class="sub">5 大场景 11 种模板，结构化 Prompt 生图，有没有 API Key 都能用</div>
+  <div>
+    <div class="label">5 大 场 景 分 类</div>
+    <div class="cats">
+      <div class="cat"><div class="ci">🖼️</div><div><div class="cn">文章配图</div><div class="cd">题图·段落插图</div></div></div>
+      <div class="cat"><div class="ci">📱</div><div><div class="cn">社交封面</div><div class="cd">小红书·公众号</div></div></div>
+      <div class="cat"><div class="ci">👤</div><div><div class="cn">头像/形象</div><div class="cd">卡通·品牌吉祥物</div></div></div>
+      <div class="cat"><div class="ci">🎪</div><div><div class="cn">海报/卡片</div><div class="cd">活动海报·节日贺卡</div></div></div>
+      <div class="cat"><div class="ci">📦</div><div><div class="cn">产品展示</div><div class="cd">白底图·场景图</div></div></div>
+    </div>
+  </div>
+  <div>
+    <div class="label">支 持 提 供 商</div>
+    <div class="providers">
+      <div class="prov"><div class="dot" style="background:#6366F1"></div>通义万相</div>
+      <div class="prov"><div class="dot" style="background:#FF6B35"></div>豆包</div>
+      <div class="prov"><div class="dot" style="background:#10B981"></div>DALL-E 3</div>
+      <div class="prov"><div class="dot" style="background:#4285F4"></div>Gemini</div>
+    </div>
+  </div>
+  <div class="nokey">
+    <div class="nokey-title">✨ 无 Key 降级模式</div>
+    <div class="nokey-flow">
+      <div class="nf-step"><div class="ni">📝</div><div class="nt">选模板</div></div>
+      <div class="nf-arr">→</div>
+      <div class="nf-step"><div class="ni">⚙️</div><div class="nt">填参数</div></div>
+      <div class="nf-arr">→</div>
+      <div class="nf-step"><div class="ni">📋</div><div class="nt">复制 Prompt</div></div>
+      <div class="nf-arr">→</div>
+      <div class="nf-step"><div class="ni">🎨</div><div class="nt">任意工具出图</div></div>
+    </div>
+    <div class="nokey-desc">没有图片 API Key？系统自动渲染完整 Prompt，复制到 Midjourney / DALL-E / 通义万相等任意工具使用</div>
+  </div>
+  <div class="mockimg">
+    <div class="mockimg-text"><span class="big">🎨</span>AI 生成效果预览区</div>
+  </div>
+  <div class="tags">
+    <div class="tag tp"># AI配图</div><div class="tag tp"># 结构化Prompt</div><div class="tag tp"># 无门槛</div><div class="tag td"># 云中书</div>
+  </div>
+</div>
+</body>
+</html>

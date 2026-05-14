@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=540">
+<title>云中书 · 第9张 · AI 网页生成</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
+  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#059669,#10B981,#34D399)}
+  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:8px}
+  .brand{display:flex;align-items:center;gap:6px}
+  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bname{font-size:11px;color:#8A8698;font-weight:500}
+  .head .ey{font-size:9px;font-weight:700;color:#059669;letter-spacing:3px;margin-bottom:2px}
+  .head h1{font-size:30px;font-weight:900;line-height:1.15;color:#1A1A2E}
+  .head h1 b{font-weight:900;background:linear-gradient(135deg,#059669,#10B981);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:11px;color:#6B6880;line-height:1.6}
+  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
+  .flow{display:flex;align-items:center;gap:6px;justify-content:center;margin:4px 0}
+  .flow-step{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 14px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .flow-step .ico{font-size:18px;margin-bottom:2px}
+  .flow-step .txt{font-size:10px;font-weight:600;color:#2D2A3E}
+  .flow-arr{font-size:14px;color:#10B981;font-weight:700}
+  .presets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .preset{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .preset .pi{font-size:20px;margin-bottom:3px}
+  .preset .pn{font-size:10px;font-weight:600;color:#2D2A3E}
+  .preset .pd{font-size:8px;color:#8A8698;margin-top:2px}
+  .demo-box{background:#1a1a2e;border-radius:10px;padding:14px 16px;color:#e0e0e0;flex:1;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+  .demo-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#059669,#10B981)}
+  .demo-bar{display:flex;gap:4px;margin-bottom:2px}
+  .demo-dot{width:6px;height:6px;border-radius:50%}
+  .demo-url{background:#2a2a4a;border-radius:4px;padding:3px 8px;font-size:8px;color:#94A3B8;flex:1;margin-left:6px}
+  .demo-title{font-size:14px;font-weight:700;color:#10B981;text-align:center;margin-top:4px}
+  .demo-sub{font-size:9px;color:#94A3B8;text-align:center}
+  .demo-cards{display:flex;gap:6px;margin-top:4px}
+  .demo-card{flex:1;background:#16213e;border-radius:6px;padding:8px;text-align:center}
+  .demo-card .dc-ico{font-size:14px}
+  .demo-card .dc-txt{font-size:8px;color:#94A3B8;margin-top:2px}
+  .tip-box{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:8px 12px;display:flex;gap:8px;align-items:flex-start}
+  .tip-ico{font-size:13px;flex-shrink:0}
+  .tip-text{font-size:10px;color:#065F46;line-height:1.6}
+  .tip-text b{color:#059669;font-weight:600}
+  .tags{display:flex;gap:5px}
+  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
+  .tg{background:#ECFDF5;border:1px solid #A7F3D0;color:#059669}
+  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="page">
+  <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · AI 网页生成</div></div>
+  <div class="head">
+    <div class="ey">AI WEB GENERATOR</div>
+    <h1>一句话<br><b>生成完整网站</b></h1>
+  </div>
+  <div class="sub">描述你的需求，AI 直接生成可部署的网页。个人主页、简历、落地页，10 分钟上线</div>
+  <div>
+    <div class="label">三 步 建 站</div>
+    <div class="flow">
+      <div class="flow-step"><div class="ico">💬</div><div class="txt">描述需求</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step"><div class="ico">🤖</div><div class="txt">AI 生成</div></div>
+      <div class="flow-arr">→</div>
+      <div class="flow-step"><div class="ico">🚀</div><div class="txt">预览部署</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="label">6 种 预 设 模 板</div>
+    <div class="presets">
+      <div class="preset"><div class="pi">🏠</div><div class="pn">个人主页</div><div class="pd">自我介绍</div></div>
+      <div class="preset"><div class="pi">📄</div><div class="pn">在线简历</div><div class="pd">求职展示</div></div>
+      <div class="preset"><div class="pi">🎯</div><div class="pn">落地页</div><div class="pd">产品推广</div></div>
+      <div class="preset"><div class="pi">🖼️</div><div class="pn">作品集</div><div class="pd">设计展示</div></div>
+      <div class="preset"><div class="pi">📰</div><div class="pn">博客</div><div class="pd">内容发布</div></div>
+      <div class="preset"><div class="pi">🎨</div><div class="pn">自由创作</div><div class="pd">自定义</div></div>
+    </div>
+  </div>
+  <div class="demo-box">
+    <div class="demo-bar">
+      <div class="demo-dot" style="background:#FF5F57"></div>
+      <div class="demo-dot" style="background:#FEBC2E"></div>
+      <div class="demo-dot" style="background:#28C840"></div>
+      <div class="demo-url">my-portfolio.vercel.app</div>
+    </div>
+    <div class="demo-title">张三的作品集</div>
+    <div class="demo-sub">UI Designer · 3年经验 · 热爱创造</div>
+    <div class="demo-cards">
+      <div class="demo-card"><div class="dc-ico">🎨</div><div class="dc-txt">品牌设计</div></div>
+      <div class="demo-card"><div class="dc-ico">📱</div><div class="dc-txt">App UI</div></div>
+      <div class="demo-card"><div class="dc-ico">🌐</div><div class="dc-txt">网页设计</div></div>
+      <div class="demo-card"><div class="dc-ico">✏️</div><div class="dc-txt">插画</div></div>
+    </div>
+  </div>
+  <div class="tip-box">
+    <div class="tip-ico">📚</div>
+    <div class="tip-text"><b>内置建站教程</b>，手把手教你用 Vercel / Cloudflare Pages 免费部署，无需服务器。</div>
+  </div>
+  <div class="tags">
+    <div class="tag tg"># AI建站</div><div class="tag tg"># 一句话生成</div><div class="tag tg"># 免费部署</div><div class="tag td"># 云中书</div>
+  </div>
+</div>
+</body>
+</html>

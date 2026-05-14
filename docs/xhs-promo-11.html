@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=540">
+<title>云中书 · 第11张 · AI 演示稿</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:540px;height:720px;overflow:hidden;font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#F5F2ED;color:#2D2A3E}
+  .stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#E11D48,#F43F5E,#FB7185)}
+  .page{padding:20px 24px 16px;height:100%;display:flex;flex-direction:column;gap:8px}
+  .brand{display:flex;align-items:center;gap:6px}
+  .bico{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#E11D48,#F43F5E);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+  .bname{font-size:11px;color:#8A8698;font-weight:500}
+  .head .ey{font-size:9px;font-weight:700;color:#E11D48;letter-spacing:3px;margin-bottom:2px}
+  .head h1{font-size:30px;font-weight:900;line-height:1.15;color:#1A1A2E}
+  .head h1 b{font-weight:900;background:linear-gradient(135deg,#E11D48,#F43F5E);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{font-size:11px;color:#6B6880;line-height:1.6}
+  .label{font-size:9px;font-weight:700;color:#9A96A8;letter-spacing:2px;margin-bottom:4px}
+  .presets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+  .preset{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .preset .pi{font-size:18px;margin-bottom:2px}
+  .preset .pn{font-size:10px;font-weight:600;color:#2D2A3E}
+  .mock-ppt{background:#1a1a2e;border-radius:10px;padding:14px;flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .mock-ppt::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#E11D48,#F43F5E)}
+  .ppt-slide{background:#0F172A;border-radius:6px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;border:1px solid #2a2a4a}
+  .ppt-title{font-size:16px;font-weight:900;color:#F43F5E;margin-bottom:4px}
+  .ppt-sub{font-size:9px;color:#94A3B8;margin-bottom:10px}
+  .ppt-items{display:flex;gap:8px}
+  .ppt-item{background:#1E293B;border-radius:6px;padding:8px 10px;text-align:center;width:72px}
+  .ppt-item .ii{font-size:14px}
+  .ppt-item .it{font-size:8px;color:#94A3B8;margin-top:2px}
+  .ppt-nav{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .ppt-dots{display:flex;gap:4px}
+  .ppt-dot{width:6px;height:6px;border-radius:50%;background:#2a2a4a}
+  .ppt-dot.on{background:#F43F5E;width:16px;border-radius:3px}
+  .ppt-page{font-size:9px;color:#4a4a6a}
+  .features{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .feat{background:#fff;border:1px solid #E8E4DC;border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .feat .fi{font-size:14px;flex-shrink:0}
+  .feat .fn{font-size:10px;font-weight:600;color:#2D2A3E}
+  .feat .fd{font-size:8px;color:#8A8698}
+  .tip-box{background:#FFF1F2;border:1px solid #FECDD3;border-radius:8px;padding:8px 12px;display:flex;gap:8px;align-items:flex-start}
+  .tip-ico{font-size:13px;flex-shrink:0}
+  .tip-text{font-size:10px;color:#9F1239;line-height:1.6}
+  .tip-text b{color:#E11D48;font-weight:600}
+  .tags{display:flex;gap:5px}
+  .tag{padding:4px 10px;border-radius:6px;font-size:9px;font-weight:500}
+  .tr{background:#FFF1F2;border:1px solid #FECDD3;color:#E11D48}
+  .td{background:#F0EDE8;border:1px solid #E0DCD4;color:#8A8698}
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="page">
+  <div class="brand"><div class="bico">✦</div><div class="bname">云中书 · AI 演示稿</div></div>
+  <div class="head">
+    <div class="ey">AI PRESENTATION</div>
+    <h1>输入主题<br><b>秒出幻灯片</b></h1>
+  </div>
+  <div class="sub">交互式演示稿，键盘翻页、全屏放映、动画过渡，告别 PPT 软件</div>
+  <div>
+    <div class="label">6 种 预 设 风 格</div>
+    <div class="presets">
+      <div class="preset"><div class="pi">📦</div><div class="pn">产品介绍</div></div>
+      <div class="preset"><div class="pi">📊</div><div class="pn">工作汇报</div></div>
+      <div class="preset"><div class="pi">📚</div><div class="pn">教学课件</div></div>
+      <div class="preset"><div class="pi">💡</div><div class="pn">方案提案</div></div>
+      <div class="preset"><div class="pi">📖</div><div class="pn">故事叙述</div></div>
+      <div class="preset"><div class="pi">📈</div><div class="pn">数据展示</div></div>
+    </div>
+  </div>
+  <div class="mock-ppt">
+    <div class="ppt-slide">
+      <div class="ppt-title">Q2 产品迭代总结</div>
+      <div class="ppt-sub">2025 年度 · 技术部</div>
+      <div class="ppt-items">
+        <div class="ppt-item"><div class="ii">🚀</div><div class="it">3 个新功能</div></div>
+        <div class="ppt-item"><div class="ii">🐛</div><div class="it">28 个修复</div></div>
+        <div class="ppt-item"><div class="ii">📈</div><div class="it">DAU +45%</div></div>
+        <div class="ppt-item"><div class="ii">⭐</div><div class="it">4.8 评分</div></div>
+      </div>
+    </div>
+    <div class="ppt-nav">
+      <div class="ppt-dots">
+        <div class="ppt-dot on"></div>
+        <div class="ppt-dot"></div>
+        <div class="ppt-dot"></div>
+        <div class="ppt-dot"></div>
+        <div class="ppt-dot"></div>
+      </div>
+      <div class="ppt-page">1 / 5</div>
+    </div>
+  </div>
+  <div>
+    <div class="label">核 心 特 性</div>
+    <div class="features">
+      <div class="feat"><div class="fi">⌨️</div><div><div class="fn">键盘翻页</div><div class="fd">方向键/空格</div></div></div>
+      <div class="feat"><div class="fi">🖥️</div><div><div class="fn">全屏放映</div><div class="fd">按 F 切换</div></div></div>
+      <div class="feat"><div class="fi">✨</div><div><div class="fn">动画过渡</div><div class="fd">渐入/滑动</div></div></div>
+      <div class="feat"><div class="fi">📐</div><div><div class="fn">16:9 比例</div><div class="fd">标准宽屏</div></div></div>
+    </div>
+  </div>
+  <div class="tip-box">
+    <div class="tip-ico">💡</div>
+    <div class="tip-text"><b>用法：</b>选预设 → 输入主题 → 生成 → 全屏放映。生成的 HTML 可下载，离线也能演示。</div>
+  </div>
+  <div class="tags">
+    <div class="tag tr"># AI演示稿</div><div class="tag tr"># 告别PPT</div><div class="tag tr"># 全屏放映</div><div class="tag td"># 云中书</div>
+  </div>
+</div>
+</body>
+</html>
