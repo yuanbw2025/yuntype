@@ -15,12 +15,13 @@ import {
   type AIImageConfig,
 } from '../lib/ai/image-gen'
 
-const accent = '#4F46E5'
-const accentBg = '#EEF0FF'
-const accentBorder = '#C7D2FE'
-const borderColor = '#e8e8e8'
-const textColor = '#333'
-const mutedColor = '#888'
+import { APIConfigForm } from './APIConfigForm'
+import { theme, accentThemes } from '../lib/theme'
+
+const accent = accentThemes.indigo.accent
+const accentBg = accentThemes.indigo.accentBg
+const accentBorder = accentThemes.indigo.accentBorder
+const { border: borderColor, text: textColor, muted: mutedColor } = theme
 
 interface HistoryItem {
   imageUrl: string
@@ -126,9 +127,14 @@ export default function ImageGenPanel() {
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
       }}>
         {showConfig ? (
-          <ImageConfigPanel
+          <APIConfigForm
+            title="图片生成 API"
+            description="选择图片生成服务并填写 API Key。推荐通义万相或豆包，每张约 ¥0.04。"
             config={config}
-            onSave={handleSaveConfig}
+            providers={providerPresets}
+            accent={accentThemes.indigo}
+            showDescription
+            onSave={(c) => handleSaveConfig(c as AIImageConfig)}
             onCancel={() => config && setShowConfig(false)}
           />
         ) : (
@@ -435,117 +441,3 @@ export default function ImageGenPanel() {
   )
 }
 
-// ═══════════════════════════════════════
-//  图片 API 配置子组件
-// ═══════════════════════════════════════
-
-function ImageConfigPanel({
-  config,
-  onSave,
-  onCancel,
-}: {
-  config: AIImageConfig | null
-  onSave: (c: AIImageConfig) => void
-  onCancel: () => void
-}) {
-  const [provider, setProvider] = useState<AIImageConfig['provider']>(config?.provider || 'qwen')
-  const [apiKey, setApiKey] = useState(config?.apiKey || '')
-  const [baseUrl, setBaseUrl] = useState(config?.baseUrl || providerPresets[0].baseUrl)
-  const [model, setModel] = useState(config?.model || providerPresets[0].defaultModel)
-
-  const handleProviderChange = (id: AIImageConfig['provider']) => {
-    setProvider(id)
-    const preset = providerPresets.find(p => p.id === id)
-    if (preset) {
-      setBaseUrl(preset.baseUrl)
-      setModel(preset.defaultModel)
-    }
-  }
-
-  return (
-    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
-      <div style={{ fontSize: '14px', fontWeight: 700, color: textColor }}>
-        ⚙ 图片生成 API
-      </div>
-      <div style={{ fontSize: '11px', color: mutedColor, lineHeight: 1.5 }}>
-        选择图片生成服务并填写 API Key。推荐通义万相或豆包，每张约 ¥0.04。
-      </div>
-
-      <div>
-        <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '6px' }}>提供商</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-          {providerPresets.map(p => (
-            <button
-              key={p.id}
-              onClick={() => handleProviderChange(p.id as AIImageConfig['provider'])}
-              style={{
-                padding: '8px', fontSize: '11px',
-                background: provider === p.id ? accentBg : '#f8f8f8',
-                border: `1px solid ${provider === p.id ? accentBorder : '#eee'}`,
-                borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
-                color: provider === p.id ? accent : '#555',
-              }}
-            >
-              <div>{p.icon} {p.name}</div>
-              <div style={{ fontSize: '10px', color: mutedColor, marginTop: '2px' }}>{p.description}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '4px' }}>API Key</div>
-        <input
-          value={apiKey}
-          onChange={e => setApiKey(e.target.value)}
-          type="password"
-          placeholder="填入你的 API Key"
-          style={{
-            width: '100%', padding: '8px 10px', fontSize: '12px',
-            border: `1px solid ${borderColor}`, borderRadius: '6px',
-            outline: 'none', fontFamily: 'monospace',
-          }}
-        />
-      </div>
-
-      <div>
-        <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '4px' }}>模型</div>
-        <input
-          value={model}
-          onChange={e => setModel(e.target.value)}
-          placeholder="模型名称"
-          style={{
-            width: '100%', padding: '8px 10px', fontSize: '12px',
-            border: `1px solid ${borderColor}`, borderRadius: '6px',
-            outline: 'none',
-          }}
-        />
-      </div>
-
-      <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-        <button
-          onClick={onCancel}
-          style={{
-            flex: 1, padding: '8px', fontSize: '12px',
-            background: '#f0f0f0', border: 'none',
-            borderRadius: '6px', cursor: 'pointer', color: '#666',
-          }}
-        >
-          取消
-        </button>
-        <button
-          onClick={() => onSave({ provider, apiKey, baseUrl, model })}
-          disabled={!apiKey.trim()}
-          style={{
-            flex: 1, padding: '8px', fontSize: '12px', fontWeight: 600,
-            background: apiKey.trim() ? accent : '#ccc',
-            color: '#fff', border: 'none',
-            borderRadius: '6px', cursor: apiKey.trim() ? 'pointer' : 'default',
-          }}
-        >
-          保存
-        </button>
-      </div>
-    </div>
-  )
-}

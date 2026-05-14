@@ -209,11 +209,14 @@ async function generateImageGemini(
   config: AIImageConfig,
   prompt: string,
 ): Promise<ImageGenResult> {
-  const url = `${config.baseUrl.replace(/\/+$/, '')}/models/${config.model}:generateContent?key=${config.apiKey}`
+  const url = `${config.baseUrl.replace(/\/+$/, '')}/models/${config.model}:generateContent`
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify({
       contents: [{ parts: [{ text: `Generate an image: ${prompt}` }] }],
       generationConfig: {

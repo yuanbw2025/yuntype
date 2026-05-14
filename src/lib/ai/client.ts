@@ -269,9 +269,8 @@ async function callGemini(
   config: AIClientConfig,
   messages: ChatMessage[],
 ): Promise<ChatResponse> {
-  const url = `${config.baseUrl.replace(/\/$/, '')}/models/${config.model}:generateContent?key=${config.apiKey}`
+  const url = `${config.baseUrl.replace(/\/$/, '')}/models/${config.model}:generateContent`
 
-  // 将 ChatMessage 转为 Gemini 格式
   const systemMsg = messages.find(m => m.role === 'system')
   const userMsgs = messages.filter(m => m.role !== 'system')
 
@@ -280,14 +279,17 @@ async function callGemini(
     parts: [{ text: m.content }],
   }))
 
-  const body: any = { contents }
+  const body: Record<string, unknown> = { contents }
   if (systemMsg) {
     body.systemInstruction = { parts: [{ text: systemMsg.content }] }
   }
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify(body),
   })
 

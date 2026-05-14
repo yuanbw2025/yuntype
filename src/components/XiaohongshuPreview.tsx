@@ -1,6 +1,6 @@
 // 小红书预览组件 — 缩略图网格 + 大图预览
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { splitToPagesV2, renderXhsPageV2, XHS_PRESETS, type XhsConfig, type PageTemplateType } from '../lib/render/xiaohongshu'
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
 import type { StyleComboV2, AtomIdsV2 } from '../lib/atoms'
@@ -46,7 +46,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
   }, [markdown, config, style])
 
   // 页面排序 + 模板覆盖：当原始页面变化时重置
-  useMemo(() => {
+  useEffect(() => {
     setPageOrder(rawPages.map((_, i) => i))
     setTemplateOverrides({})
     setShowTemplatePicker(false)
@@ -96,7 +96,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
     try {
       await exportAllPagesAsZip(pagesWithOverrides, style, config, (p) => setProgress(p))
     } catch (e) {
-      console.error('导出失败:', e)
+      alert('导出失败: ' + (e instanceof Error ? e.message : '未知错误'))
     } finally {
       setExporting(false)
     }
@@ -109,7 +109,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
     try {
       await downloadSinglePage(page, style, config)
     } catch (e) {
-      console.error('下载失败:', e)
+      alert('下载失败: ' + (e instanceof Error ? e.message : '未知错误'))
     } finally {
       setExporting(false)
     }

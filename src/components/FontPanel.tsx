@@ -53,7 +53,7 @@ export default function FontPanel({ onFontChange }: FontPanelProps) {
         await loadFont(fontId)
         forceUpdate(n => n + 1)
       } catch (e) {
-        console.error(e)
+        alert('字体加载失败: ' + (e instanceof Error ? e.message : '未知错误'))
       } finally {
         setLoadingId(null)
       }

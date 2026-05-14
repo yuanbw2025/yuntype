@@ -17,10 +17,9 @@ interface InfographicPanelProps {
   style: StyleComboV2
 }
 
-const activeColor = '#4F46E5'
-const borderColor = '#E8E8E8'
-const textColor = '#333'
-const mutedColor = '#888'
+import { theme } from '../lib/theme'
+const activeColor = theme.accent
+const { border: borderColor, text: textColor, muted: mutedColor } = theme
 
 export default function InfographicPanel({ style }: InfographicPanelProps) {
   const templates = useMemo(() => getInfographicTemplates(), [])
@@ -87,7 +86,7 @@ export default function InfographicPanel({ style }: InfographicPanelProps) {
         URL.revokeObjectURL(url)
       }, 'image/png', 1.0)
     } catch (e) {
-      console.error('导出信息图失败:', e)
+      alert('导出信息图失败: ' + (e instanceof Error ? e.message : '未知错误'))
     } finally {
       setExporting(false)
     }

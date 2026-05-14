@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { isGuideDone, markGuideDone } from '../lib/storage'
 
-const activeColor = '#4F46E5'
+import { theme } from '../lib/theme'
+const activeColor = theme.accent
 
 interface GuideStep {
   icon: string

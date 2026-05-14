@@ -36,9 +36,10 @@ const SLOT_LABELS: { key: SlotType; label: string; icon: string }[] = [
 // ═══════════════════════════════════════
 //  样式常量
 // ═══════════════════════════════════════
-const activeColor = '#4F46E5'
+import { theme } from '../lib/theme'
+const activeColor = theme.accent
 const mutedColor = '#999'
-const borderColor = '#e5e5e5'
+const borderColor = theme.border
 const cardBg = '#fff'
 
 export default function LayoutPanel({ atomIdsV2, onChange, onShuffle, article }: Props) {
