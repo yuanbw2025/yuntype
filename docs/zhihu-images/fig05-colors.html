@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 — 11套配色 × 3种字体</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 40%, #302b63 70%, #24243e 100%);
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+}
+.glow-a { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(251,146,60,0.12) 0%, transparent 70%); top: -150px; right: -50px; }
+.glow-b { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); bottom: -100px; left: -50px; }
+
+.header { margin-top: 28px; text-align: center; z-index: 10; }
+.header .tag { display: inline-block; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(251,146,60,0.2); color: #FDBA74; border: 1px solid rgba(251,146,60,0.3); margin-bottom: 8px; }
+.header h1 { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+.header h1 em { font-style: normal; background: linear-gradient(90deg, #FDBA74, #F472B6, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 15px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+
+.main { display: flex; gap: 24px; margin-top: 20px; padding: 0 40px; z-index: 10; width: 100%; }
+
+/* 配色网格 */
+.colors-section { flex: 1; }
+.colors-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 2px; margin-bottom: 10px; }
+.color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.color-card {
+  border-radius: 10px; padding: 10px; text-align: center;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+}
+.color-card.active { border-color: rgba(255,255,255,0.3); box-shadow: 0 0 12px rgba(255,255,255,0.1); }
+.color-name { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+.color-dots { display: flex; gap: 3px; justify-content: center; margin-bottom: 4px; }
+.cd { width: 12px; height: 12px; border-radius: 50%; }
+.color-preview { height: 32px; border-radius: 6px; margin-top: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 600; }
+
+/* 字体区 */
+.fonts-section { width: 340px; }
+.fonts-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 2px; margin-bottom: 10px; }
+.font-card {
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+}
+.font-card.active { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.1); }
+.font-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.font-name { font-size: 13px; font-weight: 700; color: #fff; }
+.font-tag { font-size: 9px; padding: 2px 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+.font-tag.on { background: rgba(139,92,246,0.3); color: #C4B5FD; }
+.font-sample-h { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.font-sample-p { font-size: 11px; line-height: 1.6; color: rgba(255,255,255,0.4); }
+
+/* 底部对比条 */
+.compare-strip {
+  position: absolute; bottom: 16px; z-index: 10;
+  display: flex; gap: 8px; padding: 0 40px; width: 100%;
+}
+.cmp-card {
+  flex: 1; border-radius: 8px; padding: 8px 10px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.cmp-label { font-size: 8px; color: rgba(255,255,255,0.3); margin-bottom: 4px; text-align: center; }
+.cmp-title { font-size: 10px; font-weight: 600; text-align: center; margin-bottom: 2px; }
+.cmp-text { font-size: 7px; line-height: 1.6; text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow-a"></div><div class="glow-b"></div>
+
+  <div class="header">
+    <div class="tag">🎨 视觉系统</div>
+    <h1><em>11 套配色 × 3 种字体</em>，专业调色不翻车</h1>
+    <p>每套配色包含主色、背景、标题、正文、引用、强调、装饰 7 个色值，确保和谐统一</p>
+  </div>
+
+  <div class="main">
+    <!-- 配色网格 -->
+    <div class="colors-section">
+      <div class="colors-label">▼ 11 套精调配色方案</div>
+      <div class="color-grid">
+        <div class="color-card active">
+          <div class="color-name">☕ 暖沙</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#D4A574"></div>
+            <div class="cd" style="background:#FFF8F0"></div>
+            <div class="cd" style="background:#8B6914"></div>
+            <div class="cd" style="background:#5C4A32"></div>
+          </div>
+          <div class="color-preview" style="background:#FFF8F0; color:#D4A574;">温暖自然</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🌿 薄荷</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#6BC4A6"></div>
+            <div class="cd" style="background:#F0FBF7"></div>
+            <div class="cd" style="background:#2D7A5F"></div>
+            <div class="cd" style="background:#3A5A4A"></div>
+          </div>
+          <div class="color-preview" style="background:#F0FBF7; color:#6BC4A6;">清新淡雅</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🌸 珊瑚</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#F28B82"></div>
+            <div class="cd" style="background:#FFF5F5"></div>
+            <div class="cd" style="background:#C0392B"></div>
+            <div class="cd" style="background:#5A3A3A"></div>
+          </div>
+          <div class="color-preview" style="background:#FFF5F5; color:#F28B82;">温柔甜美</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🪨 烟灰</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#9AA0A6"></div>
+            <div class="cd" style="background:#F8F9FA"></div>
+            <div class="cd" style="background:#5F6368"></div>
+            <div class="cd" style="background:#3C4043"></div>
+          </div>
+          <div class="color-preview" style="background:#F8F9FA; color:#9AA0A6;">高级灰调</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">💜 紫藤</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#B39DDB"></div>
+            <div class="cd" style="background:#F5F0FF"></div>
+            <div class="cd" style="background:#7E57C2"></div>
+            <div class="cd" style="background:#4A3A6A"></div>
+          </div>
+          <div class="color-preview" style="background:#F5F0FF; color:#B39DDB;">梦幻优雅</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🌊 远山蓝</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#81B1D4"></div>
+            <div class="cd" style="background:#F0F6FB"></div>
+            <div class="cd" style="background:#3A7BBF"></div>
+            <div class="cd" style="background:#2C4A6A"></div>
+          </div>
+          <div class="color-preview" style="background:#F0F6FB; color:#81B1D4;">沉稳理性</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🌻 暖阳</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#FDD835"></div>
+            <div class="cd" style="background:#FFFDE7"></div>
+            <div class="cd" style="background:#F9A825"></div>
+            <div class="cd" style="background:#5D4E37"></div>
+          </div>
+          <div class="color-preview" style="background:#FFFDE7; color:#F9A825;">活力明亮</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🌺 樱花</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#F48FB1"></div>
+            <div class="cd" style="background:#FFF0F5"></div>
+            <div class="cd" style="background:#E91E63"></div>
+            <div class="cd" style="background:#5A2A3A"></div>
+          </div>
+          <div class="color-preview" style="background:#FFF0F5; color:#F48FB1;">浪漫少女</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🔷 靛蓝</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#5C6BC0"></div>
+            <div class="cd" style="background:#E8EAF6"></div>
+            <div class="cd" style="background:#3F51B5"></div>
+            <div class="cd" style="background:#1A237E"></div>
+          </div>
+          <div class="color-preview" style="background:#E8EAF6; color:#5C6BC0;">商务专业</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🍁 焦糖</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#D4A574"></div>
+            <div class="cd" style="background:#FAF3EB"></div>
+            <div class="cd" style="background:#A0522D"></div>
+            <div class="cd" style="background:#4A3728"></div>
+          </div>
+          <div class="color-preview" style="background:#FAF3EB; color:#A0522D;">复古文艺</div>
+        </div>
+        <div class="color-card">
+          <div class="color-name">🖤 暗夜</div>
+          <div class="color-dots">
+            <div class="cd" style="background:#BB86FC"></div>
+            <div class="cd" style="background:#121212"></div>
+            <div class="cd" style="background:#03DAC6"></div>
+            <div class="cd" style="background:#E0E0E0"></div>
+          </div>
+          <div class="color-preview" style="background:#1E1E2E; color:#BB86FC;">暗黑模式</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 字体区 -->
+    <div class="fonts-section">
+      <div class="fonts-label">▼ 3 种字体方案</div>
+      <div class="font-card active">
+        <div class="font-header">
+          <div class="font-name">F1 · 现代无衬线</div>
+          <div class="font-tag on">默认</div>
+        </div>
+        <div class="font-sample-h" style="color: #fff;">如何高效阅读一本书</div>
+        <div class="font-sample-p">系统默认无衬线字体，清晰易读，适合大多数文章类型。在各平台显示一致。</div>
+      </div>
+      <div class="font-card">
+        <div class="font-header">
+          <div class="font-name">F2 · 文艺衬线</div>
+          <div class="font-tag">优雅</div>
+        </div>
+        <div class="font-sample-h" style="color: #fff; font-family: Georgia, 'Noto Serif SC', serif;">如何高效阅读一本书</div>
+        <div class="font-sample-p" style="font-family: Georgia, 'Noto Serif SC', serif;">衬线字体带来书卷气息，适合文学、历史、哲学类深度文章。</div>
+      </div>
+      <div class="font-card">
+        <div class="font-header">
+          <div class="font-name">F3 · 活泼圆体</div>
+          <div class="font-tag">可爱</div>
+        </div>
+        <div class="font-sample-h" style="color: #fff; font-family: 'Comic Sans MS', 'PingFang SC', sans-serif; letter-spacing: 1px;">如何高效阅读一本书</div>
+        <div class="font-sample-p" style="font-family: 'Comic Sans MS', 'PingFang SC', sans-serif;">圆润可爱的字体风格，适合生活分享、美食、亲子类轻松内容。</div>
+      </div>
+
+      <div style="margin-top: 12px; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+        <div style="font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.6;">
+          💡 <strong style="color: rgba(255,255,255,0.7);">每套配色 × 每种字体都经过调试</strong><br>
+          确保标题/正文/引用/强调的对比度、可读性、以及整体和谐度。不是随意排列组合，而是<strong style="color: #C4B5FD;">精心验证的 33 种基础搭配</strong>。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

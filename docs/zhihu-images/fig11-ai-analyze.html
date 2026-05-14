@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 YunType — AI 智能加持</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.canvas {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 35%, #302b63 70%, #24243e 100%);
+  overflow: hidden; padding: 32px 48px;
+}
+/* 背景光效 */
+.glow1 { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%); top: -120px; right: 80px; }
+.glow2 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%); bottom: -100px; left: -40px; }
+.glow3 { position: absolute; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%); top: 40%; left: 55%; }
+
+/* 头部 */
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; position: relative; z-index: 10; }
+.tag { padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(16,185,129,0.2); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.3); }
+.title { font-size: 32px; font-weight: 800; color: #fff; letter-spacing: 1px; }
+.title em { font-style: normal; background: linear-gradient(90deg, #34D399, #6EE7B7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+/* 两大区块 */
+.content { display: flex; gap: 28px; position: relative; z-index: 10; }
+.section { flex: 1; }
+.section-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.section-title .icon { font-size: 20px; }
+.section-title .line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.15), transparent); }
+
+/* AI分析卡片 */
+.analysis-card {
+  background: rgba(255,255,255,0.06); border-radius: 14px; padding: 18px;
+  border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+  margin-bottom: 14px;
+}
+.analysis-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.analysis-badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; background: rgba(16,185,129,0.15); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.2); }
+.analysis-desc { font-size: 12px; color: rgba(255,255,255,0.45); }
+
+/* 模拟分析结果 */
+.result-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.result-label { font-size: 11px; color: rgba(255,255,255,0.5); width: 56px; text-align: right; flex-shrink: 0; }
+.result-bar-bg { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.result-bar { height: 100%; border-radius: 3px; }
+.result-val { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); width: 36px; }
+
+.recommend-box {
+  background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px;
+  padding: 10px 14px; margin-top: 10px;
+}
+.recommend-title { font-size: 11px; color: #6EE7B7; font-weight: 600; margin-bottom: 6px; }
+.recommend-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.recommend-pill { padding: 3px 8px; border-radius: 4px; font-size: 10px; background: rgba(16,185,129,0.15); color: #A7F3D0; border: 1px solid rgba(16,185,129,0.2); }
+
+/* 9大提供商 */
+.providers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+.provider {
+  padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 500;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 5px;
+}
+.provider .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* AI生图区 */
+.gen-card {
+  background: rgba(255,255,255,0.06); border-radius: 14px; padding: 18px;
+  border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+  margin-bottom: 14px;
+}
+.gen-providers { display: flex; gap: 8px; margin-bottom: 14px; }
+.gen-provider {
+  flex: 1; padding: 10px; border-radius: 10px; text-align: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.gen-provider .emoji { font-size: 22px; margin-bottom: 4px; }
+.gen-provider .name { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
+.gen-provider.active { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.3); }
+.gen-provider.active .name { color: #C4B5FD; }
+
+/* 模拟生图 */
+.gen-mockup { display: flex; gap: 10px; }
+.gen-img {
+  flex: 1; height: 100px; border-radius: 10px; position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.gen-img .placeholder { font-size: 28px; opacity: 0.6; }
+.gen-img .label { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 9px; color: rgba(255,255,255,0.6); }
+
+/* 隐私提示 */
+.privacy-bar {
+  position: absolute; bottom: 22px; left: 48px; right: 48px; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+}
+.privacy-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.5); }
+.privacy-item .icon { font-size: 14px; }
+.privacy-item em { font-style: normal; color: #6EE7B7; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="glow1"></div><div class="glow2"></div><div class="glow3"></div>
+
+  <!-- 头部 -->
+  <div class="header">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div class="tag">图10 · AI 功能</div>
+      </div>
+      <div class="title">🤖 AI 智能加持：<em>分析 + 生图</em></div>
+    </div>
+    <div class="subtitle">无需AI也能用 · 有AI更智能</div>
+  </div>
+
+  <div class="content">
+    <!-- 左：AI智能分析 -->
+    <div class="section">
+      <div class="section-title">
+        <span class="icon">🧠</span> AI 智能分析
+        <span class="line"></span>
+      </div>
+      <div class="analysis-card">
+        <div class="analysis-header">
+          <div class="analysis-badge">✨ 深度分析结果</div>
+          <div class="analysis-desc">基于文章内容自动推荐最佳排版</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">文章类型</div>
+          <div class="result-bar-bg"><div class="result-bar" style="width:85%;background:linear-gradient(90deg,#34D399,#6EE7B7)"></div></div>
+          <div class="result-val">教程</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">语气风格</div>
+          <div class="result-bar-bg"><div class="result-bar" style="width:72%;background:linear-gradient(90deg,#818CF8,#A5B4FC)"></div></div>
+          <div class="result-val">专业</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">信息密度</div>
+          <div class="result-bar-bg"><div class="result-bar" style="width:90%;background:linear-gradient(90deg,#F472B6,#F9A8D4)"></div></div>
+          <div class="result-val">高</div>
+        </div>
+        <div class="result-row">
+          <div class="result-label">受众画像</div>
+          <div class="result-bar-bg"><div class="result-bar" style="width:65%;background:linear-gradient(90deg,#FBBF24,#FDE68A)"></div></div>
+          <div class="result-val">技术</div>
+        </div>
+        <div class="recommend-box">
+          <div class="recommend-title">🎯 推荐组合</div>
+          <div class="recommend-pills">
+            <div class="recommend-pill">📝 极简清爽</div>
+            <div class="recommend-pill">🔘 烟灰高级</div>
+            <div class="recommend-pill">F1 现代简约</div>
+            <div class="recommend-pill">色块标签标题</div>
+            <div class="recommend-pill">左竖线引用</div>
+          </div>
+        </div>
+      </div>
+      <!-- 9大提供商 -->
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px;font-weight:600;">支持 9 大 AI 提供商</div>
+      <div class="providers-grid">
+        <div class="provider"><div class="dot" style="background:#6EE7B7"></div>通义千问</div>
+        <div class="provider"><div class="dot" style="background:#818CF8"></div>DeepSeek</div>
+        <div class="provider"><div class="dot" style="background:#F472B6"></div>豆包</div>
+        <div class="provider"><div class="dot" style="background:#60A5FA"></div>OpenAI</div>
+        <div class="provider"><div class="dot" style="background:#FBBF24"></div>Gemini</div>
+        <div class="provider"><div class="dot" style="background:#A78BFA"></div>Kimi</div>
+        <div class="provider"><div class="dot" style="background:#34D399"></div>智谱GLM</div>
+        <div class="provider"><div class="dot" style="background:#FB923C"></div>SiliconFlow</div>
+        <div class="provider"><div class="dot" style="background:#94A3B8"></div>自定义API</div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3);padding:0 4px;">💡 无 API Key？自动降级为本地关键词分析（基于规则引擎），零成本可用</div>
+    </div>
+
+    <!-- 右：AI生图 -->
+    <div class="section">
+      <div class="section-title">
+        <span class="icon">🎨</span> AI 生图
+        <span class="line"></span>
+      </div>
+      <div class="gen-card">
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px;">描述你想要的配图，AI 直接生成插入文章</div>
+        <!-- 4个提供商 -->
+        <div class="gen-providers">
+          <div class="gen-provider active">
+            <div class="emoji">🎨</div>
+            <div class="name">通义万相</div>
+          </div>
+          <div class="gen-provider">
+            <div class="emoji">🖼️</div>
+            <div class="name">豆包</div>
+          </div>
+          <div class="gen-provider">
+            <div class="emoji">🌀</div>
+            <div class="name">DALL·E</div>
+          </div>
+          <div class="gen-provider">
+            <div class="emoji">✨</div>
+            <div class="name">Gemini</div>
+          </div>
+        </div>
+        <!-- 模拟prompt -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;margin-bottom:14px;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Prompt</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5;">一个人在安静的图书馆阅读，暖黄色灯光，水彩插画风格</div>
+        </div>
+        <!-- 生成结果模拟 -->
+        <div class="gen-mockup">
+          <div class="gen-img" style="background:linear-gradient(135deg,#4a3728,#6b4c3b,#8a6b52);">
+            <div class="placeholder">📖</div>
+            <div class="label">水彩 · 图书馆</div>
+          </div>
+          <div class="gen-img" style="background:linear-gradient(135deg,#2d3a4a,#3d5a6b,#4a7a8a);">
+            <div class="placeholder">🏔️</div>
+            <div class="label">风景 · 山水</div>
+          </div>
+          <div class="gen-img" style="background:linear-gradient(135deg,#3a2d4a,#5a3d6b,#7a4a8a);">
+            <div class="placeholder">🎭</div>
+            <div class="label">抽象 · 创意</div>
+          </div>
+          <div class="gen-img" style="background:linear-gradient(135deg,#4a3a2d,#6b5a3d,#8a7a4a);">
+            <div class="placeholder">🌅</div>
+            <div class="label">日落 · 温暖</div>
+          </div>
+        </div>
+      </div>
+      <!-- 工作流说明 -->
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">📝</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);">输入描述</div>
+        </div>
+        <div style="display:flex;align-items:center;color:rgba(255,255,255,0.2);font-size:16px;">→</div>
+        <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">🤖</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);">AI 生成</div>
+        </div>
+        <div style="display:flex;align-items:center;color:rgba(255,255,255,0.2);font-size:16px;">→</div>
+        <div style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">✅</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);">插入文章</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部隐私条 -->
+  <div class="privacy-bar">
+    <div class="privacy-item"><span class="icon">🔒</span> API Key <em>直连提供商</em>，不经过中间服务器</div>
+    <div class="privacy-item"><span class="icon">🛡️</span> 文章数据<em>纯本地处理</em></div>
+    <div class="privacy-item"><span class="icon">💡</span> 无 API Key 也能用 — <em>本地规则引擎</em>兜底</div>
+  </div>
+</div>
+</body>
+</html>

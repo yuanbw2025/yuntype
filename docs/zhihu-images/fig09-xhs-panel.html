@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>图9：小红书四维度控制面板</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  display: flex; flex-direction: column; align-items: center; padding: 32px 50px;
+  overflow: hidden;
+}
+.glow1 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 70%); top: -80px; right: -40px; }
+.glow2 { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 70%); bottom: -60px; left: 80px; }
+
+.header { z-index: 10; text-align: center; margin-bottom: 28px; }
+.header h2 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.header h2 span { background: linear-gradient(90deg, #F472B6, #FB923C); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+.content { z-index: 10; display: flex; gap: 28px; width: 100%; flex: 1; }
+
+/* 左侧：四维度面板 */
+.panel-left { width: 480px; display: flex; flex-direction: column; gap: 12px; }
+.dim-card {
+  flex: 1; border-radius: 12px; padding: 14px 18px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 14px;
+}
+.dim-icon { font-size: 28px; width: 44px; text-align: center; }
+.dim-info { flex: 1; }
+.dim-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.dim-desc { font-size: 11px; color: rgba(255,255,255,0.4); }
+.dim-options { display: flex; gap: 4px; margin-top: 6px; }
+.dim-opt {
+  padding: 2px 8px; border-radius: 4px; font-size: 10px;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.dim-opt.on { background: rgba(244,114,182,0.3); color: #FBCFE8; border-color: rgba(244,114,182,0.4); }
+
+/* 右侧：小红书页面模拟 */
+.panel-right { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.phone-frame {
+  flex: 1; border-radius: 16px; overflow: hidden;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; flex-direction: column;
+}
+.phone-top { padding: 10px 16px; font-size: 11px; color: rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; }
+.phone-body { flex: 1; display: flex; gap: 8px; padding: 10px; overflow: hidden; }
+
+/* 缩略图 */
+.thumb {
+  width: 90px; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(180deg, #D4A574 0%, #E8C9A0 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px; position: relative;
+}
+.thumb.cover { background: linear-gradient(135deg, #D4A574 0%, #C17F59 100%); }
+.thumb.end { background: linear-gradient(135deg, #A08060 0%, #C9A882 100%); }
+.thumb-label { font-size: 7px; color: rgba(255,255,255,0.7); font-weight: 600; }
+.thumb-title { font-size: 8px; color: #fff; font-weight: 700; text-align: center; margin-top: 2px; }
+.thumb-lines { margin-top: 4px; }
+.thumb-line { height: 2px; background: rgba(255,255,255,0.3); border-radius: 1px; margin-bottom: 2px; }
+
+/* 大图预览 */
+.big-preview {
+  flex: 1; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(180deg, #FFF8F0 0%, #FFF5EB 100%);
+  padding: 16px; display: flex; flex-direction: column;
+}
+.bp-title { font-size: 16px; font-weight: 800; color: #6B3410; text-align: center; margin-bottom: 8px; }
+.bp-line { height: 3px; background: #E8D5C0; border-radius: 2px; margin-bottom: 4px; }
+.bp-line.short { width: 70%; }
+.bp-line.med { width: 85%; }
+.bp-bar { height: 1px; background: #D4A574; margin: 8px auto; width: 40px; }
+.bp-h2 { font-size: 11px; font-weight: 700; color: #6B3410; text-align: center; margin-bottom: 4px; }
+
+/* 底部标注 */
+.bottom-note { z-index: 10; margin-top: 12px; display: flex; gap: 20px; justify-content: center; }
+.note-item { display: flex; align-items: center; gap: 6px; }
+.note-dot { width: 8px; height: 8px; border-radius: 50%; }
+.note-text { font-size: 11px; color: rgba(255,255,255,0.45); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="header">
+    <h2>📸 小红书模式 — <span>四维度</span>控制面板</h2>
+    <p>比例 · 配色 · 字体 · 骨架 —— 四个旋钮，20 万种小红书风格</p>
+  </div>
+
+  <div class="content">
+    <!-- 左：四维度 -->
+    <div class="panel-left">
+      <div class="dim-card">
+        <div class="dim-icon">📐</div>
+        <div class="dim-info">
+          <div class="dim-name">画布比例</div>
+          <div class="dim-desc">适配不同发布场景</div>
+          <div class="dim-options">
+            <div class="dim-opt on">3:4 竖版</div>
+            <div class="dim-opt">1:1 方形</div>
+            <div class="dim-opt">16:9 横版</div>
+          </div>
+        </div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-icon">🎨</div>
+        <div class="dim-info">
+          <div class="dim-name">配色方案</div>
+          <div class="dim-desc">与公众号共享 11 套配色系统</div>
+          <div class="dim-options">
+            <div class="dim-opt on">🍵 奶茶</div>
+            <div class="dim-opt">🌿 薄荷</div>
+            <div class="dim-opt">🍑 蜜桃</div>
+            <div class="dim-opt">🌙 墨夜</div>
+            <div class="dim-opt">+7</div>
+          </div>
+        </div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-icon">🔤</div>
+        <div class="dim-info">
+          <div class="dim-name">字体气质</div>
+          <div class="dim-desc">3 种字体风格适配不同内容调性</div>
+          <div class="dim-options">
+            <div class="dim-opt on">F1 现代</div>
+            <div class="dim-opt">F2 文艺</div>
+            <div class="dim-opt">F3 活泼</div>
+          </div>
+        </div>
+      </div>
+      <div class="dim-card">
+        <div class="dim-icon">🏗️</div>
+        <div class="dim-info">
+          <div class="dim-name">骨架布局</div>
+          <div class="dim-desc">15 种骨架影响内容页结构</div>
+          <div class="dim-options">
+            <div class="dim-opt on">📝 极简</div>
+            <div class="dim-opt">🍵 日式</div>
+            <div class="dim-opt">📦 卡片</div>
+            <div class="dim-opt">📰 杂志</div>
+            <div class="dim-opt">+11</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：模拟 -->
+    <div class="panel-right">
+      <div class="phone-frame">
+        <div class="phone-top">
+          <span>📸 小红书预览</span>
+          <span>3:4 · 奶茶温柔 · F1 现代</span>
+        </div>
+        <div class="phone-body">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div class="thumb cover">
+              <div class="thumb-label">封面</div>
+              <div class="thumb-title">如何高效<br>阅读一本书</div>
+            </div>
+            <div class="thumb">
+              <div class="thumb-label">P2</div>
+              <div class="thumb-lines">
+                <div class="thumb-line" style="width:80%"></div>
+                <div class="thumb-line" style="width:60%"></div>
+                <div class="thumb-line" style="width:90%"></div>
+                <div class="thumb-line" style="width:50%"></div>
+              </div>
+            </div>
+            <div class="thumb">
+              <div class="thumb-label">P3</div>
+              <div class="thumb-lines">
+                <div class="thumb-line" style="width:70%"></div>
+                <div class="thumb-line" style="width:90%"></div>
+                <div class="thumb-line" style="width:60%"></div>
+              </div>
+            </div>
+            <div class="thumb end">
+              <div class="thumb-label">尾页</div>
+              <div class="thumb-title">感谢阅读</div>
+            </div>
+          </div>
+          <div class="big-preview">
+            <div class="bp-title">如何高效阅读一本书</div>
+            <div class="bp-bar"></div>
+            <div class="bp-line"></div>
+            <div class="bp-line med"></div>
+            <div class="bp-line short"></div>
+            <div class="bp-line"></div>
+            <div style="margin-top:8px"></div>
+            <div class="bp-h2">选书：找到值得读的书</div>
+            <div class="bp-line"></div>
+            <div class="bp-line short"></div>
+            <div class="bp-line med"></div>
+            <div style="margin-top:8px"></div>
+            <div class="bp-h2">阅读：主动阅读四步法</div>
+            <div class="bp-line med"></div>
+            <div class="bp-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-note">
+    <div class="note-item"><div class="note-dot" style="background:#F472B6"></div><div class="note-text">自动分页：按画布尺寸智能切分</div></div>
+    <div class="note-item"><div class="note-dot" style="background:#C084FC"></div><div class="note-text">5 种封面变体随机选择</div></div>
+    <div class="note-item"><div class="note-dot" style="background:#60A5FA"></div><div class="note-text">一键 ZIP 打包下载全部图片</div></div>
+  </div>
+</div>
+</body>
+</html>

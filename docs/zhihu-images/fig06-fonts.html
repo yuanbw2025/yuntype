@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>图6：3 种字体气质对照</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  display: flex; flex-direction: column; align-items: center; padding: 36px 60px;
+  overflow: hidden;
+}
+.glow1 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%); top: -100px; left: -50px; }
+.glow2 { position: absolute; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%); bottom: -80px; right: 50px; }
+
+.header { z-index: 10; text-align: center; margin-bottom: 32px; }
+.header h2 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.header h2 span { background: linear-gradient(90deg, #C084FC, #F472B6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+.cards { z-index: 10; display: flex; gap: 24px; width: 100%; }
+.card {
+  flex: 1; border-radius: 16px; overflow: hidden;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+.card-head {
+  padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.card-name { font-size: 18px; font-weight: 700; color: #fff; }
+.card-tag {
+  padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;
+  background: rgba(124,58,237,0.3); color: #D8B4FE; border: 1px solid rgba(124,58,237,0.4);
+}
+.card-body { padding: 20px; }
+
+/* F1 样式 */
+.f1-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1.3; margin-bottom: 10px; }
+.f1-body { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.8; letter-spacing: 0px; }
+.f1-quote { font-size: 12px; color: #A5B4FC; border-left: 3px solid #A5B4FC; padding: 6px 10px; margin-top: 10px; background: rgba(165,180,252,0.06); }
+
+/* F2 样式 */
+.f2-title { font-size: 20px; font-weight: 600; color: #fff; letter-spacing: 3px; line-height: 1.5; margin-bottom: 10px; }
+.f2-body { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 2; letter-spacing: 1px; }
+.f2-quote { font-size: 12px; color: #F9A8D4; border-left: 3px solid #F9A8D4; padding: 6px 10px; margin-top: 10px; background: rgba(249,168,212,0.06); font-style: italic; }
+
+/* F3 样式 */
+.f3-title { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 0px; line-height: 1.2; margin-bottom: 10px; }
+.f3-body { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.7; letter-spacing: 0px; }
+.f3-quote { font-size: 12px; color: #FCD34D; border-left: 3px solid #FCD34D; padding: 6px 10px; margin-top: 10px; background: rgba(252,211,77,0.06); }
+
+.params {
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.param {
+  padding: 3px 8px; border-radius: 4px; font-size: 10px;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+}
+
+.tags-row { z-index: 10; display: flex; gap: 24px; width: 100%; margin-top: 20px; }
+.tag-col { flex: 1; text-align: center; }
+.tag-label { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+.tag-badges { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+.tag-badge { padding: 3px 10px; border-radius: 10px; font-size: 10px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="header">
+    <h2>3 种<span>字体气质</span>，覆盖所有创作场景</h2>
+    <p>同一篇文章，换种字体气质，感觉完全不同</p>
+  </div>
+
+  <div class="cards">
+    <!-- F1 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-name">F1 现代简约</div>
+        <div class="card-tag">科技 / 商务</div>
+      </div>
+      <div class="card-body">
+        <div class="f1-title">如何高效阅读一本书</div>
+        <div class="f1-body">阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。不是所有书都值得读。</div>
+        <div class="f1-quote">一本好书，是浓缩的思考。</div>
+        <div class="params">
+          <div class="param">粗标题 800</div>
+          <div class="param">紧字距 -0.5px</div>
+          <div class="param">行高 1.8</div>
+        </div>
+      </div>
+    </div>
+    <!-- F2 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-name">F2 文艺优雅</div>
+        <div class="card-tag">散文 / 书评</div>
+      </div>
+      <div class="card-body">
+        <div class="f2-title">如何高效阅读一本书</div>
+        <div class="f2-body">阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。不是所有书都值得读。</div>
+        <div class="f2-quote">一本好书，是浓缩的思考。</div>
+        <div class="params">
+          <div class="param">半粗标题 600</div>
+          <div class="param">宽字距 3px</div>
+          <div class="param">行高 2.0</div>
+        </div>
+      </div>
+    </div>
+    <!-- F3 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-name">F3 活泼趣味</div>
+        <div class="card-tag">美食 / 校园</div>
+      </div>
+      <div class="card-body">
+        <div class="f3-title">如何高效阅读一本书</div>
+        <div class="f3-body">阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。不是所有书都值得读。</div>
+        <div class="f3-quote">一本好书，是浓缩的思考。</div>
+        <div class="params">
+          <div class="param">超粗标题 900</div>
+          <div class="param">无字距 0px</div>
+          <div class="param">行高 1.7</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tags-row">
+    <div class="tag-col">
+      <div class="tag-label">适合场景</div>
+      <div class="tag-badges">
+        <div class="tag-badge">技术教程</div>
+        <div class="tag-badge">产品文档</div>
+        <div class="tag-badge">商业分析</div>
+      </div>
+    </div>
+    <div class="tag-col">
+      <div class="tag-label">适合场景</div>
+      <div class="tag-badges">
+        <div class="tag-badge">散文随笔</div>
+        <div class="tag-badge">书评影评</div>
+        <div class="tag-badge">旅行札记</div>
+      </div>
+    </div>
+    <div class="tag-col">
+      <div class="tag-label">适合场景</div>
+      <div class="tag-badges">
+        <div class="tag-badge">美妆测评</div>
+        <div class="tag-badge">美食分享</div>
+        <div class="tag-badge">校园生活</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

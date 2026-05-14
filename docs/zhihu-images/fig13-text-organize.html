@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>图13：纯文本整理 — Before / After</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  display: flex; flex-direction: column; align-items: center; padding: 32px 50px;
+  overflow: hidden;
+}
+.glow1 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,94,0.18) 0%, transparent 70%); top: -80px; left: -30px; }
+.glow2 { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%); bottom: -60px; right: 80px; }
+
+.header { z-index: 10; text-align: center; margin-bottom: 24px; }
+.header h2 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.header h2 span { background: linear-gradient(90deg, #34D399, #60A5FA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+.compare { z-index: 10; display: flex; gap: 0; width: 100%; flex: 1; }
+
+/* Before */
+.side {
+  flex: 1; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+}
+.side-head {
+  padding: 12px 18px; font-size: 13px; font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 8px;
+}
+.side.before .side-head { color: #F87171; }
+.side.after .side-head { color: #34D399; }
+.side-body { flex: 1; padding: 16px 18px; overflow: hidden; }
+
+.before-text {
+  font-size: 12px; color: rgba(255,255,255,0.45); line-height: 2;
+  font-family: 'Menlo', monospace; white-space: pre-wrap;
+}
+
+.after-line { font-size: 12px; line-height: 2; font-family: 'Menlo', monospace; }
+.after-line .h1 { color: #60A5FA; font-weight: 700; }
+.after-line .h2 { color: #A78BFA; font-weight: 700; }
+.after-line .li { color: #34D399; }
+.after-line .qt { color: #FBBF24; }
+.after-line .tx { color: rgba(255,255,255,0.5); }
+
+/* 中间箭头 */
+.arrow-col {
+  width: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  z-index: 10;
+}
+.magic-btn {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, #7C3AED, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+  border: 2px solid rgba(255,255,255,0.15);
+}
+.arrow-label { font-size: 10px; color: rgba(255,255,255,0.4); text-align: center; letter-spacing: 1px; }
+
+/* 底部标签 */
+.features {
+  z-index: 10; margin-top: 16px; display: flex; gap: 16px; justify-content: center;
+}
+.feat-item {
+  padding: 6px 16px; border-radius: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.5);
+}
+.feat-icon { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="header">
+    <h2>🪄 纯文本一键整理 — <span>Before / After</span></h2>
+    <p>粘贴乱糟糟的纯文本，一键变成结构清晰的 Markdown</p>
+  </div>
+
+  <div class="compare">
+    <!-- Before -->
+    <div class="side before">
+      <div class="side-head">❌ Before — 乱糟糟的纯文本</div>
+      <div class="side-body">
+        <div class="before-text">如何高效阅读一本书
+阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。
+一、选书：找到值得读的书
+不是所有书都值得从头读到尾。学会筛选是高效阅读的第一步。
+1. 看目录，判断结构是否清晰
+2. 看序言，了解作者的写作动机
+3. 看评价，但不要被评分绑架
+"一本好书，是浓缩的思考。"
+二、阅读：主动阅读四步法
+带着问题去读比无目的翻页效率高出十倍。
+1. 略读：花15分钟快速翻阅全书框架
+2. 精读：带着问题逐段阅读核心章节
+3. 笔记：用自己的话重新表述关键观点
+4. 回顾：一周后复盘加深记忆
+"阅读的目的不是记住，而是理解。"</div>
+      </div>
+    </div>
+
+    <!-- 箭头 -->
+    <div class="arrow-col">
+      <div class="magic-btn">🪄</div>
+      <div class="arrow-label">一键<br>整理</div>
+    </div>
+
+    <!-- After -->
+    <div class="side after">
+      <div class="side-head">✅ After — 结构化 Markdown</div>
+      <div class="side-body">
+        <div class="after-line"><span class="h1"># 如何高效阅读一本书</span></div>
+        <div class="after-line"><span class="tx">阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="h2">## 一、选书：找到值得读的书</span></div>
+        <div class="after-line"><span class="tx">不是所有书都值得从头读到尾。学会筛选是高效阅读的第一步。</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="li">- 看目录，判断结构是否清晰</span></div>
+        <div class="after-line"><span class="li">- 看序言，了解作者的写作动机</span></div>
+        <div class="after-line"><span class="li">- 看评价，但不要被评分绑架</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="qt">> 一本好书，是浓缩的思考。</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="h2">## 二、阅读：主动阅读四步法</span></div>
+        <div class="after-line"><span class="tx">带着问题去读比无目的翻页效率高出十倍。</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="li">1. 略读：花 15 分钟快速翻阅全书框架</span></div>
+        <div class="after-line"><span class="li">2. 精读：带着问题逐段阅读核心章节</span></div>
+        <div class="after-line"><span class="li">3. 笔记：用自己的话重新表述关键观点</span></div>
+        <div class="after-line"><span class="li">4. 回顾：一周后复盘加深记忆</span></div>
+        <div class="after-line"></div>
+        <div class="after-line"><span class="qt">> 阅读的目的不是记住，而是理解。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feat-item"><span class="feat-icon">📌</span> 自动识别标题（独立短行 / 中文编号）</div>
+    <div class="feat-item"><span class="feat-icon">📋</span> 自动识别列表（数字 / 符号开头）</div>
+    <div class="feat-item"><span class="feat-icon">💬</span> 自动识别引用（引号包裹的段落）</div>
+    <div class="feat-item"><span class="feat-icon">📄</span> 自动段落分隔</div>
+  </div>
+</div>
+</body>
+</html>

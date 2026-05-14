@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>云中书 — 信息图模式</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(160deg, #0f0c29 0%, #1a1145 40%, #302b63 70%, #24243e 100%);
+  display: flex; flex-direction: column; align-items: center; overflow: hidden;
+}
+.glow-a { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%); top: -150px; left: 100px; }
+.glow-b { position: absolute; width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%); bottom: -100px; right: 50px; }
+
+.header { margin-top: 28px; text-align: center; z-index: 10; }
+.header .tag { display: inline-block; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; background: rgba(6,182,212,0.2); color: #67E8F9; border: 1px solid rgba(6,182,212,0.3); margin-bottom: 8px; }
+.header h1 { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: 2px; }
+.header h1 em { font-style: normal; background: linear-gradient(90deg, #67E8F9, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 15px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+
+.templates { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; padding: 0 40px; z-index: 10; width: 100%; }
+
+.tmpl {
+  border-radius: 14px; overflow: hidden;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+}
+.tmpl-header { padding: 10px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.tmpl-emoji { font-size: 20px; }
+.tmpl-name { font-size: 14px; font-weight: 700; color: #fff; }
+.tmpl-desc { font-size: 9px; color: rgba(255,255,255,0.4); }
+.tmpl-body { padding: 12px 14px; min-height: 300px; }
+
+/* 流程图模板 */
+.flow-step { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.flow-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #06B6D4, #818CF8); flex-shrink: 0; }
+.flow-content { flex: 1; }
+.flow-title { font-size: 11px; font-weight: 600; color: #67E8F9; }
+.flow-text { font-size: 8px; color: rgba(255,255,255,0.35); }
+.flow-arrow { text-align: center; color: rgba(255,255,255,0.15); font-size: 10px; margin: 2px 0; padding-left: 8px; }
+
+/* 对比表模板 */
+.compare-table { width: 100%; }
+.ct-row { display: flex; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ct-row:first-child { border-bottom: 1px solid rgba(255,255,255,0.1); }
+.ct-cell { flex: 1; padding: 6px 4px; font-size: 9px; text-align: center; }
+.ct-cell:first-child { text-align: left; color: rgba(255,255,255,0.5); }
+.ct-header { font-weight: 700; color: rgba(255,255,255,0.6); font-size: 10px; }
+.ct-good { color: #6EE7B7; }
+.ct-bad { color: #FCA5A5; }
+.ct-mid { color: #FDE68A; }
+
+/* 知识卡片模板 */
+.know-card { padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px; }
+.know-icon { font-size: 20px; text-align: center; margin-bottom: 4px; }
+.know-title { font-size: 11px; font-weight: 700; color: #C084FC; text-align: center; margin-bottom: 3px; }
+.know-text { font-size: 8px; color: rgba(255,255,255,0.35); text-align: center; line-height: 1.5; }
+
+/* 时间线模板 */
+.tl-item { display: flex; gap: 8px; margin-bottom: 10px; position: relative; }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.tl-line { position: absolute; left: 4px; top: 14px; bottom: -8px; width: 2px; background: rgba(255,255,255,0.06); }
+.tl-content { flex: 1; }
+.tl-year { font-size: 10px; font-weight: 700; color: #FDBA74; }
+.tl-text { font-size: 8px; color: rgba(255,255,255,0.35); line-height: 1.5; }
+
+.bottom { position: absolute; bottom: 18px; z-index: 10; }
+.bottom-text { font-size: 12px; color: rgba(255,255,255,0.35); }
+.bottom-text strong { color: rgba(255,255,255,0.6); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow-a"></div><div class="glow-b"></div>
+
+  <div class="header">
+    <div class="tag">📊 信息图模式</div>
+    <h1><em>4 种信息图模板</em>，数据可视化一键生成</h1>
+    <p>填写结构化数据 → 选模板 → 自动生成信息图，适合知乎/小红书/公众号</p>
+  </div>
+
+  <div class="templates">
+    <!-- 流程图 -->
+    <div class="tmpl">
+      <div class="tmpl-header">
+        <div class="tmpl-emoji">🔄</div>
+        <div><div class="tmpl-name">流程图</div><div class="tmpl-desc">展示步骤、方法论</div></div>
+      </div>
+      <div class="tmpl-body">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content"><div class="flow-title">选书</div><div class="flow-text">看目录+序言，判断价值</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content"><div class="flow-title">略读</div><div class="flow-text">15分钟掌握全书框架</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content"><div class="flow-title">精读</div><div class="flow-text">带着问题逐章深入</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-content"><div class="flow-title">笔记</div><div class="flow-text">用自己的话重新表达</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div class="flow-content"><div class="flow-title">输出</div><div class="flow-text">写文章分享给他人</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 对比表 -->
+    <div class="tmpl">
+      <div class="tmpl-header">
+        <div class="tmpl-emoji">⚖️</div>
+        <div><div class="tmpl-name">对比表</div><div class="tmpl-desc">展示优劣、差异</div></div>
+      </div>
+      <div class="tmpl-body">
+        <div class="compare-table">
+          <div class="ct-row">
+            <div class="ct-cell ct-header">维度</div>
+            <div class="ct-cell ct-header">方案A</div>
+            <div class="ct-cell ct-header">方案B</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">速度</div>
+            <div class="ct-cell ct-good">✓ 快</div>
+            <div class="ct-cell ct-bad">✗ 慢</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">成本</div>
+            <div class="ct-cell ct-bad">✗ 高</div>
+            <div class="ct-cell ct-good">✓ 低</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">质量</div>
+            <div class="ct-cell ct-good">✓ 高</div>
+            <div class="ct-cell ct-mid">○ 中</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">易用性</div>
+            <div class="ct-cell ct-mid">○ 中</div>
+            <div class="ct-cell ct-good">✓ 好</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">扩展性</div>
+            <div class="ct-cell ct-good">✓ 强</div>
+            <div class="ct-cell ct-bad">✗ 弱</div>
+          </div>
+          <div class="ct-row">
+            <div class="ct-cell">社区</div>
+            <div class="ct-cell ct-good">✓ 活跃</div>
+            <div class="ct-cell ct-mid">○ 一般</div>
+          </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 8px; color: rgba(255,255,255,0.3); text-align: center;">自定义行列数 + 颜色标记</div>
+      </div>
+    </div>
+
+    <!-- 知识卡片 -->
+    <div class="tmpl">
+      <div class="tmpl-header">
+        <div class="tmpl-emoji">🃏</div>
+        <div><div class="tmpl-name">知识卡片</div><div class="tmpl-desc">展示概念、要点</div></div>
+      </div>
+      <div class="tmpl-body">
+        <div class="know-card">
+          <div class="know-icon">📖</div>
+          <div class="know-title">略读</div>
+          <div class="know-text">15分钟快速翻阅<br>掌握全书框架</div>
+        </div>
+        <div class="know-card">
+          <div class="know-icon">🔍</div>
+          <div class="know-title">精读</div>
+          <div class="know-text">带着问题逐章深入<br>标记关键段落</div>
+        </div>
+        <div class="know-card">
+          <div class="know-icon">✍️</div>
+          <div class="know-title">笔记</div>
+          <div class="know-text">用自己的话表达<br>建立知识网络</div>
+        </div>
+        <div class="know-card">
+          <div class="know-icon">🔗</div>
+          <div class="know-title">关联</div>
+          <div class="know-text">新旧知识连接<br>形成体系</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 时间线 -->
+    <div class="tmpl">
+      <div class="tmpl-header">
+        <div class="tmpl-emoji">📅</div>
+        <div><div class="tmpl-name">时间线</div><div class="tmpl-desc">展示历程、发展</div></div>
+      </div>
+      <div class="tmpl-body">
+        <div class="tl-item">
+          <div class="tl-dot" style="background: #FF6B6B;"></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-year">阶段一</div><div class="tl-text">接触阅读，培养兴趣。从简单的书籍开始。</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background: #FDBA74;"></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-year">阶段二</div><div class="tl-text">学习方法论，开始有意识地选书和做笔记。</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background: #6EE7B7;"></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-year">阶段三</div><div class="tl-text">建立知识体系，开始跨领域关联阅读。</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background: #67E8F9;"></div>
+          <div class="tl-line"></div>
+          <div class="tl-content"><div class="tl-year">阶段四</div><div class="tl-text">输出倒逼输入，写文章分享读书心得。</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background: #C084FC;"></div>
+          <div class="tl-content"><div class="tl-year">阶段五</div><div class="tl-text">形成自己的阅读哲学，终身学习者。</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="bottom-text">填数据 → 选模板 → 选配色 → <strong>自动生成信息图，可导出为图片</strong></div>
+  </div>
+</div>
+</body>
+</html>

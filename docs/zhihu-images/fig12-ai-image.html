@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>图12：AI 生图 — 4 大模型</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  display: flex; flex-direction: column; align-items: center; padding: 32px 50px;
+  overflow: hidden;
+}
+.glow1 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(251,146,60,0.2) 0%, transparent 70%); top: -80px; right: -30px; }
+.glow2 { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(79,70,229,0.2) 0%, transparent 70%); bottom: -60px; left: 80px; }
+
+.header { z-index: 10; text-align: center; margin-bottom: 28px; }
+.header h2 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.header h2 span { background: linear-gradient(90deg, #FB923C, #F472B6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header p { font-size: 13px; color: rgba(255,255,255,0.45); }
+
+.content { z-index: 10; display: flex; gap: 28px; width: 100%; flex: 1; }
+
+/* 左侧：配置面板 */
+.config-panel {
+  width: 440px; border-radius: 14px; overflow: hidden;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; flex-direction: column;
+}
+.config-head { padding: 14px 18px; font-size: 14px; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 8px; }
+.config-body { flex: 1; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+.field { }
+.field-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.field-select {
+  width: 100%; padding: 8px 12px; border-radius: 8px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+}
+.field-select .arrow { color: rgba(255,255,255,0.3); }
+.field-textarea {
+  width: 100%; padding: 10px 12px; border-radius: 8px; min-height: 70px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6); font-size: 12px; line-height: 1.6;
+}
+.btn-generate {
+  margin-top: auto; padding: 10px; border-radius: 8px; text-align: center;
+  background: linear-gradient(135deg, #7C3AED, #EC4899); color: #fff;
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
+}
+
+/* 右侧：4 大模型卡片 */
+.models { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.model-card {
+  border-radius: 12px; padding: 18px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; flex-direction: column;
+}
+.model-icon { font-size: 32px; margin-bottom: 8px; }
+.model-name { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.model-company { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.model-features { display: flex; flex-wrap: wrap; gap: 4px; }
+.model-feat {
+  padding: 2px 8px; border-radius: 4px; font-size: 9px;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45);
+}
+.model-card.active { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.1); }
+.model-card.active .model-name { color: #D8B4FE; }
+
+.privacy-note {
+  z-index: 10; margin-top: 16px; text-align: center;
+  padding: 8px 20px; border-radius: 8px;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);
+  font-size: 12px; color: rgba(34,197,94,0.8);
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="header">
+    <h2>🎨 AI 生图 — <span>4 大模型</span>直连</h2>
+    <p>描述你想要的配图，AI 直接生成。API Key 直连提供商，数据不经中间服务器。</p>
+  </div>
+
+  <div class="content">
+    <div class="config-panel">
+      <div class="config-head">🎨 AI 生图配置</div>
+      <div class="config-body">
+        <div class="field">
+          <div class="field-label">图片生成模型</div>
+          <div class="field-select">
+            <span>🎨 通义万相 (Wanx)</span>
+            <span class="arrow">▾</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">API Key</div>
+          <div class="field-select">
+            <span style="color:rgba(255,255,255,0.3)">sk-••••••••••••••••</span>
+            <span class="arrow">👁</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">图片描述 Prompt</div>
+          <div class="field-textarea">一杯热气腾腾的拿铁咖啡放在木桌上，旁边是一本翻开的书，午后阳光透过窗户洒落，温暖治愈的氛围</div>
+        </div>
+        <div class="field">
+          <div class="field-label">图片尺寸</div>
+          <div class="field-select">
+            <span>1024 × 1024 (1:1)</span>
+            <span class="arrow">▾</span>
+          </div>
+        </div>
+        <div class="btn-generate">✨ 生成图片</div>
+      </div>
+    </div>
+
+    <div class="models">
+      <div class="model-card active">
+        <div class="model-icon">🎨</div>
+        <div class="model-name">通义万相</div>
+        <div class="model-company">阿里云 · Wanx</div>
+        <div class="model-features">
+          <div class="model-feat">中文理解强</div>
+          <div class="model-feat">国风擅长</div>
+          <div class="model-feat">多尺寸</div>
+        </div>
+      </div>
+      <div class="model-card">
+        <div class="model-icon">🫧</div>
+        <div class="model-name">豆包</div>
+        <div class="model-company">字节跳动 · Doubao</div>
+        <div class="model-features">
+          <div class="model-feat">速度快</div>
+          <div class="model-feat">二次元</div>
+          <div class="model-feat">商业可用</div>
+        </div>
+      </div>
+      <div class="model-card">
+        <div class="model-icon">🌈</div>
+        <div class="model-name">DALL-E 3</div>
+        <div class="model-company">OpenAI</div>
+        <div class="model-features">
+          <div class="model-feat">高质量</div>
+          <div class="model-feat">创意强</div>
+          <div class="model-feat">Prompt增强</div>
+        </div>
+      </div>
+      <div class="model-card">
+        <div class="model-icon">💎</div>
+        <div class="model-name">Gemini Imagen</div>
+        <div class="model-company">Google</div>
+        <div class="model-features">
+          <div class="model-feat">细节精确</div>
+          <div class="model-feat">多语言</div>
+          <div class="model-feat">写实风格</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="privacy-note">
+    🔒 隐私设计：API Key 由浏览器直连 AI 提供商，文章内容和图片描述不经过任何中间服务器
+  </div>
+</div>
+</body>
+</html>

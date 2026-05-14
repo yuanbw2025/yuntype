@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>图2：三栏工作台示意</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 1200px; height: 675px; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+.page {
+  width: 1200px; height: 675px; position: relative;
+  background: linear-gradient(135deg, #0f0a2e 0%, #1a1145 40%, #2d1b69 100%);
+  display: flex; flex-direction: column; align-items: center; padding: 28px 40px;
+  overflow: hidden;
+}
+.glow1 { position: absolute; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%); top: -80px; right: -40px; }
+.glow2 { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.15) 0%, transparent 70%); bottom: -60px; left: 100px; }
+
+.top-bar {
+  z-index: 10; width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.top-title { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+.top-title span { color: #C084FC; }
+.top-desc { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+/* 模式按钮条 */
+.mode-bar {
+  z-index: 10; width: 100%; display: flex; gap: 8px; margin-bottom: 16px;
+}
+.mode-btn {
+  padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.mode-btn.active { background: rgba(79,70,229,0.4); color: #C4B5FD; border-color: rgba(79,70,229,0.6); }
+
+/* 三栏 */
+.workspace {
+  z-index: 10; width: 100%; flex: 1; display: flex; gap: 0;
+  background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.col { display: flex; flex-direction: column; }
+.col-left { width: 320px; border-right: 1px solid rgba(255,255,255,0.08); }
+.col-mid { width: 360px; border-right: 1px solid rgba(255,255,255,0.08); }
+.col-right { flex: 1; }
+.col-header {
+  padding: 10px 16px; font-size: 12px; font-weight: 600; letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px;
+}
+.col-left .col-header { color: #A5B4FC; }
+.col-mid .col-header { color: #C084FC; }
+.col-right .col-header { color: #F9A8D4; }
+.col-body { flex: 1; padding: 12px 16px; overflow: hidden; }
+
+/* 编辑器行 */
+.ed-line { font-size: 11px; line-height: 2; font-family: 'Menlo', monospace; color: rgba(255,255,255,0.35); white-space: nowrap; }
+.ed-line .h { color: #A5B4FC; font-weight: 700; }
+.ed-line .b { color: rgba(255,255,255,0.6); }
+.ed-line .d { color: #C084FC; }
+
+/* 控制面板 */
+.ctrl-group { margin-bottom: 10px; }
+.ctrl-title { font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.pill { padding: 3px 10px; font-size: 10px; border-radius: 4px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.06); }
+.pill.on { background: rgba(124,58,237,0.35); color: #D8B4FE; border-color: rgba(124,58,237,0.5); }
+.dots { display: flex; gap: 5px; margin-top: 4px; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid transparent; }
+.dot.on { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+
+/* 预览 */
+.pv-card { background: rgba(255,248,240,0.06); border-radius: 8px; padding: 14px 18px; }
+.pv-h1 { font-size: 15px; font-weight: 700; color: #D4A574; text-align: center; margin-bottom: 6px; }
+.pv-p { font-size: 10px; color: rgba(255,255,255,0.4); line-height: 1.9; margin-bottom: 4px; }
+.pv-q { font-size: 9.5px; color: #D4A574; border-left: 2px solid #D4A574; padding: 4px 8px; margin: 6px 0; background: rgba(212,165,116,0.06); border-radius: 0 4px 4px 0; }
+.pv-hr { text-align: center; color: rgba(255,255,255,0.12); font-size: 10px; margin: 6px 0; letter-spacing: 6px; }
+.pv-h2 { font-size: 12px; font-weight: 600; color: #D4A574; text-align: center; margin-bottom: 4px; letter-spacing: 2px; }
+
+/* 底部标注 */
+.labels {
+  z-index: 10; width: 100%; display: flex; margin-top: 12px; gap: 0;
+}
+.label-item { display: flex; flex-direction: column; align-items: center; }
+.label-item:nth-child(1) { width: 320px; }
+.label-item:nth-child(2) { width: 360px; }
+.label-item:nth-child(3) { flex: 1; }
+.arrow-up { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid rgba(255,255,255,0.3); margin-bottom: 4px; }
+.label-text { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; letter-spacing: 1px; }
+.label-sub { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="glow1"></div>
+  <div class="glow2"></div>
+
+  <div class="top-bar">
+    <div>
+      <div class="top-title">☁️ 云中书 — <span>三栏工作台</span></div>
+      <div class="top-desc">粘贴文章 → 选择风格 → 实时预览 → 复制走人</div>
+    </div>
+  </div>
+
+  <!-- 模式按钮 -->
+  <div class="mode-bar">
+    <div class="mode-btn">📄 V1 经典</div>
+    <div class="mode-btn active">🏗️ V2 骨架</div>
+    <div class="mode-btn">📸 小红书</div>
+    <div class="mode-btn">📊 信息图</div>
+    <div class="mode-btn">🤖 AI 分析</div>
+    <div class="mode-btn">🎨 AI 生图</div>
+  </div>
+
+  <!-- 三栏区域 -->
+  <div class="workspace">
+    <div class="col col-left">
+      <div class="col-header">📝 Markdown 编辑器</div>
+      <div class="col-body">
+        <div class="ed-line"><span class="h"># </span><span class="b">如何高效阅读一本书</span></div>
+        <div class="ed-line">阅读是一种**终身学习**的方式。</div>
+        <div class="ed-line"><span class="h">## </span><span class="b">选书：找到值得读的书</span></div>
+        <div class="ed-line"><span class="d">- </span>看目录，判断结构是否清晰</div>
+        <div class="ed-line"><span class="d">- </span>看序言，了解作者的写作动机</div>
+        <div class="ed-line"><span class="d">- </span>看评价，但不要被评分绑架</div>
+        <div class="ed-line"><span class="d">> </span>一本好书，是浓缩的思考。</div>
+        <div class="ed-line"><span class="h">## </span><span class="b">阅读：主动阅读四步法</span></div>
+        <div class="ed-line"><span class="h">### </span><span class="b">第一步：略读</span></div>
+        <div class="ed-line">花 15 分钟快速翻阅全书框架。</div>
+        <div class="ed-line"><span class="h">### </span><span class="b">第二步：精读</span></div>
+        <div class="ed-line">带着问题逐段阅读核心章节。</div>
+      </div>
+    </div>
+    <div class="col col-mid">
+      <div class="col-header">🎨 风格控制面板</div>
+      <div class="col-body">
+        <div class="ctrl-group">
+          <div class="ctrl-title">骨架 Blueprint</div>
+          <div class="pills">
+            <div class="pill">📝 极简</div>
+            <div class="pill on">🍵 日式</div>
+            <div class="pill">✏️ 线条</div>
+            <div class="pill">📦 卡片</div>
+            <div class="pill">💬 气泡</div>
+            <div class="pill">📰 杂志</div>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-title">配色 Color</div>
+          <div class="dots">
+            <div class="dot on" style="background:#D4A574"></div>
+            <div class="dot" style="background:#6BC4A6"></div>
+            <div class="dot" style="background:#F28B82"></div>
+            <div class="dot" style="background:#9AA0A6"></div>
+            <div class="dot" style="background:#B39DDB"></div>
+            <div class="dot" style="background:#81B1D4"></div>
+            <div class="dot" style="background:#FDD835"></div>
+            <div class="dot" style="background:#F48FB1"></div>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-title">字体 Font</div>
+          <div class="pills">
+            <div class="pill on">F1 现代</div>
+            <div class="pill">F2 文艺</div>
+            <div class="pill">F3 活泼</div>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-title">插槽微调 Slots</div>
+          <div class="pills">
+            <div class="pill on">🔤 日式细字</div>
+            <div class="pill on">💬 虚线框</div>
+            <div class="pill on">➖ 居中 ○</div>
+            <div class="pill on">📄 大留白</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col col-right">
+      <div class="col-header">👁️ 实时预览</div>
+      <div class="col-body">
+        <div class="pv-card">
+          <div class="pv-h1">如何高效阅读一本书</div>
+          <div class="pv-p">阅读是一种终身学习的方式。掌握正确的阅读方法，能让你事半功倍。</div>
+          <div class="pv-hr">○</div>
+          <div class="pv-h2">选书：找到值得读的书</div>
+          <div class="pv-p">不是所有书都值得从头读到尾。学会筛选，是高效阅读的第一步。</div>
+          <div class="pv-q">一本好书，是浓缩的思考。</div>
+          <div class="pv-hr">○</div>
+          <div class="pv-h2">阅读：主动阅读四步法</div>
+          <div class="pv-p">带着问题去读，比无目的翻页效率高出十倍。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部标注 -->
+  <div class="labels">
+    <div class="label-item">
+      <div class="arrow-up"></div>
+      <div class="label-text">① 编辑区</div>
+      <div class="label-sub">粘贴 Markdown / 纯文本</div>
+    </div>
+    <div class="label-item">
+      <div class="arrow-up"></div>
+      <div class="label-text">② 控制区</div>
+      <div class="label-sub">骨架 · 配色 · 字体 · 插槽</div>
+    </div>
+    <div class="label-item">
+      <div class="arrow-up"></div>
+      <div class="label-text">③ 预览区</div>
+      <div class="label-sub">所见即所得 → 一键复制</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
