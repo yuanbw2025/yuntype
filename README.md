@@ -37,6 +37,13 @@
 📋 粘贴文章  →  🪄 纯文本整理  →  🎨 AI推荐排版  →  🔧 微调风格  →  📎 复制到微信 / 📸 下载图片组
 ```
 
+<div align="center">
+<table><tr>
+<td><img src="docs/xhs-images/xhs-promo-01-L.png" width="400" alt="云中书总览"></td>
+<td><img src="docs/xhs-images/xhs-promo-01-R.png" width="400" alt="云中书特性"></td>
+</tr></table>
+</div>
+
 ---
 
 ### 🚀 四种使用方式
@@ -64,6 +71,14 @@
 3. AI 自动推荐排版（或手动调节 15 套骨架蓝图 + 百万级插槽组合）
 4. 复制到微信公众号 / 下载小红书图片组
 ```
+
+<div align="center">
+<table><tr>
+<td><img src="docs/xhs-images/xhs-promo-02-L.png" width="260" alt="公众号排版"></td>
+<td><img src="docs/xhs-images/xhs-promo-04-L.png" width="260" alt="小红书排版"></td>
+<td><img src="docs/xhs-images/xhs-promo-07.png" width="260" alt="使用方法"></td>
+</tr></table>
+</div>
 
 **本地运行**：
 
@@ -218,6 +233,16 @@ AI：请在画布中复制 HTML → 粘贴到公众号编辑器
 | ⌨️ **键盘快捷键** | Ctrl+Shift+R 随机组合 / Ctrl+E 导出 / Ctrl+D 暗黑模式 |
 | 💼 **品牌预设** | 保存最多 20 套品牌预设，一键调用 |
 | 🔑 **零门槛** | 零后端、零账号、零付费墙，核心功能完全离线可用 |
+
+#### 🆕 三大新功能
+
+<div align="center">
+<table><tr>
+<td><img src="docs/xhs-images/xhs-promo-09.png" width="260" alt="AI 网页生成"></td>
+<td><img src="docs/xhs-images/xhs-promo-10.png" width="260" alt="AI 智能配图"></td>
+<td><img src="docs/xhs-images/xhs-promo-11.png" width="260" alt="AI 演示稿"></td>
+</tr></table>
+</div>
 
 ---
 
@@ -404,6 +429,13 @@ Phase 10 🔲 → MCP/Skill V2 适配 + 多语言 + 模板市场
 📋 Paste  →  🪄 Auto-organize  →  🎨 AI-recommend  →  🔧 Fine-tune  →  📎 Copy to WeChat / 📸 Download
 ```
 
+<div align="center">
+<table><tr>
+<td><img src="docs/xhs-images/xhs-promo-01-L.png" width="400" alt="YunType Overview"></td>
+<td><img src="docs/xhs-images/xhs-promo-01-R.png" width="400" alt="YunType Features"></td>
+</tr></table>
+</div>
+
 ---
 
 ### 🚀 Four Ways to Use
@@ -511,6 +543,16 @@ then format my article in "tech style" as WeChat-compatible HTML:
 | 🎬 **Presentation** | AI generates interactive 16:9 slides with keyboard/click navigation, fullscreen playback, 6 presets |
 | 🌙 **Dark Mode** | Ctrl+D toggle, persistent |
 | 🔑 **Zero Barrier** | No backend, no account, no paywall |
+
+#### 🆕 New Features
+
+<div align="center">
+<table><tr>
+<td><img src="docs/xhs-images/xhs-promo-09.png" width="260" alt="AI Web Gen"></td>
+<td><img src="docs/xhs-images/xhs-promo-10.png" width="260" alt="AI Image Gen"></td>
+<td><img src="docs/xhs-images/xhs-promo-11.png" width="260" alt="AI Presentation"></td>
+</tr></table>
+</div>
 
 ---
 
