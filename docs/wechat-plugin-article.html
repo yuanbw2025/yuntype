@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微信公众号HTML插入器</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f2f8;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;">
+
+<div style="max-width:680px;margin:0 auto;padding:24px 16px 48px;">
+
+  <!-- ══════════ HERO ══════════ -->
+  <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);border-radius:24px;padding:48px 36px 40px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+    <div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
+    <div style="position:absolute;top:20px;left:30px;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+    <div style="font-size:52px;margin-bottom:16px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.2));">🧩</div>
+    <h1 style="margin:0 0 12px;font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1.2;text-shadow:0 2px 12px rgba(0,0,0,0.2);">微信公众号 HTML 插入器</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:rgba(255,255,255,0.88);line-height:1.7;">配合 <strong style="color:#fff;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:6px;">云中书 YunType</strong> 排版工具<br>一键将精美 HTML 排版插入微信公众号编辑器</p>
+    <div style="display:inline-flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <span style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);">🆓 完全免费</span>
+      <span style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);">🔓 开源</span>
+      <span style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);">⚡ 即装即用</span>
+    </div>
+  </div>
+
+  <!-- ══════════ 痛点 ══════════ -->
+  <div style="background:#fff;border-radius:20px;padding:32px;margin-bottom:20px;box-shadow:0 4px 24px rgba(102,126,234,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#ff6b6b,#feca57);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">😩</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#1a1a2e;">写公众号，你是不是也遇到这些问题？</h2>
+    </div>
+    <div style="display:grid;gap:12px;">
+      <div style="background:linear-gradient(135deg,#fff5f5,#fff0f0);border:1px solid #ffcdd2;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
+        <span style="font-size:24px;flex-shrink:0;">❌</span>
+        <span style="color:#c62828;font-size:14px;font-weight:600;">公众号编辑器排版单调，只能靠文字堆砌，毫无设计感</span>
+      </div>
+      <div style="background:linear-gradient(135deg,#fff8e1,#fff3cd);border:1px solid #ffe082;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
+        <span style="font-size:24px;flex-shrink:0;">❌</span>
+        <span style="color:#e65100;font-size:14px;font-weight:600;">复制 HTML 粘贴进编辑器，样式全部丢失，grid/flex 布局直接废掉</span>
+      </div>
+      <div style="background:linear-gradient(135deg,#f3e5f5,#ede7f6);border:1px solid #ce93d8;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
+        <span style="font-size:24px;flex-shrink:0;">❌</span>
+        <span style="color:#6a1b9a;font-size:14px;font-weight:600;">花了大量时间做排版，在编辑器里却完全用不上</span>
+      </div>
+    </div>
+    <div style="margin-top:20px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1px solid #a5d6a7;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
+      <span style="font-size:28px;flex-shrink:0;">✅</span>
+      <span style="color:#1b5e20;font-size:15px;font-weight:700;">这个插件，全解决。</span>
+    </div>
+  </div>
+
+  <!-- ══════════ 特性卡片 ══════════ -->
+  <div style="background:#fff;border-radius:20px;padding:32px;margin-bottom:20px;box-shadow:0 4px 24px rgba(102,126,234,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✨</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#1a1a2e;">核心功能</h2>
+    </div>
+    <div style="display:grid;gap:14px;">
+
+      <div style="background:linear-gradient(135deg,#667eea08,#764ba208);border:1.5px solid #667eea30;border-radius:16px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🎯</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">一键精准插入</div>
+          <div style="font-size:13px;color:#64748b;line-height:1.6;">HTML 排版直接注入编辑器，配色、字体、间距、背景，格式完整保留，所见即所得</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#f093fb08,#f5576c08);border:1.5px solid #f093fb30;border-radius:16px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🛡️</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">突破 ProseMirror 过滤</div>
+          <div style="font-size:13px;color:#64748b;line-height:1.6;">微信编辑器基于 ProseMirror，普通粘贴会过滤掉 grid/flex 样式。本插件绕过限制，保留所有现代 CSS 布局</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#4facfe08,#00f2fe08);border:1.5px solid #4facfe30;border-radius:16px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">⚡</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">5 重策略兜底</div>
+          <div style="font-size:13px;color:#64748b;line-height:1.6;">renderCopy → Paste → execCommand → Range → innerHTML 逐级降级，应对各种编辑器版本，成功率极高</div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(135deg,#43e97b08,#38f9d708);border:1.5px solid #43e97b30;border-radius:16px;padding:18px 20px;display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#43e97b,#38f9d7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🎨</div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">悬浮按钮，随时可用</div>
+          <div style="font-size:13px;color:#64748b;line-height:1.6;">进入公众号编辑器页面，右侧自动出现紫色 &lt;&gt; 图标，点开即用，不干扰正常编辑流程</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════ 使用步骤 ══════════ -->
+  <div style="background:#fff;border-radius:20px;padding:32px;margin-bottom:20px;box-shadow:0 4px 24px rgba(102,126,234,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#fa709a,#fee140);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🚀</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#1a1a2e;">三步上手，5 分钟搞定</h2>
+    </div>
+
+    <!-- Step 1 -->
+    <div style="display:flex;gap:20px;margin-bottom:28px;">
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(102,126,234,0.4);">1</div>
+        <div style="width:2px;flex:1;background:linear-gradient(#764ba2,#f093fb);margin-top:8px;min-height:60px;border-radius:2px;"></div>
+      </div>
+      <div style="flex:1;padding-top:6px;">
+        <div style="font-size:16px;font-weight:800;color:#1a1a2e;margin-bottom:10px;">安装浏览器插件</div>
+        <div style="background:#f8faff;border-radius:12px;padding:16px;border:1px solid #e8edff;">
+          <div style="font-size:13px;color:#475569;line-height:1.8;">
+            <div style="margin-bottom:6px;">📥 下载本仓库 ZIP 并解压</div>
+            <div style="background:#1e293b;border-radius:8px;padding:10px 14px;margin:8px 0;font-family:'Cascadia Code',Consolas,monospace;font-size:12px;color:#94a3b8;">
+              <span style="color:#64748b;">地址栏输入 →</span> <span style="color:#7dd3fc;">chrome://extensions/</span>
+            </div>
+            <div>开启 <strong style="color:#667eea;">开发者模式</strong> → 加载已解压的扩展程序 → 选择文件夹</div>
+            <div style="margin-top:8px;color:#64748b;font-size:12px;">Edge 浏览器同理：edge://extensions/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="display:flex;gap:20px;margin-bottom:28px;">
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(240,147,251,0.4);">2</div>
+        <div style="width:2px;flex:1;background:linear-gradient(#f5576c,#4facfe);margin-top:8px;min-height:60px;border-radius:2px;"></div>
+      </div>
+      <div style="flex:1;padding-top:6px;">
+        <div style="font-size:16px;font-weight:800;color:#1a1a2e;margin-bottom:10px;">用云中书生成排版 HTML</div>
+        <div style="background:#fdf4ff;border-radius:12px;padding:16px;border:1px solid #f0d4ff;">
+          <div style="font-size:13px;color:#475569;line-height:1.8;">
+            <div>🎨 打开 <strong style="color:#9333ea;">yuntype.pages.dev</strong></div>
+            <div>📝 粘贴 Markdown 内容，选择配色 / 字体 / 比例</div>
+            <div>📋 点击「导出 HTML」，复制生成的代码</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="display:flex;gap:20px;">
+      <div style="flex-shrink:0;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4facfe,#43e97b);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(79,172,254,0.4);">3</div>
+      </div>
+      <div style="flex:1;padding-top:6px;">
+        <div style="font-size:16px;font-weight:800;color:#1a1a2e;margin-bottom:10px;">插入到公众号编辑器</div>
+        <div style="background:#f0fdf4;border-radius:12px;padding:16px;border:1px solid #bbf7d0;">
+          <div style="font-size:13px;color:#475569;line-height:1.8;">
+            <div>📱 打开微信公众号后台，新建图文</div>
+            <div>🟣 右侧出现<strong style="color:#667eea;">紫色 &lt;&gt; 悬浮图标</strong></div>
+            <div>📋 点击图标 → 粘贴 HTML → 点「插入」</div>
+            <div style="margin-top:10px;background:linear-gradient(135deg,#dcfce7,#d1fae5);border-radius:8px;padding:10px 14px;border:1px solid #86efac;">
+              <strong style="color:#15803d;">🎉 排版格式直接出现在编辑器中！</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 技术原理 ══════════ -->
+  <div style="background:linear-gradient(135deg,#1e293b,#0f172a);border-radius:20px;padding:32px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#4facfe,#00f2fe);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔧</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#f1f5f9;">技术原理</h2>
+    </div>
+    <p style="color:#94a3b8;font-size:13px;line-height:1.8;margin:0 0 16px;">微信公众号编辑器基于 <strong style="color:#7dd3fc;">ProseMirror</strong>，直接合成 paste 事件会被规范化过滤，导致 grid/flex 等现代 CSS 布局全部丢失。</p>
+    <div style="background:#0f172a;border-radius:12px;padding:20px;border:1px solid #1e40af30;">
+      <div style="color:#64748b;font-size:11px;letter-spacing:2px;font-weight:700;margin-bottom:12px;text-transform:uppercase;">核心策略 A — renderCopy</div>
+      <div style="display:grid;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
+          <span style="color:#cbd5e1;font-size:13px;">将 HTML 渲染进屏幕外 <code style="color:#7dd3fc;background:#1e3a5f;padding:1px 6px;border-radius:4px;">contenteditable</code> 暂存区</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
+          <span style="color:#cbd5e1;font-size:13px;"><code style="color:#c4b5fd;background:#2e1065;padding:1px 6px;border-radius:4px;">execCommand('copy')</code> 写入<strong style="color:#f1f5f9;">真实系统剪贴板</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:#0891b2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">3</div>
+          <span style="color:#cbd5e1;font-size:13px;">对编辑器 <code style="color:#67e8f9;background:#0c2f3a;padding:1px 6px;border-radius:4px;">execCommand('paste')</code>，ProseMirror 收到的是真实粘贴 ✅</span>
+        </div>
+      </div>
+    </div>
+    <p style="color:#64748b;font-size:12px;margin:14px 0 0;line-height:1.6;">若策略 A 失败，自动降级至 B→C→D→E 共 5 种方案，兜底覆盖各种编辑器版本。</p>
+  </div>
+
+  <!-- ══════════ 配套工具 ══════════ -->
+  <div style="background:#fff;border-radius:20px;padding:32px;margin-bottom:20px;box-shadow:0 4px 24px rgba(102,126,234,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#fa709a,#fee140);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤝</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#1a1a2e;">配套工具</h2>
+    </div>
+    <div style="display:grid;gap:14px;">
+      <div style="background:linear-gradient(135deg,#fdf4ff,#fce7f3);border:1.5px solid #f0abfc;border-radius:16px;padding:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <span style="font-size:28px;">☁️</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#1a1a2e;">云中书 YunType</div>
+            <div style="font-size:12px;color:#9333ea;font-weight:600;">yuntype.pages.dev</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;">支持小红书风格多图排版、微信公众号长图文、信息图等多种格式，一键生成精美 HTML 代码</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #7dd3fc;border-radius:16px;padding:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <span style="font-size:28px;">📦</span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#1a1a2e;">插件源码</div>
+            <div style="font-size:12px;color:#0284c7;font-weight:600;">github.com/yuanbw2025/wechat-html-injector</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;">MIT 开源协议，欢迎 Star / Fork / 提 Issue，自由使用与修改</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ FAQ ══════════ -->
+  <div style="background:#fff;border-radius:20px;padding:32px;margin-bottom:20px;box-shadow:0 4px 24px rgba(102,126,234,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#a8edea,#fed6e3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">💬</div>
+      <h2 style="margin:0;font-size:20px;font-weight:800;color:#1a1a2e;">常见问题</h2>
+    </div>
+    <div style="display:grid;gap:12px;">
+      <div style="border:1px solid #f1f5f9;border-radius:14px;padding:18px;">
+        <div style="font-size:14px;font-weight:700;color:#667eea;margin-bottom:6px;">Q：插件图标没有出现？</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;">刷新公众号编辑器页面，等待 2-3 秒让插件初始化。如仍未出现，检查 chrome://extensions/ 中插件是否启用。</div>
+      </div>
+      <div style="border:1px solid #f1f5f9;border-radius:14px;padding:18px;">
+        <div style="font-size:14px;font-weight:700;color:#f093fb;margin-bottom:6px;">Q：插入后样式消失了？</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;">微信公众号会对保存后的内容进行服务端过滤。建议使用云中书的内联样式导出版本（所有样式写在 style 属性里），兼容性最佳。</div>
+      </div>
+      <div style="border:1px solid #f1f5f9;border-radius:14px;padding:18px;">
+        <div style="font-size:14px;font-weight:700;color:#43e97b;margin-bottom:6px;">Q：需要每次重新安装吗？</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;">不需要。Chrome/Edge 开发者模式加载的插件一次安装长期有效，重启浏览器也不会消失。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ FOOTER ══════════ -->
+  <div style="background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);border-radius:20px;padding:32px;text-align:center;">
+    <div style="font-size:36px;margin-bottom:12px;">🌟</div>
+    <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px;">让公众号排版不再将就</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:20px;">云中书 × 微信HTML插入器<br>写出有设计感的公众号文章</div>
+    <div style="display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <span style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);">yuntype.pages.dev</span>
+      <span style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.3);">MIT 开源</span>
+    </div>
+    <div style="margin-top:20px;font-size:11px;color:rgba(255,255,255,0.5);">本插件不收集任何用户数据 · 完全本地运行</div>
+  </div>
+
+</div>
+</body>
+</html>
