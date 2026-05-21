@@ -1,0 +1,21 @@
+{
+    "manifest_version": 3,
+    "name": "微信公众号HTML插入器",
+    "version": "3.2.0",
+    "description": "在微信公众号编辑器中插入自定义HTML代码（真实剪贴板版）",
+    "icons": {
+        "48": "icon.png",
+        "128": "icon.png"
+    },
+    "permissions": ["clipboardRead", "clipboardWrite"],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://mp.weixin.qq.com/cgi-bin/appmsg*",
+                "https://mp.weixin.qq.com/appmsg/*"
+            ],
+            "js": ["content.js"],
+            "run_at": "document_end"
+        }
+    ]
+}
