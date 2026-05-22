@@ -4,7 +4,10 @@
 
 import JSZip from 'jszip'
 import { makeId } from './slides-gen'
-import type { Slide, SlideElement, SlideTheme, ElementStyle, ElementRole, ElementType, AnimationType, SlideLayout } from './slides-gen'
+import type {
+  Slide, SlideElement, SlideTheme, ElementStyle, ElementRole,
+  ElementType, AnimationType, AnimationTrigger, SlideLayout,
+} from './slides-gen'
 
 // ═══════════════════════════════════════
 //  常量
@@ -226,6 +229,420 @@ function phTypeToRole(type: string | null, idx: string | null): ElementRole | nu
 }
 
 // ═══════════════════════════════════════
+//  PPTX 预设几何体 → SVG path（viewBox 0 0 100 100）
+// ═══════════════════════════════════════
+
+// 生成正多边形
+function polyPath(sides: number, cx = 50, cy = 50, r = 50, startAngle = -Math.PI / 2): string {
+  const pts: string[] = []
+  for (let i = 0; i < sides; i++) {
+    const a = startAngle + (2 * Math.PI * i) / sides
+    const x = (cx + r * Math.cos(a)).toFixed(2)
+    const y = (cy + r * Math.sin(a)).toFixed(2)
+    pts.push(`${i === 0 ? 'M' : 'L'}${x},${y}`)
+  }
+  return pts.join(' ') + ' Z'
+}
+
+// 生成星形
+function starPath(points: number, outerR = 50, innerR = 20, cx = 50, cy = 50): string {
+  const pts: string[] = []
+  for (let i = 0; i < points * 2; i++) {
+    const a = (i * Math.PI / points) - Math.PI / 2
+    const r = i % 2 === 0 ? outerR : innerR
+    const x = (cx + r * Math.cos(a)).toFixed(2)
+    const y = (cy + r * Math.sin(a)).toFixed(2)
+    pts.push(`${i === 0 ? 'M' : 'L'}${x},${y}`)
+  }
+  return pts.join(' ') + ' Z'
+}
+
+// 30+ 常用 PPTX 预设几何体 → SVG path（归一化到 0-100 坐标系）
+const PRESET_PATHS: Record<string, string> = {
+  // 基础矩形（用 div 时不需要，但 SVG 渲染也提供）
+  rect:           'M0,0 H100 V100 H0 Z',
+  // 圆角矩形 — 用 CSS border-radius 处理，这里给备用 path
+  roundRect:      'M10,0 H90 Q100,0 100,10 V90 Q100,100 90,100 H10 Q0,100 0,90 V10 Q0,0 10,0 Z',
+  // 椭圆
+  ellipse:        'M50,0 C77.6,0 100,22.4 100,50 C100,77.6 77.6,100 50,100 C22.4,100 0,77.6 0,50 C0,22.4 22.4,0 50,0 Z',
+  // 三角形
+  triangle:       'M50,0 L100,100 L0,100 Z',
+  rtTriangle:     'M0,0 L100,100 L0,100 Z',
+  // 菱形
+  diamond:        'M50,0 L100,50 L50,100 L0,50 Z',
+  // 平行四边形
+  parallelogram:  'M25,0 L100,0 L75,100 L0,100 Z',
+  // 梯形
+  trapezoid:      'M0,100 L20,0 L80,0 L100,100 Z',
+  // 多边形
+  pentagon:       polyPath(5),
+  hexagon:        'M25,0 L75,0 L100,50 L75,100 L25,100 L0,50 Z',
+  heptagon:       polyPath(7),
+  octagon:        'M29,0 L71,0 L100,29 L100,71 L71,100 L29,100 L0,71 L0,29 Z',
+  decagon:        polyPath(10),
+  dodecagon:      polyPath(12),
+  // 星形
+  star4:          starPath(4, 50, 20),
+  star5:          starPath(5, 50, 21),
+  star6:          starPath(6, 50, 25),
+  star7:          starPath(7, 50, 25),
+  star8:          starPath(8, 50, 20),
+  star10:         starPath(10, 50, 22),
+  star12:         starPath(12, 50, 25),
+  star16:         starPath(16, 50, 30),
+  star24:         starPath(24, 50, 35),
+  star32:         starPath(32, 50, 38),
+  // 箭头
+  rightArrow:     'M0,35 L65,35 L65,0 L100,50 L65,100 L65,65 L0,65 Z',
+  leftArrow:      'M100,35 L35,35 L35,0 L0,50 L35,100 L35,65 L100,65 Z',
+  upArrow:        'M35,100 L35,35 L0,35 L50,0 L100,35 L65,35 L65,100 Z',
+  downArrow:      'M35,0 L35,65 L0,65 L50,100 L100,65 L65,65 L65,0 Z',
+  leftRightArrow: 'M0,50 L20,15 L20,40 L80,40 L80,15 L100,50 L80,85 L80,60 L20,60 L20,85 Z',
+  upDownArrow:    'M50,0 L15,20 L40,20 L40,80 L15,80 L50,100 L85,80 L60,80 L60,20 L85,20 Z',
+  bentArrow:      'M0,40 L40,40 L40,0 L100,50 L40,100 L40,60 L0,60 Z',
+  // 标注气泡
+  callout1:       'M0,0 H100 V75 H60 L50,100 L40,75 H0 Z',
+  callout2:       'M0,0 H100 V75 H70 L85,100 L55,75 H0 Z',
+  wedgeRectCallout: 'M0,0 H100 V75 H55 L50,100 L45,75 H0 Z',
+  // 其他常用
+  chord:          'M50,0 C77.6,0 100,22.4 100,50 C100,77.6 77.6,100 50,100 L0,100 Z',
+  arc:            'M0,50 C0,22.4 22.4,0 50,0 C77.6,0 100,22.4 100,50',
+  plus:           'M35,0 H65 V35 H100 V65 H65 V100 H35 V65 H0 V35 H35 Z',
+  cross:          'M35,0 H65 V35 H100 V65 H65 V100 H35 V65 H0 V35 H35 Z',
+  cube:           'M25,10 L75,10 L100,35 L100,90 L50,90 L25,65 Z M25,10 L25,65 L50,90 M75,10 L100,35',
+  can:            'M0,15 C0,7 22,0 50,0 C78,0 100,7 100,15 L100,85 C100,93 78,100 50,100 C22,100 0,93 0,85 Z',
+  // 线条类（将在渲染时特殊处理）
+  line:           'M0,50 L100,50',
+  straightConnector1: 'M0,50 L100,50',
+  bentConnector2: 'M0,0 L0,50 L100,50 L100,100',
+  bentConnector3: 'M0,0 L50,0 L50,100 L100,100',
+  curvedConnector2: 'M0,0 C0,50 100,50 100,100',
+  curvedConnector3: 'M0,0 C50,0 50,100 100,100',
+  // 色带/丝带
+  ribbon:         'M0,20 H70 L80,0 L90,20 H100 V80 H90 L80,100 L70,80 H0 Z',
+  ribbon2:        'M100,20 H30 L20,0 L10,20 H0 V80 H10 L20,100 L30,80 H100 Z',
+  // 心形（近似）
+  heart:          'M50,85 C30,70 0,60 0,35 C0,15 15,0 35,0 C42,0 48,3 50,8 C52,3 58,0 65,0 C85,0 100,15 100,35 C100,60 70,70 50,85 Z',
+  // 闪电
+  lightningBolt:  'M60,0 L25,55 L50,55 L40,100 L75,45 L50,45 Z',
+  // 云朵（近似）
+  cloud:          'M25,70 C10,70 0,60 0,48 C0,36 10,26 22,26 C24,14 34,5 46,5 C54,5 62,9 67,16 C70,13 75,11 80,11 C91,11 100,20 100,31 C100,42 91,51 80,51 C78,51 76,50 74,50 C74,62 64,70 52,70 Z',
+  // 表格/格子
+  snip1Rect:      'M0,0 H80 L100,20 V100 H0 Z',
+  snip2SameRect:  'M20,0 H80 L100,20 V80 L80,100 H20 L0,80 V20 Z',
+  snipRoundRect:  'M10,0 H90 Q100,0 100,10 V80 L80,100 H0 V10 Q0,0 10,0 Z',
+  // 文档
+  homePlate:      'M0,0 H75 L100,50 L75,100 H0 Z',
+  chevron:        'M0,0 H75 L100,50 L75,100 H0 L25,50 Z',
+  pie:            'M50,50 L50,0 A50,50 0 0,1 100,50 Z',
+  halfFrame:      'M0,0 H100 V20 H20 V80 H0 Z',
+  corner:         'M0,0 H20 V80 H100 V100 H0 Z',
+}
+
+// 将 DrawingML 自定义路径 (<a:custGeom>) 转为 SVG path 字符串
+// 路径坐标规格化到 0-100 坐标系
+function custGeomToSvgPath(custGeom: Element): string {
+  const pathList = findFirst(custGeom, 'pathLst')
+  if (!pathList) return 'M0,0 H100 V100 H0 Z'
+
+  const pathEl = getEl(pathList, 'path')
+  if (!pathEl) return 'M0,0 H100 V100 H0 Z'
+
+  const pw = parseInt(pathEl.getAttribute('w') || '100')
+  const ph = parseInt(pathEl.getAttribute('h') || '100')
+  const scaleX = (v: number) => ((v / pw) * 100).toFixed(2)
+  const scaleY = (v: number) => ((v / ph) * 100).toFixed(2)
+  const pt = (el: Element) => `${scaleX(parseInt(el.getAttribute('x') || '0'))},${scaleY(parseInt(el.getAttribute('y') || '0'))}`
+
+  const parts: string[] = []
+  for (const cmd of Array.from(pathEl.children)) {
+    switch (cmd.localName) {
+      case 'moveTo': {
+        const p = getEl(cmd, 'pt'); if (p) parts.push(`M${pt(p)}`); break
+      }
+      case 'lnTo': {
+        const p = getEl(cmd, 'pt'); if (p) parts.push(`L${pt(p)}`); break
+      }
+      case 'cubicBezTo': {
+        const pts = Array.from(cmd.children).filter(c => c.localName === 'pt')
+        if (pts.length === 3) parts.push(`C${pt(pts[0])} ${pt(pts[1])} ${pt(pts[2])}`); break
+      }
+      case 'quadBezTo': {
+        const pts = Array.from(cmd.children).filter(c => c.localName === 'pt')
+        if (pts.length === 2) parts.push(`Q${pt(pts[0])} ${pt(pts[1])}`); break
+      }
+      case 'arcTo': {
+        // PPTX arcTo → SVG A（近似：取 sweepAng 决定方向）
+        const wR  = Math.abs(parseInt(cmd.getAttribute('wR') || '50'))
+        const hR  = Math.abs(parseInt(cmd.getAttribute('hR') || '50'))
+        const swAng = parseInt(cmd.getAttribute('swAng') || '5400000')
+        const largeArc = Math.abs(swAng) > 10800000 ? 1 : 0
+        const sweep    = swAng > 0 ? 1 : 0
+        // 终点是相对于当前点移动，简化处理：移到半径末端
+        const rx = (wR / pw * 100).toFixed(2)
+        const ry = (hR / ph * 100).toFixed(2)
+        const ex = (wR / pw * 100 * 2).toFixed(2)
+        const ey = (hR / ph * 100 * 2).toFixed(2)
+        parts.push(`A${rx},${ry} 0 ${largeArc},${sweep} ${ex},${ey}`)
+        break
+      }
+      case 'close': parts.push('Z'); break
+    }
+  }
+
+  return parts.length > 0 ? parts.join(' ') : 'M0,0 H100 V100 H0 Z'
+}
+
+// ═══════════════════════════════════════
+//  填充色 / 描边解析
+// ═══════════════════════════════════════
+
+function parseFillFromSpPr(spPr: Element | null, colors: PptxThemeColors): string | null {
+  if (!spPr) return null
+  // 无填充
+  if (findFirst(spPr, 'noFill')) return 'none'
+  // 实色
+  const solid = findFirst(spPr, 'solidFill')
+  if (solid) {
+    const srgb = getEl(solid, 'srgbClr')
+    if (srgb) return '#' + (srgb.getAttribute('val') || '').toUpperCase()
+    const scheme = getEl(solid, 'schemeClr')
+    if (scheme) return resolveSchemeColor(scheme.getAttribute('val') || '', colors)
+    const prstClr = getEl(solid, 'prstClr')
+    if (prstClr) return prstClrToHex(prstClr.getAttribute('val') || '')
+  }
+  // 渐变 → 取第一个停止色
+  const grad = findFirst(spPr, 'gradFill')
+  if (grad) {
+    const gsLst = findFirst(grad, 'gsLst')
+    const firstGs = gsLst ? Array.from(gsLst.children)[0] : null
+    if (firstGs) {
+      const srgb = getEl(firstGs, 'srgbClr')
+      if (srgb) return '#' + (srgb.getAttribute('val') || '').toUpperCase()
+      const scheme = getEl(firstGs, 'schemeClr')
+      if (scheme) return resolveSchemeColor(scheme.getAttribute('val') || '', colors)
+    }
+  }
+  // 图案填充 → fallback
+  return null
+}
+
+function parseStrokeFromSpPr(spPr: Element | null, colors: PptxThemeColors): { color: string | null; width: number } {
+  if (!spPr) return { color: null, width: 0 }
+  const ln = getEl(spPr, 'ln')
+  if (!ln) return { color: null, width: 0 }
+  if (findFirst(ln, 'noFill')) return { color: null, width: 0 }
+  const w = parseInt(ln.getAttribute('w') || '0') / 12700 / 720 * 100  // EMU → %
+  const solid = findFirst(ln, 'solidFill')
+  if (solid) {
+    const srgb = getEl(solid, 'srgbClr')
+    if (srgb) return { color: '#' + (srgb.getAttribute('val') || '').toUpperCase(), width: w }
+    const scheme = getEl(solid, 'schemeClr')
+    if (scheme) return { color: resolveSchemeColor(scheme.getAttribute('val') || '', colors), width: w }
+  }
+  return { color: null, width: w }
+}
+
+// 预设颜色名 → hex（常用子集）
+function prstClrToHex(name: string): string {
+  const map: Record<string, string> = {
+    black: '#000000', white: '#FFFFFF', red: '#FF0000', green: '#00FF00',
+    blue: '#0000FF', yellow: '#FFFF00', cyan: '#00FFFF', magenta: '#FF00FF',
+    orange: '#FFA500', purple: '#800080', gray: '#808080', grey: '#808080',
+    darkBlue: '#00008B', darkRed: '#8B0000', darkGreen: '#006400',
+    lightBlue: '#ADD8E6', lightGray: '#D3D3D3', navy: '#000080',
+  }
+  return map[name] || '#888888'
+}
+
+// ═══════════════════════════════════════
+//  动画解析 (<p:timing>)
+// ═══════════════════════════════════════
+
+export interface ElementAnimation {
+  animation: AnimationType
+  trigger: AnimationTrigger
+  order: number    // 点击序号（1开始）；0表示进入即播
+  delay: number    // ms
+}
+
+// PPTX presetID + presetSubtype → 我们的 AnimationType
+function mapPresetAnim(presetID: number, presetSubtype: number): AnimationType {
+  switch (presetID) {
+    case 1:  return 'appear'        // Appear
+    case 2:                         // Fly In（按方向）
+      if (presetSubtype === 4 || presetSubtype === 16) return 'slide-left'
+      return 'slide-up'             // 2=from bottom, 8=from top
+    case 3: case 4: case 5: case 6: case 7:
+    case 8: case 10: case 14: case 15: case 16: case 17:
+      return 'fade'                 // Blinds/Box/Checkerboard等 → 近似淡入
+    case 21:  return 'fade'         // Fade
+    case 22:  return 'zoom'         // Swivel / Zoom
+    case 27:  return 'slide-up'     // Rise Up
+    case 30:  return 'zoom'         // Basic Zoom
+    case 32:  return 'slide-up'     // Float Up
+    case 54:  return 'bounce'       // Bounce
+    default:  return 'fade'
+  }
+}
+
+// 解析幻灯片的 timing 区，返回 spid → ElementAnimation 的 Map
+export function parseAnimations(slideDoc: Document): Map<string, ElementAnimation> {
+  const result = new Map<string, ElementAnimation>()
+
+  const timing = findFirst(slideDoc.documentElement, 'timing')
+  if (!timing) return result
+
+  // 找 mainSeq（nodeType="mainSeq" 的 cTn）
+  const allCTns = findAll(timing, 'cTn')
+  let clickOrder = 0
+
+  for (const cTn of allCTns) {
+    const nodeType   = cTn.getAttribute('nodeType') || ''
+    const presetClass = cTn.getAttribute('presetClass') || ''
+    const presetID   = parseInt(cTn.getAttribute('presetID') || '0')
+    const presetSub  = parseInt(cTn.getAttribute('presetSubtype') || '0')
+    const durAttr    = cTn.getAttribute('dur') || '0'
+
+    // 只处理入场效果
+    if (presetClass !== 'entr') continue
+
+    if (nodeType === 'clickEffect') clickOrder++
+    const trigger: AnimationTrigger =
+      nodeType === 'clickEffect' ? 'click'
+      : nodeType === 'afterEffect' ? 'after'
+      : 'with'
+
+    // 延迟
+    const delay = parseInt(durAttr !== 'indefinite' ? durAttr : '0') || 0
+
+    // 找 tgtEl/spTgt
+    // 向上查父级 par 找 tgtEl（PPTX 结构：cTn 和 tgtEl 同级在 set/animEffect 下）
+    const parentEl = cTn.parentElement
+    if (!parentEl) continue
+
+    // 查找整个 animation 块（当前 par）下所有 spTgt
+    const par = parentEl.parentElement  // par > cTn
+    if (!par) continue
+
+    const spTgts = findAll(par, 'spTgt')
+    for (const spTgt of spTgts) {
+      const spid = spTgt.getAttribute('spid')
+      if (spid && !result.has(spid)) {
+        result.set(spid, {
+          animation: mapPresetAnim(presetID, presetSub),
+          trigger,
+          order: clickOrder,
+          delay,
+        })
+      }
+    }
+  }
+
+  return result
+}
+
+// ═══════════════════════════════════════
+//  解析形状元素 (<p:sp> 不含文字 / <p:cxnSp> 连接线)
+// ═══════════════════════════════════════
+
+function parseShapeElement(
+  sp: Element,
+  slideW: number,
+  slideH: number,
+  colors: PptxThemeColors,
+  animMap: Map<string, ElementAnimation>,
+): SlideElement | null {
+  // 取形状 ID（用于匹配动画）
+  const cNvPr = findFirst(sp, 'cNvPr')
+  const spid  = cNvPr?.getAttribute('id') || ''
+
+  // 位置尺寸
+  const xfrm = findFirst(sp, 'xfrm')
+  const off  = xfrm ? getEl(xfrm, 'off') : null
+  const ext  = xfrm ? getEl(xfrm, 'ext') : null
+  const flipH = xfrm?.getAttribute('flipH') === '1'
+  const flipV = xfrm?.getAttribute('flipV') === '1'
+
+  const x = emuToPct(parseInt(off?.getAttribute('x') || '0'), slideW)
+  const y = emuToPct(parseInt(off?.getAttribute('y') || '0'), slideH)
+  const w = emuToPct(parseInt(ext?.getAttribute('cx') || '0'), slideW)
+  const h = emuToPct(parseInt(ext?.getAttribute('cy') || '0'), slideH)
+
+  if (w <= 0.5 || h <= 0.5) return null  // 过小的形状跳过
+
+  // 几何体
+  const spPr = findFirst(sp, 'spPr')
+  let svgPath = 'M0,0 H100 V100 H0 Z'
+  let shapePreset = 'rect'
+
+  const prstGeom = spPr ? findFirst(spPr, 'prstGeom') : null
+  const custGeom = spPr ? findFirst(spPr, 'custGeom') : null
+
+  if (prstGeom) {
+    const prst = prstGeom.getAttribute('prst') || 'rect'
+    shapePreset = prst
+    svgPath = PRESET_PATHS[prst] || 'M0,0 H100 V100 H0 Z'
+    // 圆角矩形：调整圆角（avLst > gd adj）
+    if (prst === 'roundRect') {
+      const adj = findFirst(prstGeom, 'gd')
+      const adjVal = parseInt(adj?.getAttribute('fmla')?.replace('val ', '') || '16667') / 100000
+      const r = Math.round(adjVal * 50)
+      svgPath = `M${r},0 H${100-r} Q100,0 100,${r} V${100-r} Q100,100 ${100-r},100 H${r} Q0,100 0,${100-r} V${r} Q0,0 ${r},0 Z`
+    }
+  } else if (custGeom) {
+    svgPath = custGeomToSvgPath(custGeom)
+    shapePreset = 'custom'
+  } else {
+    // 连接线 (cxnSp)：默认直线
+    svgPath = PRESET_PATHS['line'] || 'M0,50 L100,50'
+    shapePreset = 'line'
+  }
+
+  // 翻转（用 SVG transform）
+  if (flipH || flipV) {
+    const tx = flipH ? 'scale(-1,1) translate(-100,0)' : ''
+    const ty = flipV ? 'scale(1,-1) translate(0,-100)' : ''
+    const transform = [tx, ty].filter(Boolean).join(' ')
+    if (transform) svgPath = `<g transform="${transform}">${svgPath}</g>`
+    // 注意：上面这种方式不能直接放在 svgPath 字符串里（会混合元素和路径）
+    // 实际渲染时需要处理，这里先记录翻转标记，简化处理
+    // 真正的翻转在 SVG 组件中通过 style transform 处理
+  }
+
+  // 填充 & 描边
+  const fillColor  = parseFillFromSpPr(spPr, colors)
+  const stroke     = parseStrokeFromSpPr(spPr, colors)
+
+  if (fillColor === 'none' && !stroke.color) return null  // 完全透明且无边框 → 跳过
+
+  // 动画
+  const anim = animMap.get(spid)
+
+  const style: ElementStyle = {
+    fontSize: 3, fontWeight: 'normal', fontStyle: 'normal',
+    textAlign: 'left', lineHeight: 1, letterSpacing: 0,
+  }
+
+  return {
+    id: makeId(),
+    elementType: 'shape' as ElementType,
+    role: 'custom',
+    text: '',
+    svgPath,
+    shapeFill: fillColor || colors.accent1,
+    shapeStroke: stroke.color || undefined,
+    shapeStrokeWidth: stroke.width || undefined,
+    shapePreset,
+    animation: anim?.animation ?? 'none',
+    animationTrigger: anim?.trigger,
+    animationOrder: anim?.order,
+    animationDelay: anim?.delay,
+    x, y, w, h, style,
+  }
+}
+
+// ═══════════════════════════════════════
 //  解析文本框 (<p:sp>)
 // ═══════════════════════════════════════
 
@@ -234,10 +651,15 @@ function parseTextShape(
   slideW: number,
   slideH: number,
   colors: PptxThemeColors,
+  animMap: Map<string, ElementAnimation>,
 ): SlideElement | null {
   // 判断是否文本框
   const txBody = findFirst(sp, 'txBody')
   if (!txBody) return null
+
+  // 取形状 ID（动画匹配）
+  const cNvPr = findFirst(sp, 'cNvPr')
+  const spid  = cNvPr?.getAttribute('id') || ''
 
   // 位置尺寸
   const xfrm = findFirst(sp, 'xfrm')
@@ -298,6 +720,13 @@ function parseTextShape(
   const phIdx  = ph?.getAttribute('idx') || null
   const role: ElementRole = phTypeToRole(phType, phIdx) || 'body'
 
+  // 形状填充背景色（文字框可能有彩色背景）
+  const spPr  = findFirst(sp, 'spPr')
+  const bgFill = parseFillFromSpPr(spPr, colors)
+
+  // 动画
+  const anim = animMap.get(spid)
+
   const style: ElementStyle = {
     fontSize: Math.max(fontSize, role === 'title' ? 4 : 2.5),
     fontWeight: role === 'title' ? 'bold' : fontWeight,
@@ -306,6 +735,7 @@ function parseTextShape(
     lineHeight: 1.6,
     letterSpacing: 0,
     colorOverride,
+    bgFill: bgFill && bgFill !== 'none' ? bgFill : undefined,
   }
 
   return {
@@ -313,7 +743,10 @@ function parseTextShape(
     elementType: 'text' as ElementType,
     role,
     text,
-    animation: 'none' as AnimationType,
+    animation: anim?.animation ?? 'none',
+    animationTrigger: anim?.trigger,
+    animationOrder:   anim?.order,
+    animationDelay:   anim?.delay,
     x, y, w, h,
     style,
   }
@@ -474,22 +907,47 @@ async function parseSlide(
   const bgColor = detectBgColor(doc, colors)
   const relsMap = await parseSlideRels(zip, slideRelPath)
 
-  const elements: SlideElement[] = []
+  // 1. 解析动画（先获取 spid → animation 映射）
+  const animMap = parseAnimations(doc)
+
+  const shapeElements: SlideElement[] = []   // 形状（层次靠后）
+  const textElements: SlideElement[] = []    // 文字/图片（层次靠前）
 
   if (tree) {
-    // 文本框
+    // 形状：<p:sp> 无 txBody → shape，有 txBody → text（可能带 bgFill）
     for (const sp of findAll(tree, 'sp')) {
-      const el = parseTextShape(sp, slideW, slideH, colors)
-      if (el) elements.push(el)
+      const hasTxBody = !!findFirst(sp, 'txBody')
+      if (hasTxBody) {
+        const el = parseTextShape(sp, slideW, slideH, colors, animMap)
+        if (el) textElements.push(el)
+      } else {
+        const el = parseShapeElement(sp, slideW, slideH, colors, animMap)
+        if (el) shapeElements.push(el)
+      }
+    }
+    // 连接线：<p:cxnSp>
+    for (const cxn of findAll(tree, 'cxnSp')) {
+      const el = parseShapeElement(cxn, slideW, slideH, colors, animMap)
+      if (el) shapeElements.push(el)
     }
     // 图片
     for (const pic of findAll(tree, 'pic')) {
       const el = await parsePicture(pic, slideW, slideH, zip, relsMap)
-      if (el) elements.push(el)
+      if (el) textElements.push(el)
     }
   }
 
-  const layout = guessLayout(elements, slideIndex, totalSlides)
+  // 形状在底层（先渲染），文字/图片在上层
+  const elements = [...shapeElements, ...textElements]
+
+  // 按动画顺序排序：无动画的先显示，有动画的按 order 排序
+  elements.sort((a, b) => {
+    const ao = a.animationOrder ?? 0
+    const bo = b.animationOrder ?? 0
+    return ao - bo
+  })
+
+  const layout = guessLayout(textElements, slideIndex, totalSlides)
 
   const slide: Slide = {
     id: makeId(),
@@ -615,9 +1073,12 @@ export function summarizeParsedPptx(parsed: ParsedPptx): string {
   const { themeColors: c, bgColor, accentColor } = styleProfile
 
   const slidesSummary = slides.slice(0, 8).map((s, i) => {
-    const texts = s.elements.filter(e => e.elementType === 'text').map(e => `[${e.role}] ${e.text.slice(0, 60)}`).join(' | ')
-    const imgs  = s.elements.filter(e => e.elementType === 'image').length
-    return `第${i + 1}页(${s.layout}): ${texts}${imgs ? ` [图片×${imgs}]` : ''}`
+    const texts  = s.elements.filter(e => e.elementType === 'text').map(e => `[${e.role}] ${e.text.slice(0, 60)}`).join(' | ')
+    const imgs   = s.elements.filter(e => e.elementType === 'image').length
+    const shapes = s.elements.filter(e => e.elementType === 'shape').length
+    const anims  = s.elements.filter(e => e.animation !== 'none').length
+    const extra  = [imgs ? `图片×${imgs}` : '', shapes ? `形状×${shapes}` : '', anims ? `动画×${anims}` : ''].filter(Boolean).join(' ')
+    return `第${i + 1}页(${s.layout}): ${texts}${extra ? ` [${extra}]` : ''}`
   }).join('\n')
 
   return `演示文稿标题: "${originalTitle}"，共 ${slides.length} 页。

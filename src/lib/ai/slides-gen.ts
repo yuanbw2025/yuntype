@@ -8,8 +8,12 @@ import { chat, type AIClientConfig } from './client'
 
 export type SlideLayout = 'title' | 'content' | 'bullets' | 'two-column' | 'quote' | 'closing'
 export type ElementRole = 'title' | 'subtitle' | 'body' | 'label' | 'custom'
-export type ElementType = 'text' | 'image'
-export type AnimationType = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom'
+export type ElementType = 'text' | 'image' | 'shape'
+// 动画类型：none=无, fade=淡入, slide-up=下往上滑, slide-left=右往左滑, zoom=缩放出现
+// appear=立即出现（PPTX Appear 效果映射）, bounce=弹入（PPTX Bounce 映射）
+export type AnimationType = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'appear' | 'bounce'
+// 动画触发方式（从 PPTX timing 解析）
+export type AnimationTrigger = 'click' | 'after' | 'with'
 
 export interface ElementStyle {
   fontSize: number        // % of slide height（7.5 ≈ 40pt on standard slide）
@@ -19,6 +23,8 @@ export interface ElementStyle {
   lineHeight: number
   letterSpacing: number   // em
   colorOverride?: string
+  // 文字框背景色（文字元素带形状填充时使用）
+  bgFill?: string
 }
 
 export interface SlideElement {
@@ -26,13 +32,22 @@ export interface SlideElement {
   elementType: ElementType
   role: ElementRole
   text: string
-  imageUrl?: string       // base64, for elementType === 'image'
+  imageUrl?: string         // base64, for elementType === 'image'
+  // 形状属性（elementType === 'shape'）
+  svgPath?: string          // 归一化 SVG path，viewBox 0 0 100 100
+  shapeFill?: string        // 填充色，hex
+  shapeStroke?: string      // 描边色，hex
+  shapeStrokeWidth?: number // 描边宽度（相对于 slide 高度的 %）
+  shapePreset?: string      // PPTX 原始 prst 名（调试用）
   x: number              // % of slide width
   y: number              // % of slide height
   w: number
   h: number
   style: ElementStyle
   animation: AnimationType
+  animationTrigger?: AnimationTrigger
+  animationOrder?: number  // 第几次点击触发（0 = 进入时自动）
+  animationDelay?: number  // ms，与前一元素的时间偏移
 }
 
 export interface Slide {
@@ -234,9 +249,20 @@ export function renderSlideHtml(slide: Slide, theme: SlideTheme, w = 1280, h = 7
       return `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.w}%;height:${el.h}%;overflow:hidden">
         <img src="${el.imageUrl}" style="width:100%;height:100%;object-fit:cover" /></div>`
     }
+    if (el.elementType === 'shape') {
+      const fill   = el.shapeFill   || t.accent
+      const stroke = el.shapeStroke || 'none'
+      const sw     = el.shapeStrokeWidth ? el.shapeStrokeWidth / 100 * h : 0
+      const path   = el.svgPath || 'M0,0 H100 V100 H0 Z'
+      return `<svg style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.w}%;height:${el.h}%"
+        viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" vector-effect="non-scaling-stroke"/>
+      </svg>`
+    }
     const color = getElementColor(el.role, t, el.style.colorOverride)
     const fs = el.style.fontSize / 100 * h
-    return `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.w}%;height:${el.h}%;
+    const bg = el.style.bgFill ? `background:${el.style.bgFill};` : ''
+    return `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.w}%;height:${el.h}%;${bg}
       font-size:${fs}px;font-weight:${el.style.fontWeight};font-style:${el.style.fontStyle};
       color:${color};text-align:${el.style.textAlign};line-height:${el.style.lineHeight};
       letter-spacing:${el.style.letterSpacing}em;white-space:pre-wrap;word-break:break-word;overflow:hidden;

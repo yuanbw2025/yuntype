@@ -67,15 +67,32 @@ const HANDLE_POS: Record<HandleDir, React.CSSProperties> = {
 // ═══════════════════════════════════════
 
 const ANIM_STYLE = `
-@keyframes sl-fade { from { opacity:0 } to { opacity:1 } }
-@keyframes sl-up   { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
-@keyframes sl-left { from { opacity:0; transform:translateX(-24px) } to { opacity:1; transform:translateX(0) } }
-@keyframes sl-zoom { from { opacity:0; transform:scale(0.85) } to { opacity:1; transform:scale(1) } }
+@keyframes sl-fade   { from { opacity:0 } to { opacity:1 } }
+@keyframes sl-up     { from { opacity:0; transform:translateY(30px) } to { opacity:1; transform:translateY(0) } }
+@keyframes sl-left   { from { opacity:0; transform:translateX(-30px) } to { opacity:1; transform:translateX(0) } }
+@keyframes sl-zoom   { from { opacity:0; transform:scale(0.8) } to { opacity:1; transform:scale(1) } }
+@keyframes sl-appear { 0% { opacity:0 } 1% { opacity:1 } 100% { opacity:1 } }
+@keyframes sl-bounce {
+  0%   { opacity:0; transform:translateY(-40px) }
+  60%  { opacity:1; transform:translateY(8px) }
+  80%  { transform:translateY(-4px) }
+  100% { opacity:1; transform:translateY(0) }
+}
 `
-function animCss(anim: AnimationType, delay: number): React.CSSProperties {
+function animCss(anim: AnimationType, idx: number, orderDelay = 0): React.CSSProperties {
   if (anim === 'none') return {}
-  const name = anim === 'fade' ? 'sl-fade' : anim === 'slide-up' ? 'sl-up' : anim === 'slide-left' ? 'sl-left' : 'sl-zoom'
-  return { animation: `${name} 0.5s ease both`, animationDelay: `${delay * 0.15}s` }
+  const name =
+    anim === 'fade'       ? 'sl-fade'   :
+    anim === 'slide-up'   ? 'sl-up'     :
+    anim === 'slide-left' ? 'sl-left'   :
+    anim === 'zoom'       ? 'sl-zoom'   :
+    anim === 'appear'     ? 'sl-appear' :
+    anim === 'bounce'     ? 'sl-bounce' : 'sl-fade'
+  const dur  = anim === 'bounce' ? '0.7s' : anim === 'appear' ? '0.05s' : '0.5s'
+  const ease = anim === 'bounce' ? 'ease-out' : 'ease'
+  // 延迟 = 每个元素间隔 0.1s + 动画顺序附加延迟
+  const delay = (idx * 0.1 + orderDelay * 0.3).toFixed(2)
+  return { animation: `${name} ${dur} ${ease} both`, animationDelay: `${delay}s` }
 }
 
 // ═══════════════════════════════════════
@@ -205,7 +222,7 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
   // 双击编辑
   const handleDoubleClick = useCallback((e: React.MouseEvent, elId: string) => {
     const el = slide.elements.find(e => e.id === elId)
-    if (!el || el.elementType === 'image') return
+    if (!el || el.elementType === 'image' || el.elementType === 'shape') return
     e.stopPropagation(); onStartEdit(elId)
     setTimeout(() => editRef.current?.focus(), 30)
   }, [slide.elements, onStartEdit])
@@ -234,10 +251,10 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
       {/* 元素 */}
       {slide.elements.map((el, elIdx) => {
         const isSelected = selectedId === el.id && !presentMode
-        const isEditing = editingId === el.id
-        const color = getElementColor(el.role, t, el.style.colorOverride)
-        const animStyle = presentMode ? animCss(el.animation, elIdx) : {}
-        const fsPx = canvasH > 0 ? el.style.fontSize / 100 * canvasH : undefined
+        const isEditing  = editingId === el.id
+        const color      = getElementColor(el.role, t, el.style.colorOverride)
+        const animStyle  = presentMode ? animCss(el.animation, elIdx, el.animationOrder ?? 0) : {}
+        const fsPx       = canvasH > 0 ? el.style.fontSize / 100 * canvasH : undefined
 
         return (
           <div key={el.id}
@@ -250,9 +267,23 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
               outline: isSelected ? '1.5px solid #7c3aed' : 'none', boxSizing: 'border-box', ...animStyle,
             }}>
 
-            {el.elementType === 'image' && el.imageUrl ? (
+            {/* ── 形状（SVG渲染） ── */}
+            {el.elementType === 'shape' ? (
+              <svg viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="none"
+                style={{ display: 'block', overflow: 'visible' }}>
+                <path
+                  d={el.svgPath || 'M0,0 H100 V100 H0 Z'}
+                  fill={el.shapeFill || t.accent}
+                  stroke={el.shapeStroke || 'none'}
+                  strokeWidth={el.shapeStrokeWidth ? `${el.shapeStrokeWidth}` : '0'}
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            ) : el.elementType === 'image' && el.imageUrl ? (
+              /* ── 图片 ── */
               <img src={el.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 2 }} draggable={false} />
             ) : (
+              /* ── 文字（可带背景色） ── */
               <div ref={isEditing ? editRef : undefined}
                 contentEditable={isEditing}
                 suppressContentEditableWarning
@@ -263,6 +294,7 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
                   fontWeight: el.style.fontWeight, fontStyle: el.style.fontStyle,
                   color, textAlign: el.style.textAlign, lineHeight: el.style.lineHeight,
                   letterSpacing: `${el.style.letterSpacing}em`, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  background: el.style.bgFill || 'transparent',
                   cursor: isEditing ? 'text' : 'inherit', pointerEvents: isEditing ? 'auto' : 'none',
                 }}
               >{el.text}</div>
@@ -425,8 +457,13 @@ export default function SlidesEditorPanel() {
   const [polishing, setPolishing] = useState(false)
   // 动画选择器：选中元素时显示
   const ANIM_OPTIONS: { val: AnimationType; label: string }[] = [
-    { val: 'none', label: '无' }, { val: 'fade', label: '淡入' },
-    { val: 'slide-up', label: '上滑' }, { val: 'slide-left', label: '左滑' }, { val: 'zoom', label: '缩放' },
+    { val: 'none',       label: '无'   },
+    { val: 'appear',     label: '出现' },
+    { val: 'fade',       label: '淡入' },
+    { val: 'slide-up',   label: '上滑' },
+    { val: 'slide-left', label: '左滑' },
+    { val: 'zoom',       label: '缩放' },
+    { val: 'bounce',     label: '弹入' },
   ]
 
   useEffect(() => {
