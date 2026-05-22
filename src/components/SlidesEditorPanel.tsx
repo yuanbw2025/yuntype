@@ -319,35 +319,141 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
 //  全屏演示模式
 // ═══════════════════════════════════════
 
+// 演示视图：独立渲染，按 revealLevel 控制动画出场
+function PresentSlideView({ slide, deck, revealLevel }: { slide: Slide; deck: SlidesDeck; revealLevel: number }) {
+  const t = deck.theme
+
+  // 装饰条（同 SlideCanvas）
+  const acc = t.accent
+  const deco = (() => {
+    if (slide.layout === 'title')    return <div style={{ position: 'absolute', left: 0, top: '72%', width: '100%', height: '0.8%', background: acc }} />
+    if (slide.layout === 'closing')  return <><div style={{ position: 'absolute', left: '35%', top: '22%', width: '30%', height: '0.7%', background: acc }} /><div style={{ position: 'absolute', left: '35%', top: '88%', width: '30%', height: '0.7%', background: acc }} /></>
+    if (slide.layout === 'quote')    return <div style={{ position: 'absolute', left: '5%', top: 0, width: '1.2%', height: '100%', background: acc }} />
+    if (slide.layout === 'two-column') return <><div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '18%', background: acc }} /><div style={{ position: 'absolute', left: '50%', top: '20%', width: '0.3%', height: '77%', background: acc + '55' }} /></>
+    return <div style={{ position: 'absolute', left: '3.5%', top: '5%', width: '0.6%', height: '88%', background: acc, borderRadius: 3 }} />
+  })()
+
+  return (
+    <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: t.bg, overflow: 'hidden' }}>
+      {deco}
+      {slide.elements.map((el, elIdx) => {
+        const order = el.animationOrder ?? 0
+        // 无动画元素：始终可见；有动画元素：order===0自动出场，order>0等点击
+        const autoAppear = el.animation === 'none' || order === 0
+        const triggered  = order > 0 && order <= revealLevel
+        const visible    = autoAppear || triggered
+
+        if (!visible) return null
+
+        // 动画 CSS：首次出现时播放，之后保持最终状态
+        const delay = autoAppear ? elIdx * 0.08 : 0  // 自动出场按元素序错开
+        const anim: React.CSSProperties = el.animation !== 'none'
+          ? animCss(el.animation, delay > 0 ? Math.round(delay / 0.08) : 0, triggered ? 0 : 0)
+          : {}
+
+        const color = getElementColor(el.role, t, el.style.colorOverride)
+
+        return (
+          <div key={`${el.id}-${triggered ? 'show' : 'auto'}`}  // key 变化时触发重新挂载→重播动画
+            style={{ position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, ...anim }}>
+
+            {el.elementType === 'shape' ? (
+              <svg viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block' }}>
+                <path d={el.svgPath || 'M0,0 H100 V100 H0 Z'} fill={el.shapeFill || acc}
+                  stroke={el.shapeStroke || 'none'} strokeWidth={el.shapeStrokeWidth || 0} vectorEffect="non-scaling-stroke" />
+              </svg>
+            ) : el.elementType === 'image' && el.imageUrl ? (
+              <img src={el.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 2 }} />
+            ) : (
+              <div style={{
+                width: '100%', height: '100%', overflow: 'hidden',
+                fontSize: `${el.style.fontSize}cqh`,
+                fontWeight: el.style.fontWeight, fontStyle: el.style.fontStyle,
+                color, textAlign: el.style.textAlign, lineHeight: el.style.lineHeight,
+                letterSpacing: `${el.style.letterSpacing}em`, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                background: el.style.bgFill || 'transparent',
+                fontFamily: "'Microsoft YaHei','PingFang SC',sans-serif",
+              }}>{el.text}</div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function PresentationOverlay({ deck, startIdx, onClose }: { deck: SlidesDeck; startIdx: number; onClose: () => void }) {
   const [idx, setIdx] = useState(startIdx)
+  const [revealLevel, setRevealLevel] = useState(0)
   const slide = deck.slides[idx]
+
+  // 当前页最大点击序号（即需要几次点击才能全部出场）
+  const maxOrder = slide
+    ? Math.max(0, ...slide.elements.map(e => e.animationOrder ?? 0))
+    : 0
+
+  const goNext = useCallback(() => {
+    if (revealLevel < maxOrder) {
+      setRevealLevel(r => r + 1)        // 触发下一组动画
+    } else if (idx < deck.slides.length - 1) {
+      setIdx(i => i + 1)
+      setRevealLevel(0)                  // 切换到下一页，重置动画
+    }
+  }, [revealLevel, maxOrder, idx, deck.slides.length])
+
+  const goPrev = useCallback(() => {
+    if (revealLevel > 0) {
+      setRevealLevel(r => r - 1)
+    } else if (idx > 0) {
+      setIdx(i => i - 1)
+      setRevealLevel(0)
+    }
+  }, [revealLevel, idx])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setIdx(i => Math.min(deck.slides.length - 1, i + 1))
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setIdx(i => Math.max(0, i - 1))
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goNext() }
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); goPrev() }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [deck.slides.length, onClose])
+  }, [onClose, goNext, goPrev])
+
+  const isFirst = idx === 0 && revealLevel === 0
+  const isLast  = idx === deck.slides.length - 1 && revealLevel >= maxOrder
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    <div onClick={goNext} style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: isLast ? 'default' : 'pointer' }}>
       <style>{ANIM_STYLE}</style>
-      <div style={{ width: 'min(100vw, calc(100vh * 16/9))', position: 'relative' }}>
-        <SlideCanvas slide={slide} deck={deck} selectedId={null} editingId={null} guides={[]}
-          onSelect={() => {}} onUpdateElement={() => {}} onCommit={() => {}} onStartEdit={() => {}} onEndEdit={() => {}} onGuideChange={() => {}} presentMode />
+      <div style={{ width: 'min(100vw, calc(100vh * 16/9))', containerType: 'size' }} onClick={e => e.stopPropagation()}>
+        <PresentSlideView slide={slide} deck={deck} revealLevel={revealLevel} />
       </div>
-      {/* 控制栏 */}
-      <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}
-          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: idx === 0 ? '#444' : '#fff', fontSize: 28, cursor: idx === 0 ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>‹</button>
-        <span style={{ color: '#888', fontSize: 13 }}>{idx + 1} / {deck.slides.length}</span>
-        <button onClick={() => setIdx(i => Math.min(deck.slides.length - 1, i + 1))} disabled={idx === deck.slides.length - 1}
-          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: idx === deck.slides.length - 1 ? '#444' : '#fff', fontSize: 28, cursor: idx === deck.slides.length - 1 ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>›</button>
-        <button onClick={onClose} style={{ position: 'absolute', right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', borderRadius: 5, padding: '5px 12px' }}>✕ 退出 (Esc)</button>
+
+      {/* 进度指示 */}
+      <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, pointerEvents: 'none' }}>
+        {/* 动画进度点（当前页有点击动画时显示） */}
+        {maxOrder > 0 && (
+          <div style={{ display: 'flex', gap: 4, pointerEvents: 'none' }}>
+            {Array.from({ length: maxOrder }).map((_, i) => (
+              <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i < revealLevel ? '#fff' : 'rgba(255,255,255,0.3)' }} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 控制栏（悬停时显示） */}
+      <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'linear-gradient(transparent, rgba(0,0,0,0.6))', opacity: 0, transition: 'opacity 0.2s' }}
+        onMouseEnter={e => (e.currentTarget.style.opacity = '1')} onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>
+        <button onClick={goPrev} disabled={isFirst}
+          style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: isFirst ? '#444' : '#fff', fontSize: 22, cursor: isFirst ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>‹</button>
+        <span style={{ color: '#888', fontSize: 12 }}>
+          {idx + 1}/{deck.slides.length}
+          {maxOrder > 0 ? ` · 点击 ${revealLevel}/${maxOrder}` : ''}
+        </span>
+        <button onClick={goNext} disabled={isLast}
+          style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: isLast ? '#444' : '#fff', fontSize: 22, cursor: isLast ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>›</button>
+        <button onClick={onClose} style={{ position: 'absolute', right: 16, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#aaa', fontSize: 12, cursor: 'pointer', borderRadius: 5, padding: '4px 10px' }}>✕ Esc</button>
       </div>
     </div>
   )
@@ -358,15 +464,31 @@ function PresentationOverlay({ deck, startIdx, onClose }: { deck: SlidesDeck; st
 // ═══════════════════════════════════════
 
 function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: { slide: Slide; deck: SlidesDeck; index: number; selected: boolean; onClick: () => void; onDelete: () => void }) {
+  const t = deck.theme
   return (
     <div onClick={onClick} style={{ position: 'relative', cursor: 'pointer', borderRadius: 5, border: selected ? '2px solid #7c3aed' : '2px solid #2a2a2a', flexShrink: 0 }}>
       <div style={{ fontSize: 9, color: '#666', padding: '2px 5px', background: '#111' }}>{index + 1}</div>
-      <div style={{ width: 160, height: 90, background: deck.theme.bg, position: 'relative', overflow: 'hidden' }}>
-        {slide.elements.map(el => el.elementType === 'image' && el.imageUrl ? (
-          <img key={el.id} src={el.imageUrl} style={{ position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, objectFit: 'cover' }} />
-        ) : (
-          <div key={el.id} style={{ position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, fontSize: `${el.style.fontSize * 0.85}px`, fontWeight: el.style.fontWeight, color: getElementColor(el.role, deck.theme, el.style.colorOverride), textAlign: el.style.textAlign, lineHeight: el.style.lineHeight, overflow: 'hidden', whiteSpace: 'pre-wrap', wordBreak: 'break-word', pointerEvents: 'none' }}>{el.text}</div>
-        ))}
+      <div style={{ width: 160, height: 90, background: t.bg, position: 'relative', overflow: 'hidden' }}>
+        {slide.elements.map(el => {
+          const base = { position: 'absolute' as const, left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%` }
+          if (el.elementType === 'shape') return (
+            <svg key={el.id} style={base} viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d={el.svgPath || 'M0,0 H100 V100 H0 Z'} fill={el.shapeFill || t.accent}
+                stroke={el.shapeStroke || 'none'} strokeWidth={el.shapeStrokeWidth || 0} vectorEffect="non-scaling-stroke" />
+            </svg>
+          )
+          if (el.elementType === 'image' && el.imageUrl) return (
+            <img key={el.id} src={el.imageUrl} style={{ ...base, objectFit: 'cover' }} />
+          )
+          return (
+            <div key={el.id} style={{ ...base, fontSize: `${el.style.fontSize * 0.85}px`, fontWeight: el.style.fontWeight,
+              color: getElementColor(el.role, t, el.style.colorOverride),
+              textAlign: el.style.textAlign, lineHeight: el.style.lineHeight, overflow: 'hidden',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word', pointerEvents: 'none',
+              background: el.style.bgFill || 'transparent',
+            }}>{el.text}</div>
+          )
+        })}
       </div>
       {selected && <button onClick={e => { e.stopPropagation(); onDelete() }} style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer' }}>×</button>}
     </div>
@@ -700,29 +822,64 @@ export default function SlidesEditorPanel() {
 
           {/* 选中元素工具 */}
           {selectedEl ? (<>
-            <select value={selectedEl.style.fontSize} onChange={e => updateStyle({ fontSize: parseFloat(e.target.value) })}
-              style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }}>
-              {[1.5, 2, 2.2, 2.8, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 10].map(v => <option key={v} value={v}>{v}%</option>)}
-            </select>
-            <button onClick={() => updateStyle({ fontWeight: selectedEl.style.fontWeight === 'bold' ? 'normal' : 'bold' })}
-              style={{ padding: '2px 7px', fontSize: 11, fontWeight: 700, background: selectedEl.style.fontWeight === 'bold' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontWeight === 'bold' ? '#fff' : '#aaa', cursor: 'pointer' }}>B</button>
-            <button onClick={() => updateStyle({ fontStyle: selectedEl.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
-              style={{ padding: '2px 7px', fontSize: 11, fontStyle: 'italic', background: selectedEl.style.fontStyle === 'italic' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontStyle === 'italic' ? '#fff' : '#aaa', cursor: 'pointer' }}>I</button>
-            {(['left', 'center', 'right'] as const).map(a => (
-              <button key={a} onClick={() => updateStyle({ textAlign: a })}
-                style={{ padding: '2px 6px', fontSize: 11, background: selectedEl.style.textAlign === a ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.textAlign === a ? '#fff' : '#aaa', cursor: 'pointer' }}>
-                {a === 'left' ? '⫷' : a === 'center' ? '≡' : '⫸'}
-              </button>
-            ))}
-            <input type="color" value={selectedEl.style.colorOverride || '#ffffff'} onChange={e => updateStyle({ colorOverride: e.target.value })}
-              style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="文字颜色" />
-            {/* 动画 */}
+            {selectedEl.elementType === 'shape' ? (<>
+              {/* 形状：填充色 / 描边色 / 描边宽度 */}
+              <span style={{ fontSize: 9, color: mu }}>填充</span>
+              <input type="color" value={selectedEl.shapeFill?.replace('none','#888888') || '#888888'}
+                onChange={e => handleUpdateElement(selectedId!, { shapeFill: e.target.value })}
+                style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="形状填充色" />
+              <button onClick={() => handleUpdateElement(selectedId!, { shapeFill: 'none' })}
+                style={{ padding: '1px 5px', fontSize: 9, background: selectedEl.shapeFill === 'none' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }} title="无填充">∅</button>
+              <span style={{ fontSize: 9, color: mu }}>描边</span>
+              <input type="color" value={selectedEl.shapeStroke || '#ffffff'}
+                onChange={e => handleUpdateElement(selectedId!, { shapeStroke: e.target.value, shapeStrokeWidth: selectedEl.shapeStrokeWidth ?? 0.3 })}
+                style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="描边颜色" />
+              <select value={selectedEl.shapeStrokeWidth ?? 0}
+                onChange={e => handleUpdateElement(selectedId!, { shapeStrokeWidth: parseFloat(e.target.value), shapeStroke: selectedEl.shapeStroke || '#ffffff' })}
+                style={{ fontSize: 9, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 2px' }} title="描边宽度">
+                {[0, 0.2, 0.4, 0.6, 1, 1.5, 2].map(v => <option key={v} value={v}>{v === 0 ? '无' : `${v}%`}</option>)}
+              </select>
+            </>) : (<>
+              {/* 文字/图片：原有控件 */}
+              {selectedEl.elementType === 'text' && <>
+                <select value={selectedEl.style.fontSize} onChange={e => updateStyle({ fontSize: parseFloat(e.target.value) })}
+                  style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }}>
+                  {[1.5, 2, 2.2, 2.8, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 10].map(v => <option key={v} value={v}>{v}%</option>)}
+                </select>
+                <button onClick={() => updateStyle({ fontWeight: selectedEl.style.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                  style={{ padding: '2px 7px', fontSize: 11, fontWeight: 700, background: selectedEl.style.fontWeight === 'bold' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontWeight === 'bold' ? '#fff' : '#aaa', cursor: 'pointer' }}>B</button>
+                <button onClick={() => updateStyle({ fontStyle: selectedEl.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
+                  style={{ padding: '2px 7px', fontSize: 11, fontStyle: 'italic', background: selectedEl.style.fontStyle === 'italic' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontStyle === 'italic' ? '#fff' : '#aaa', cursor: 'pointer' }}>I</button>
+                {(['left', 'center', 'right'] as const).map(a => (
+                  <button key={a} onClick={() => updateStyle({ textAlign: a })}
+                    style={{ padding: '2px 6px', fontSize: 11, background: selectedEl.style.textAlign === a ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.textAlign === a ? '#fff' : '#aaa', cursor: 'pointer' }}>
+                    {a === 'left' ? '⫷' : a === 'center' ? '≡' : '⫸'}
+                  </button>
+                ))}
+                <input type="color" value={selectedEl.style.colorOverride || '#ffffff'} onChange={e => updateStyle({ colorOverride: e.target.value })}
+                  style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="文字颜色" />
+                <input type="color" value={selectedEl.style.bgFill || '#000000'} onChange={e => updateStyle({ bgFill: e.target.value })}
+                  style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="文字框背景色" />
+                <button onClick={() => updateStyle({ bgFill: undefined })}
+                  style={{ padding: '1px 5px', fontSize: 9, background: !selectedEl.style.bgFill ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }} title="无背景">∅</button>
+              </>}
+            </>)}
+            {/* 动画（所有元素类型都有） */}
+            <div style={{ width: 1, height: 18, background: bd }} />
             <select value={selectedEl.animation} onChange={e => handleUpdateElement(selectedId!, { animation: e.target.value as AnimationType })}
               style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }} title="动画效果">
               {ANIM_OPTIONS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
             </select>
+            {/* 动画触发顺序（有动画时显示） */}
+            {selectedEl.animation !== 'none' && (
+              <select value={selectedEl.animationOrder ?? 0}
+                onChange={e => handleUpdateElement(selectedId!, { animationOrder: parseInt(e.target.value) })}
+                style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }} title="触发顺序（0=自动,1=第1次点击…）">
+                {[0,1,2,3,4,5,6,7,8].map(v => <option key={v} value={v}>{v === 0 ? '自动' : `点击${v}`}</option>)}
+              </select>
+            )}
           </>) : (
-            <span style={{ fontSize: 10, color: mu }}>点击元素选中 · 拖拽移动 · 拖角点缩放 · 双击编辑文字</span>
+            <span style={{ fontSize: 10, color: mu }}>点击选中 · 拖拽移动 · 拖角点缩放 · 双击编辑文字</span>
           )}
 
           <div style={{ flex: 1 }} />

@@ -307,21 +307,44 @@ export async function exportToPptx(deck: SlidesDeck) {
       s.addShape(pptx.ShapeType.rect, { x: SLIDE_W * 0.035, y: SLIDE_H * 0.05, w: 0.05, h: SLIDE_H * 0.88, fill: { color: hex(t.accent) }, line: { color: hex(t.accent), width: 0 } })
     }
 
-    // 元素
+    // 元素（形状在底层，图片/文字在上层）
     for (const el of slide.elements) {
-      if (el.elementType === 'image' && el.imageUrl) {
+      const ex = el.x / 100 * SLIDE_W, ey = el.y / 100 * SLIDE_H
+      const ew = el.w / 100 * SLIDE_W, eh = el.h / 100 * SLIDE_H
+
+      if (el.elementType === 'shape') {
+        // pptxgenjs ShapeType 名称与 OOXML prst 名称一致，直接映射
+        const preset = el.shapePreset || 'rect'
+        // pptxgenjs ShapeType 与 OOXML prst 名称一致；类型断言绕过枚举检查
+        const shapeType: any = (pptx.ShapeType as Record<string, unknown>)[preset]
+          ?? pptx.ShapeType.rect
+        const fillColor = el.shapeFill && el.shapeFill !== 'none' ? hex(el.shapeFill) : 'TRANSPARENT'
+        const lineOpts = el.shapeStroke
+          ? { color: hex(el.shapeStroke), width: Math.round((el.shapeStrokeWidth ?? 0.3) * 5.4) }
+          : { color: fillColor === 'TRANSPARENT' ? 'TRANSPARENT' : fillColor, width: 0 }
+        if (fillColor !== 'TRANSPARENT' || el.shapeStroke) {
+          s.addShape(shapeType, {
+            x: ex, y: ey, w: ew, h: eh,
+            fill: fillColor === 'TRANSPARENT' ? { type: 'none' } : { color: fillColor },
+            line: lineOpts,
+          })
+        }
+      } else if (el.elementType === 'image' && el.imageUrl) {
         const base64 = el.imageUrl.split(',')[1]
         const ext = el.imageUrl.startsWith('data:image/png') ? 'png' : 'jpg'
-        s.addImage({ data: `${ext};base64,${base64}`, x: el.x / 100 * SLIDE_W, y: el.y / 100 * SLIDE_H, w: el.w / 100 * SLIDE_W, h: el.h / 100 * SLIDE_H })
-      } else {
+        s.addImage({ data: `${ext};base64,${base64}`, x: ex, y: ey, w: ew, h: eh })
+      } else if (el.elementType === 'text') {
         const color = getElementColor(el.role, t, el.style.colorOverride)
+        const fillOpts = el.style.bgFill
+          ? { fill: { color: hex(el.style.bgFill) } }
+          : {}
         s.addText(el.text, {
-          x: el.x / 100 * SLIDE_W, y: el.y / 100 * SLIDE_H,
-          w: el.w / 100 * SLIDE_W, h: el.h / 100 * SLIDE_H,
+          x: ex, y: ey, w: ew, h: eh,
           fontSize: pct2pt(el.style.fontSize), bold: el.style.fontWeight === 'bold',
           italic: el.style.fontStyle === 'italic', color: hex(color),
           align: el.style.textAlign, fontFace: 'Microsoft YaHei', breakLine: true,
           charSpacing: el.style.letterSpacing * 100,
+          ...fillOpts,
         })
       }
     }
