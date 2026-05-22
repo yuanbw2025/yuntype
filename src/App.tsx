@@ -11,12 +11,11 @@ import WebGenPanel from './components/WebGenPanel'
 import ImageGenPanel from './components/ImageGenPanel'
 import PresentationPanel from './components/PresentationPanel'
 import SlidesEditorPanel from './components/SlidesEditorPanel'
-import StoryGamePanel from './components/StoryGamePanel'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
 import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 
-type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation' | 'slides' | 'storygame'
+type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation' | 'slides'
 
 export default function App() {
   const [article, setArticle] = useState('')
@@ -137,7 +136,6 @@ export default function App() {
             { key: 'webpage' as AppMode, label: '🌐 网页', color: '#059669' },
             { key: 'presentation' as AppMode, label: '🎬 演示', color: '#7C3AED' },
             { key: 'slides' as AppMode, label: '🎞 幻灯片', color: '#0891b2' },
-            { key: 'storygame' as AppMode, label: '📖 故事游戏', color: '#9333ea' },
           ]).map(({ key, label, color }, i, arr) => (
             <button
               key={key}
@@ -208,7 +206,7 @@ export default function App() {
         overflow: 'hidden',
       }}>
         {/* 左栏：文章输入（信息图/网页模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && mode !== 'storygame' && (
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
           <div style={{
             width: '30%',
             minWidth: '280px',
@@ -222,7 +220,7 @@ export default function App() {
         )}
 
         {/* 中栏：风格面板（信息图/网页/配图模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && mode !== 'storygame' && (
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
           <div style={{
             width: '260px',
             flexShrink: 0,
@@ -286,9 +284,6 @@ export default function App() {
           )}
           {mode === 'slides' && (
             <SlidesEditorPanel />
-          )}
-          {mode === 'storygame' && (
-            <StoryGamePanel />
           )}
         </div>
       </div>
