@@ -302,3 +302,148 @@ export async function exportToPptx(deck: SlidesDeck) {
   }
   await pptx.writeFile({ fileName: `${deck.title}.pptx` })
 }
+
+// ═══════════════════════════════════════
+//  AI 风格分析（分析导入的 PPTX 风格）
+// ═══════════════════════════════════════
+
+export interface StyleAnalysis {
+  styleKeywords: string[]   // ['极简', '商务', '深色'] 等中文关键词
+  tone: string              // '正式专业' | '活泼创意' | '学术严谨' | '品牌营销' 等
+  layoutPattern: string     // 版式特征描述
+  colorDescription: string  // 颜色风格描述
+  aiHint: string            // 给后续生成用的精准提示（混合中英文更好）
+}
+
+const STYLE_ANALYZE_SYSTEM = `你是专业的 PPT 设计风格分析师。
+分析用户提供的幻灯片数据（内容摘要 + 配色），返回严格 JSON：
+{
+  "styleKeywords": ["关键词1", "关键词2", "关键词3"],
+  "tone": "语调描述（2~4字）",
+  "layoutPattern": "版式特征（1句话）",
+  "colorDescription": "颜色风格（1句话）",
+  "aiHint": "English style hint for AI generation, 1-2 sentences, describe visual style, color mood, layout preference"
+}
+styleKeywords 从以下选 2~4 个：极简、商务、学术、科技、创意、温暖、深色、明亮、扁平、插画、中国风、渐变
+只返回 JSON，不要解释。`
+
+export async function analyzeStyleWithAI(
+  config: AIClientConfig,
+  summary: string,
+): Promise<{ success: boolean; analysis?: StyleAnalysis; error?: string }> {
+  const res = await chat(config, [
+    { role: 'system', content: STYLE_ANALYZE_SYSTEM },
+    { role: 'user', content: summary },
+  ])
+  if (!res.success || !res.content) return { success: false, error: res.error }
+  try {
+    const raw = res.content.replace(/```json?\n?/g, '').replace(/```\n?/g, '').trim()
+    const analysis = JSON.parse(raw) as StyleAnalysis
+    return { success: true, analysis }
+  } catch {
+    return { success: false, error: '风格分析解析失败' }
+  }
+}
+
+// ═══════════════════════════════════════
+//  风格感知续写 / 补全
+// ═══════════════════════════════════════
+
+// 把现有幻灯片内容压缩成上下文摘要
+function buildContextSummary(slides: Slide[]): string {
+  return slides.map((s, i) => {
+    const texts = s.elements
+      .filter(e => e.elementType === 'text')
+      .map(e => `[${e.role}]${e.text.slice(0, 60)}`)
+      .join(' ')
+    return `第${i + 1}页(${s.layout}): ${texts}`
+  }).join('\n')
+}
+
+export async function generateSlidesWithStyle(
+  config: AIClientConfig,
+  instruction: string,         // 用户指令，如"再生成 3 页关于竞品分析的内容"
+  styleAnalysis: StyleAnalysis,
+  existingSlides: Slide[],
+  themeIndex = 0,
+): Promise<{ success: boolean; slides?: Slide[]; error?: string }> {
+  const context  = buildContextSummary(existingSlides)
+  const styleHint = `${styleAnalysis.aiHint} 风格关键词: ${styleAnalysis.styleKeywords.join('/')}，语调: ${styleAnalysis.tone}。`
+
+  const system = `你是专业演示稿策划师。严格按照提供的风格生成幻灯片，风格要与已有内容保持一致。
+风格描述: ${styleHint}
+版式特征: ${styleAnalysis.layoutPattern}
+
+返回严格 JSON（只返回 JSON，不要解释）:
+{"slides":[{"layout":"content","elements":[{"type":"title","text":"..."},{"type":"body","text":"..."}]}]}
+layout 只能是: title/content/bullets/two-column/quote/closing
+element type 只能是: title/subtitle/body/label
+正文 body 不超过 80 字，要点用换行分隔，不要加序号，只返回 JSON。`
+
+  const userPrompt = `已有幻灯片内容（共${existingSlides.length}页）：
+${context}
+
+续写指令：${instruction}`
+
+  const res = await chat(config, [
+    { role: 'system', content: system },
+    { role: 'user', content: userPrompt },
+  ])
+  if (!res.success || !res.content) return { success: false, error: res.error }
+  try {
+    const raw = res.content.replace(/```json?\n?/g, '').replace(/```\n?/g, '').trim()
+    const parsed = JSON.parse(raw)
+    const slides: Slide[] = (parsed.slides || []).map((s: any) => ({
+      id: makeId(), layout: s.layout || 'content', themeIndex,
+      elements: buildElements(s.elements || [], s.layout || 'content'),
+    }))
+    return { success: true, slides }
+  } catch { return { success: false, error: '解析失败，请重试' } }
+}
+
+// ═══════════════════════════════════════
+//  风格感知美化（对所有文字统一语言风格）
+// ═══════════════════════════════════════
+
+export async function polishDeckWithStyle(
+  config: AIClientConfig,
+  slides: Slide[],
+  styleAnalysis: StyleAnalysis,
+  instruction = '统一语言风格，让表达更精炼、专业',
+): Promise<{ success: boolean; slides?: Slide[]; error?: string }> {
+  const content = slides.map((s, i) => ({
+    slideIndex: i,
+    elements: s.elements
+      .filter(e => e.elementType === 'text')
+      .map(e => ({ id: e.id, role: e.role, text: e.text })),
+  }))
+
+  const system = `你是演示稿文案优化师。保持幻灯片结构不变，只修改文字内容，使其：
+1. 语言风格统一，符合描述：${styleAnalysis.tone}，${styleAnalysis.styleKeywords.join('/')}
+2. ${instruction}
+3. 保持每个元素的 role 和 id 不变
+
+返回严格 JSON（只返回 JSON）:
+[{"slideIndex":0,"elements":[{"id":"xxx","text":"优化后文字"}]}]`
+
+  const res = await chat(config, [
+    { role: 'system', content: system },
+    { role: 'user', content: JSON.stringify(content) },
+  ])
+  if (!res.success || !res.content) return { success: false, error: res.error }
+  try {
+    const raw = res.content.replace(/```json?\n?/g, '').replace(/```\n?/g, '').trim()
+    const updates = JSON.parse(raw) as { slideIndex: number; elements: { id: string; text: string }[] }[]
+    const idMap: Record<string, string> = {}
+    for (const upd of updates) {
+      for (const el of upd.elements) idMap[el.id] = el.text
+    }
+    const newSlides = slides.map(s => ({
+      ...s,
+      elements: s.elements.map(el =>
+        idMap[el.id] ? { ...el, text: idMap[el.id] } : el
+      ),
+    }))
+    return { success: true, slides: newSlides }
+  } catch { return { success: false, error: '解析失败，请重试' } }
+}

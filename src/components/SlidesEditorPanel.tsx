@@ -4,12 +4,14 @@
 import { useState, useCallback, useRef, useEffect, useMemo, useReducer } from 'react'
 import {
   type Slide, type SlidesDeck, type SlideLayout, type SlideElement,
-  type ElementRole, type AnimationType,
+  type ElementRole, type AnimationType, type StyleAnalysis,
   SLIDE_THEMES, SLIDES_PRESETS,
   createDefaultDeck, createEmptySlide, makeId,
   generateSlidesDeck, exportToPptx, refineSlide,
   getElementColor, renderSlideHtml,
+  analyzeStyleWithAI, generateSlidesWithStyle, polishDeckWithStyle,
 } from '../lib/ai/slides-gen'
+import { parsePptx, summarizeParsedPptx } from '../lib/ai/pptx-import'
 import { loadChatConfig, saveChatConfig, chatProviderPresets, type AIClientConfig } from '../lib/ai/client'
 import { APIConfigForm } from './APIConfigForm'
 
@@ -413,6 +415,14 @@ export default function SlidesEditorPanel() {
   // AI 微调
   const [aiInstruction, setAiInstruction] = useState('')
   const [refining, setRefining] = useState(false)
+  // PPTX 导入 + 风格分析
+  const [importStatus, setImportStatus] = useState<'idle' | 'parsing' | 'analyzing' | 'done' | 'error'>('idle')
+  const [importError, setImportError] = useState('')
+  const [styleAnalysis, setStyleAnalysis] = useState<StyleAnalysis | null>(null)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [continueInstruction, setContinueInstruction] = useState('')
+  const [continuing, setContinuing] = useState(false)
+  const [polishing, setPolishing] = useState(false)
   // 动画选择器：选中元素时显示
   const ANIM_OPTIONS: { val: AnimationType; label: string }[] = [
     { val: 'none', label: '无' }, { val: 'fade', label: '淡入' },
@@ -537,6 +547,65 @@ export default function SlidesEditorPanel() {
     setRefining(false)
   }, [config, aiInstruction, currentSlide, deck, currentIdx, setDeck])
 
+  // 导入 PPTX
+  const handleImportPptx = useCallback(async (file: File) => {
+    setImportStatus('parsing')
+    setImportError('')
+    try {
+      const parsed = await parsePptx(file)
+      // 用检测到的主题替换当前主题
+      const importedDeck: SlidesDeck = {
+        title: parsed.originalTitle,
+        theme: parsed.styleProfile.mappedTheme,
+        slides: parsed.slides,
+      }
+      setDeck(importedDeck)
+      setCurrentIdx(0); setSelectedId(null)
+      setThemeIdx(-1) // 标记为自定义主题
+
+      // 继续用 AI 分析风格
+      if (config) {
+        setImportStatus('analyzing')
+        const summary = summarizeParsedPptx(parsed)
+        const res = await analyzeStyleWithAI(config, summary)
+        if (res.success && res.analysis) {
+          setStyleAnalysis(res.analysis)
+          setImportStatus('done')
+        } else {
+          setImportStatus('done') // 无 AI 也能用
+        }
+      } else {
+        setImportStatus('done')
+      }
+      setShowImportModal(true)
+    } catch (err) {
+      setImportStatus('error')
+      setImportError(String(err))
+    }
+  }, [config, setDeck])
+
+  // 风格感知续写
+  const handleContinueWithStyle = useCallback(async () => {
+    if (!config || !styleAnalysis || !continueInstruction.trim()) return
+    setContinuing(true)
+    const res = await generateSlidesWithStyle(config, continueInstruction.trim(), styleAnalysis, deck.slides, themeIdx >= 0 ? themeIdx : 0)
+    if (res.success && res.slides) {
+      setDeck({ ...deck, slides: [...deck.slides, ...res.slides] })
+      setContinueInstruction('')
+    } else alert(res.error || '续写失败')
+    setContinuing(false)
+  }, [config, styleAnalysis, continueInstruction, deck, themeIdx, setDeck])
+
+  // 一键美化（统一语言风格）
+  const handlePolishDeck = useCallback(async () => {
+    if (!config || !styleAnalysis) return
+    setPolishing(true)
+    const res = await polishDeckWithStyle(config, deck.slides, styleAnalysis)
+    if (res.success && res.slides) setDeck({ ...deck, slides: res.slides })
+    else alert(res.error || '美化失败')
+    setPolishing(false)
+  }, [config, styleAnalysis, deck, setDeck])
+
   // 切换主题
   const applyTheme = (idx: number) => { setThemeIdx(idx); setDeck({ ...deck, theme: SLIDE_THEMES[idx] }) }
 
@@ -631,6 +700,14 @@ export default function SlidesEditorPanel() {
 
           <div style={{ width: 1, height: 20, background: bd, margin: '0 2px' }} />
 
+          {/* 导入 PPTX */}
+          <button
+            onClick={() => { const i = document.createElement('input'); i.type='file'; i.accept='.pptx,.ppt'; i.onchange=()=>{ if(i.files?.[0]) handleImportPptx(i.files[0]) }; i.click() }}
+            disabled={importStatus === 'parsing' || importStatus === 'analyzing'}
+            style={{ padding: '4px 10px', fontSize: 11, background: '#1c2a1c', border: `1px solid #4d7c4d`, borderRadius: 4, color: '#86efac', cursor: 'pointer' }}>
+            {importStatus === 'parsing' ? '解析中…' : importStatus === 'analyzing' ? 'AI分析…' : '📂 导入'}
+          </button>
+
           {/* 演示 */}
           <button onClick={() => setPresentMode(true)} title="全屏演示"
             style={{ padding: '4px 10px', fontSize: 11, background: '#1e3a5f', border: `1px solid #2563eb`, borderRadius: 4, color: '#60a5fa', cursor: 'pointer' }}>▶ 演示</button>
@@ -706,6 +783,33 @@ export default function SlidesEditorPanel() {
           </button>
         </div>
 
+        {/* 风格感知（导入 PPTX 后显示） */}
+        {styleAnalysis && (
+          <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}`, background: '#0e1a0e' }}>
+            <div style={{ fontSize: 10, color: '#4ade80', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🧠 检测到风格</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
+              {styleAnalysis.styleKeywords.map(k => (
+                <span key={k} style={{ padding: '1px 6px', fontSize: 9, background: '#1a2e1a', border: '1px solid #2d4f2d', borderRadius: 10, color: '#86efac' }}>{k}</span>
+              ))}
+              <span style={{ padding: '1px 6px', fontSize: 9, background: '#1a2e1a', border: '1px solid #2d4f2d', borderRadius: 10, color: '#86efac' }}>{styleAnalysis.tone}</span>
+            </div>
+            <div style={{ fontSize: 9, color: '#555', marginBottom: 8, lineHeight: 1.7 }}>{styleAnalysis.colorDescription}</div>
+            <textarea value={continueInstruction} onChange={e => setContinueInstruction(e.target.value)}
+              placeholder="例：再生成 3 页竞品分析 / 加一页总结…" rows={2}
+              style={{ width: '100%', boxSizing: 'border-box', resize: 'none', background: '#111', border: `1px solid #2d4f2d`, borderRadius: 4, color: '#ddd', fontSize: 11, padding: '5px 7px', fontFamily: 'inherit', outline: 'none' }} />
+            <div style={{ display: 'flex', gap: 4, marginTop: 5 }}>
+              <button onClick={handleContinueWithStyle} disabled={continuing || !config || !continueInstruction.trim()}
+                style={{ flex: 1, padding: '5px 0', fontSize: 10, fontWeight: 600, background: continuing || !config || !continueInstruction.trim() ? '#1a1a1a' : '#166534', border: 'none', borderRadius: 4, color: continuing || !config || !continueInstruction.trim() ? '#444' : '#86efac', cursor: 'pointer' }}>
+                {continuing ? '续写中…' : '✦ 风格续写'}
+              </button>
+              <button onClick={handlePolishDeck} disabled={polishing || !config}
+                style={{ flex: 1, padding: '5px 0', fontSize: 10, fontWeight: 600, background: polishing || !config ? '#1a1a1a' : '#0f3460', border: 'none', borderRadius: 4, color: polishing || !config ? '#444' : '#93c5fd', cursor: 'pointer' }}>
+                {polishing ? '美化中…' : '✦ 一键美化'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 主题 */}
         <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
           <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🎨 配色主题</div>
@@ -734,6 +838,60 @@ export default function SlidesEditorPanel() {
           </div>
         </div>
       </div>
+
+      {/* 导入结果弹窗 */}
+      {showImportModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}
+          onClick={() => setShowImportModal(false)}>
+          <div style={{ background: '#1a1a1a', borderRadius: 12, padding: 24, width: 440, border: `1px solid #2d4f2d`, maxHeight: '80vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}>
+            {importStatus === 'error' ? (
+              <>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#f87171', marginBottom: 12 }}>❌ 导入失败</div>
+                <div style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>{importError}</div>
+                <button onClick={() => setShowImportModal(false)} style={{ padding: '6px 20px', background: '#2a2a2a', border: `1px solid #333`, borderRadius: 6, color: '#ccc', cursor: 'pointer' }}>关闭</button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#4ade80', marginBottom: 4 }}>✅ 导入成功</div>
+                <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>已导入 {deck.slides.length} 页幻灯片，主题配色已自动适配</div>
+
+                {styleAnalysis ? (
+                  <>
+                    <div style={{ fontSize: 11, color: '#86efac', fontWeight: 600, marginBottom: 8 }}>🧠 AI 风格分析结果</div>
+                    <div style={{ background: '#111', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                        {styleAnalysis.styleKeywords.map(k => (
+                          <span key={k} style={{ padding: '2px 8px', fontSize: 10, background: '#1a2e1a', border: '1px solid #2d4f2d', borderRadius: 10, color: '#86efac' }}>{k}</span>
+                        ))}
+                        <span style={{ padding: '2px 8px', fontSize: 10, background: '#1a2e28', border: '1px solid #2d4f3a', borderRadius: 10, color: '#6ee7b7' }}>{styleAnalysis.tone}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: '#aaa', lineHeight: 1.7 }}>
+                        <div><b style={{ color: '#666' }}>版式：</b>{styleAnalysis.layoutPattern}</div>
+                        <div><b style={{ color: '#666' }}>配色：</b>{styleAnalysis.colorDescription}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#aaa', marginBottom: 16 }}>
+                      检测到风格后，右侧面板将出现 <b style={{ color: '#86efac' }}>「风格续写」</b> 和 <b style={{ color: '#93c5fd' }}>「一键美化」</b>，生成的内容将自动匹配此风格。
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 12, color: '#666', marginBottom: 16 }}>配置 API Key 后可进行 AI 风格分析，实现风格感知续写。</div>
+                )}
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setShowImportModal(false)}
+                    style={{ flex: 1, padding: '8px 0', fontSize: 12, fontWeight: 600, background: '#166534', border: 'none', borderRadius: 6, color: '#86efac', cursor: 'pointer' }}>开始编辑</button>
+                  {styleAnalysis && config && (
+                    <button onClick={() => { setShowImportModal(false); document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="再生成"]')?.focus() }}
+                      style={{ flex: 1, padding: '8px 0', fontSize: 12, fontWeight: 600, background: '#0f3460', border: 'none', borderRadius: 6, color: '#93c5fd', cursor: 'pointer' }}>去续写 →</button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* API 配置弹窗 */}
       {showConfig && (
