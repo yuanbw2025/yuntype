@@ -1,161 +1,189 @@
-// 幻灯片可视化编辑器 — 拖拽移动 / 缩放 / 文字编辑 / AI生成 / 导出PPTX
+// 幻灯片可视化编辑器
+// 功能：拖拽/缩放/文字编辑/图片插入/撤销重做/对齐辅助线/动画/全屏演示/PNG+PDF+PPTX导出/AI微调单页
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, useReducer } from 'react'
 import {
-  type Slide, type SlidesDeck, type SlideLayout, type SlideElement, type ElementRole,
+  type Slide, type SlidesDeck, type SlideLayout, type SlideElement,
+  type ElementRole, type AnimationType,
   SLIDE_THEMES, SLIDES_PRESETS,
   createDefaultDeck, createEmptySlide, makeId,
-  generateSlidesDeck, exportToPptx,
-  getElementColor,
+  generateSlidesDeck, exportToPptx, refineSlide,
+  getElementColor, renderSlideHtml,
 } from '../lib/ai/slides-gen'
 import { loadChatConfig, saveChatConfig, chatProviderPresets, type AIClientConfig } from '../lib/ai/client'
 import { APIConfigForm } from './APIConfigForm'
 
 // ═══════════════════════════════════════
-//  상수 & 타입
+//  撤销/重做
+// ═══════════════════════════════════════
+
+type HistoryAction =
+  | { type: 'SET'; deck: SlidesDeck }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+
+interface HistoryState { past: SlidesDeck[]; present: SlidesDeck; future: SlidesDeck[] }
+
+function historyReducer(state: HistoryState, action: HistoryAction): HistoryState {
+  switch (action.type) {
+    case 'SET': {
+      if (JSON.stringify(state.present) === JSON.stringify(action.deck)) return state
+      return { past: [...state.past.slice(-49), state.present], present: action.deck, future: [] }
+    }
+    case 'UNDO': {
+      if (!state.past.length) return state
+      return { past: state.past.slice(0, -1), present: state.past[state.past.length - 1], future: [state.present, ...state.future] }
+    }
+    case 'REDO': {
+      if (!state.future.length) return state
+      return { past: [...state.past, state.present], present: state.future[0], future: state.future.slice(1) }
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+//  拖拽类型
 // ═══════════════════════════════════════
 
 const HANDLE_DIRS = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const
 type HandleDir = typeof HANDLE_DIRS[number]
-
 type DragState =
   | { type: 'none' }
   | { type: 'move'; elId: string; startMX: number; startMY: number; startX: number; startY: number; cW: number; cH: number }
   | { type: 'resize'; elId: string; dir: HandleDir; startMX: number; startMY: number; startX: number; startY: number; startW: number; startH: number; cW: number; cH: number }
 
-// ═══════════════════════════════════════
-//  缩略图
-// ═══════════════════════════════════════
-
-function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: {
-  slide: Slide; deck: SlidesDeck; index: number
-  selected: boolean; onClick: () => void; onDelete: () => void
-}) {
-  return (
-    <div onClick={onClick} style={{
-      position: 'relative', cursor: 'pointer', borderRadius: 5, flexShrink: 0,
-      border: selected ? '2px solid #7c3aed' : '2px solid #2a2a2a',
-    }}>
-      <div style={{ fontSize: 9, color: '#666', padding: '2px 5px', background: '#111' }}>{index + 1}</div>
-      <div style={{ width: 160, height: 90, background: deck.theme.bg, position: 'relative', overflow: 'hidden' }}>
-        {slide.elements.map(el => (
-          <div key={el.id} style={{
-            position: 'absolute',
-            left: `${el.x}%`, top: `${el.y}%`,
-            width: `${el.w}%`, height: `${el.h}%`,
-            fontSize: `${el.style.fontSize * 0.9}px`,
-            fontWeight: el.style.fontWeight,
-            fontStyle: el.style.fontStyle,
-            color: getElementColor(el.role, deck.theme, el.style.colorOverride),
-            textAlign: el.style.textAlign,
-            lineHeight: el.style.lineHeight,
-            overflow: 'hidden', pointerEvents: 'none', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-          }}>{el.text}</div>
-        ))}
-      </div>
-      {selected && (
-        <button onClick={e => { e.stopPropagation(); onDelete() }} style={{
-          position: 'absolute', top: 2, right: 2, width: 16, height: 16,
-          borderRadius: '50%', background: '#ef4444', border: 'none',
-          color: '#fff', fontSize: 10, cursor: 'pointer', lineHeight: 1,
-        }}>×</button>
-      )}
-    </div>
-  )
+const HANDLE_CURSORS: Record<HandleDir, string> = { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize', se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' }
+const HANDLE_POS: Record<HandleDir, React.CSSProperties> = {
+  nw: { left: -4, top: -4 }, n: { left: '50%', top: -4, transform: 'translateX(-50%)' },
+  ne: { right: -4, top: -4 }, e: { right: -4, top: '50%', transform: 'translateY(-50%)' },
+  se: { right: -4, bottom: -4 }, s: { left: '50%', bottom: -4, transform: 'translateX(-50%)' },
+  sw: { left: -4, bottom: -4 }, w: { left: -4, top: '50%', transform: 'translateY(-50%)' },
 }
 
 // ═══════════════════════════════════════
-//  Resize Handle
+//  动画 CSS
 // ═══════════════════════════════════════
 
-const HANDLE_CURSORS: Record<HandleDir, string> = {
-  nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
-  se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize',
-}
-const HANDLE_POS: Record<HandleDir, { left?: string; right?: string; top?: string; bottom?: string; transform: string }> = {
-  nw: { left: '-4px', top: '-4px', transform: '' },
-  n:  { left: '50%',  top: '-4px', transform: 'translateX(-50%)' },
-  ne: { right: '-4px', top: '-4px', transform: '' },
-  e:  { right: '-4px', top: '50%', transform: 'translateY(-50%)' },
-  se: { right: '-4px', bottom: '-4px', transform: '' },
-  s:  { left: '50%', bottom: '-4px', transform: 'translateX(-50%)' },
-  sw: { left: '-4px', bottom: '-4px', transform: '' },
-  w:  { left: '-4px', top: '50%', transform: 'translateY(-50%)' },
+const ANIM_STYLE = `
+@keyframes sl-fade { from { opacity:0 } to { opacity:1 } }
+@keyframes sl-up   { from { opacity:0; transform:translateY(24px) } to { opacity:1; transform:translateY(0) } }
+@keyframes sl-left { from { opacity:0; transform:translateX(-24px) } to { opacity:1; transform:translateX(0) } }
+@keyframes sl-zoom { from { opacity:0; transform:scale(0.85) } to { opacity:1; transform:scale(1) } }
+`
+function animCss(anim: AnimationType, delay: number): React.CSSProperties {
+  if (anim === 'none') return {}
+  const name = anim === 'fade' ? 'sl-fade' : anim === 'slide-up' ? 'sl-up' : anim === 'slide-left' ? 'sl-left' : 'sl-zoom'
+  return { animation: `${name} 0.5s ease both`, animationDelay: `${delay * 0.15}s` }
 }
 
 // ═══════════════════════════════════════
-//  幻灯片画布（可拖拽编辑）
+//  对齐辅助线计算
+// ═══════════════════════════════════════
+
+interface Guide { axis: 'x' | 'y'; pct: number }
+const SNAP_THRESHOLD = 1.5
+
+function calcGuides(dragged: SlideElement, others: SlideElement[]): { guides: Guide[]; snapX?: number; snapY?: number } {
+  const dCX = dragged.x + dragged.w / 2, dCY = dragged.y + dragged.h / 2
+  const dR = dragged.x + dragged.w, dB = dragged.y + dragged.h
+  const guides: Guide[] = []
+  let snapX: number | undefined, snapY: number | undefined
+
+  // 幻灯片中心线
+  const checkPoints = [
+    { axis: 'x' as const, val: 50, myVals: [dragged.x, dCX, dR] },
+    { axis: 'y' as const, val: 50, myVals: [dragged.y, dCY, dB] },
+  ]
+  for (const other of others) {
+    const oCX = other.x + other.w / 2, oCY = other.y + other.h / 2
+    const oR = other.x + other.w, oB = other.y + other.h
+    checkPoints.push(
+      ...([other.x, oCX, oR].map(v => ({ axis: 'x' as const, val: v, myVals: [dragged.x, dCX, dR] }))),
+      ...([other.y, oCY, oB].map(v => ({ axis: 'y' as const, val: v, myVals: [dragged.y, dCY, dB] }))),
+    )
+  }
+
+  for (const cp of checkPoints) {
+    for (const myV of cp.myVals) {
+      if (Math.abs(myV - cp.val) < SNAP_THRESHOLD) {
+        guides.push({ axis: cp.axis, pct: cp.val })
+        const delta = cp.val - myV
+        if (cp.axis === 'x' && snapX === undefined) snapX = dragged.x + delta
+        if (cp.axis === 'y' && snapY === undefined) snapY = dragged.y + delta
+        break
+      }
+    }
+  }
+  return { guides: guides.slice(0, 4), snapX, snapY }
+}
+
+// ═══════════════════════════════════════
+//  画布
 // ═══════════════════════════════════════
 
 interface SlideCanvasProps {
-  slide: Slide
-  deck: SlidesDeck
-  selectedId: string | null
-  editingId: string | null
+  slide: Slide; deck: SlidesDeck
+  selectedId: string | null; editingId: string | null
+  guides: Guide[]
   onSelect: (id: string | null) => void
   onUpdateElement: (id: string, patch: Partial<SlideElement>) => void
+  onCommit: () => void
   onStartEdit: (id: string) => void
   onEndEdit: (id: string, text: string) => void
+  onGuideChange: (guides: Guide[]) => void
+  presentMode?: boolean
 }
 
-function SlideCanvas({ slide, deck, selectedId, editingId, onSelect, onUpdateElement, onStartEdit, onEndEdit }: SlideCanvasProps) {
+function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onUpdateElement, onCommit, onStartEdit, onEndEdit, onGuideChange, presentMode }: SlideCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragState>({ type: 'none' })
   const editRef = useRef<HTMLDivElement | null>(null)
   const t = deck.theme
+  const [canvasH, setCanvasH] = useState(0)
 
-  // ── 拖拽移动 ──
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const ro = new ResizeObserver(e => setCanvasH(e[0].contentRect.height))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // 拖拽移动
   const handleElementMouseDown = useCallback((e: React.MouseEvent, elId: string) => {
-    if (editingId === elId) return
-    e.preventDefault()
-    e.stopPropagation()
+    if (editingId === elId || presentMode) return
+    e.preventDefault(); e.stopPropagation()
     onSelect(elId)
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = canvasRef.current; if (!canvas) return
     const rect = canvas.getBoundingClientRect()
     const el = slide.elements.find(el => el.id === elId)!
-    dragRef.current = {
-      type: 'move', elId,
-      startMX: e.clientX, startMY: e.clientY,
-      startX: el.x, startY: el.y,
-      cW: rect.width, cH: rect.height,
-    }
+    dragRef.current = { type: 'move', elId, startMX: e.clientX, startMY: e.clientY, startX: el.x, startY: el.y, cW: rect.width, cH: rect.height }
+    const others = slide.elements.filter(e => e.id !== elId)
     const onMove = (ev: MouseEvent) => {
-      const d = dragRef.current
-      if (d.type !== 'move') return
+      const d = dragRef.current; if (d.type !== 'move') return
       const dx = (ev.clientX - d.startMX) / d.cW * 100
       const dy = (ev.clientY - d.startMY) / d.cH * 100
-      onUpdateElement(d.elId, {
-        x: Math.max(0, Math.min(95, d.startX + dx)),
-        y: Math.max(0, Math.min(95, d.startY + dy)),
-      })
+      const dragged = { ...el, x: Math.max(0, Math.min(95, d.startX + dx)), y: Math.max(0, Math.min(95, d.startY + dy)) }
+      const { guides: g, snapX, snapY } = calcGuides(dragged, others)
+      onGuideChange(g)
+      onUpdateElement(d.elId, { x: snapX ?? dragged.x, y: snapY ?? dragged.y })
     }
     const onUp = () => {
-      dragRef.current = { type: 'none' }
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      dragRef.current = { type: 'none' }; onGuideChange([]); onCommit()
+      window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp)
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-  }, [slide.elements, editingId, onSelect, onUpdateElement])
+    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp)
+  }, [slide.elements, editingId, presentMode, onSelect, onUpdateElement, onGuideChange, onCommit])
 
-  // ── 缩放 ──
+  // 缩放
   const handleResizeMouseDown = useCallback((e: React.MouseEvent, elId: string, dir: HandleDir) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const canvas = canvasRef.current
-    if (!canvas) return
+    e.preventDefault(); e.stopPropagation()
+    const canvas = canvasRef.current; if (!canvas) return
     const rect = canvas.getBoundingClientRect()
     const el = slide.elements.find(el => el.id === elId)!
-    dragRef.current = {
-      type: 'resize', elId, dir,
-      startMX: e.clientX, startMY: e.clientY,
-      startX: el.x, startY: el.y, startW: el.w, startH: el.h,
-      cW: rect.width, cH: rect.height,
-    }
+    dragRef.current = { type: 'resize', elId, dir, startMX: e.clientX, startMY: e.clientY, startX: el.x, startY: el.y, startW: el.w, startH: el.h, cW: rect.width, cH: rect.height }
     const onMove = (ev: MouseEvent) => {
-      const d = dragRef.current
-      if (d.type !== 'resize') return
+      const d = dragRef.current; if (d.type !== 'resize') return
       const dx = (ev.clientX - d.startMX) / d.cW * 100
       const dy = (ev.clientY - d.startMY) / d.cH * 100
       let { startX: x, startY: y, startW: w, startH: h } = d
@@ -166,125 +194,85 @@ function SlideCanvas({ slide, deck, selectedId, editingId, onSelect, onUpdateEle
       onUpdateElement(d.elId, { x, y, w, h })
     }
     const onUp = () => {
-      dragRef.current = { type: 'none' }
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      dragRef.current = { type: 'none' }; onCommit()
+      window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp)
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-  }, [slide.elements, onUpdateElement])
+    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp)
+  }, [slide.elements, onUpdateElement, onCommit])
 
-  // ── 双击进入文字编辑 ──
+  // 双击编辑
   const handleDoubleClick = useCallback((e: React.MouseEvent, elId: string) => {
-    e.stopPropagation()
-    onStartEdit(elId)
-    setTimeout(() => editRef.current?.focus(), 50)
-  }, [onStartEdit])
+    const el = slide.elements.find(e => e.id === elId)
+    if (!el || el.elementType === 'image') return
+    e.stopPropagation(); onStartEdit(elId)
+    setTimeout(() => editRef.current?.focus(), 30)
+  }, [slide.elements, onStartEdit])
 
-  const handleEditBlur = useCallback((elId: string) => {
-    const text = editRef.current?.innerText ?? ''
-    onEndEdit(elId, text)
-  }, [onEndEdit])
-
-  // ── 删除键 ──
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!selectedId || editingId) return
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        // 通知父组件删除，通过update传null标记
-        onUpdateElement(selectedId, { id: '__delete__' })
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selectedId, editingId, onUpdateElement])
-
-  // ── 装饰条（不可拖拽，纯视觉） ──
-  const decoration = useMemo(() => {
-    const s = slide.layout
+  // 装饰条
+  const deco = useMemo(() => {
     const acc = t.accent
-    if (s === 'title') return <div style={{ position: 'absolute', left: 0, top: '72%', width: '100%', height: '0.8%', background: acc }} />
-    if (s === 'closing') return <>
-      <div style={{ position: 'absolute', left: '35%', top: '22%', width: '30%', height: '0.7%', background: acc }} />
-      <div style={{ position: 'absolute', left: '35%', top: '88%', width: '30%', height: '0.7%', background: acc }} />
-    </>
-    if (s === 'quote') return <div style={{ position: 'absolute', left: '5%', top: 0, width: '1.2%', height: '100%', background: acc }} />
-    if (s === 'two-column') return <>
-      <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '18%', background: acc }} />
-      <div style={{ position: 'absolute', left: '50%', top: '20%', width: '0.3%', height: '77%', background: acc + '55' }} />
-    </>
-    return <div style={{ position: 'absolute', left: '3.5%', top: '5%', width: '0.6%', height: '88%', background: acc, borderRadius: '3px' }} />
+    if (slide.layout === 'title') return <div style={{ position: 'absolute', left: 0, top: '72%', width: '100%', height: '0.8%', background: acc }} />
+    if (slide.layout === 'closing') return <><div style={{ position: 'absolute', left: '35%', top: '22%', width: '30%', height: '0.7%', background: acc }} /><div style={{ position: 'absolute', left: '35%', top: '88%', width: '30%', height: '0.7%', background: acc }} /></>
+    if (slide.layout === 'quote') return <div style={{ position: 'absolute', left: '5%', top: 0, width: '1.2%', height: '100%', background: acc }} />
+    if (slide.layout === 'two-column') return <><div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '18%', background: acc }} /><div style={{ position: 'absolute', left: '50%', top: '20%', width: '0.3%', height: '77%', background: acc + '55' }} /></>
+    return <div style={{ position: 'absolute', left: '3.5%', top: '5%', width: '0.6%', height: '88%', background: acc, borderRadius: 3 }} />
   }, [slide.layout, t.accent])
 
   return (
-    <div
-      ref={canvasRef}
-      onClick={() => onSelect(null)}
-      style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: t.bg, overflow: 'hidden', userSelect: 'none' }}
-    >
-      {/* 装饰 */}
-      {decoration}
+    <div ref={canvasRef} onClick={() => !presentMode && onSelect(null)}
+      style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: t.bg, overflow: 'hidden', userSelect: 'none' }}>
+      {deco}
+
+      {/* 对齐辅助线 */}
+      {guides.map((g, i) => g.axis === 'x'
+        ? <div key={i} style={{ position: 'absolute', left: `${g.pct}%`, top: 0, width: 1, height: '100%', background: '#f43f5e', opacity: 0.7, pointerEvents: 'none', zIndex: 20 }} />
+        : <div key={i} style={{ position: 'absolute', top: `${g.pct}%`, left: 0, height: 1, width: '100%', background: '#f43f5e', opacity: 0.7, pointerEvents: 'none', zIndex: 20 }} />
+      )}
 
       {/* 元素 */}
-      {slide.elements.map(el => {
-        const isSelected = selectedId === el.id
+      {slide.elements.map((el, elIdx) => {
+        const isSelected = selectedId === el.id && !presentMode
         const isEditing = editingId === el.id
         const color = getElementColor(el.role, t, el.style.colorOverride)
+        const animStyle = presentMode ? animCss(el.animation, elIdx) : {}
+        const fsPx = canvasH > 0 ? el.style.fontSize / 100 * canvasH : undefined
 
         return (
-          <div
-            key={el.id}
+          <div key={el.id}
             onMouseDown={e => handleElementMouseDown(e, el.id)}
             onDoubleClick={e => handleDoubleClick(e, el.id)}
             onClick={e => e.stopPropagation()}
             style={{
-              position: 'absolute',
-              left: `${el.x}%`, top: `${el.y}%`,
-              width: `${el.w}%`, height: `${el.h}%`,
-              cursor: isEditing ? 'text' : 'move',
-              outline: isSelected ? '1.5px solid #7c3aed' : 'none',
-              boxSizing: 'border-box',
-            }}
-          >
-            {/* 文字内容 */}
-            <div
-              ref={isEditing ? editRef : undefined}
-              contentEditable={isEditing}
-              suppressContentEditableWarning
-              onBlur={() => isEditing && handleEditBlur(el.id)}
-              style={{
-                width: '100%', height: '100%',
-                fontSize: `${el.style.fontSize}cqh`,
-                fontWeight: el.style.fontWeight,
-                fontStyle: el.style.fontStyle,
-                color,
-                textAlign: el.style.textAlign,
-                lineHeight: el.style.lineHeight,
-                letterSpacing: `${el.style.letterSpacing}em`,
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                overflow: 'hidden',
-                outline: 'none',
-                cursor: isEditing ? 'text' : 'inherit',
-                pointerEvents: isEditing ? 'auto' : 'none',
-              }}
-            >{el.text}</div>
+              position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`,
+              cursor: presentMode ? 'default' : isEditing ? 'text' : 'move',
+              outline: isSelected ? '1.5px solid #7c3aed' : 'none', boxSizing: 'border-box', ...animStyle,
+            }}>
+
+            {el.elementType === 'image' && el.imageUrl ? (
+              <img src={el.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 2 }} draggable={false} />
+            ) : (
+              <div ref={isEditing ? editRef : undefined}
+                contentEditable={isEditing}
+                suppressContentEditableWarning
+                onBlur={() => isEditing && onEndEdit(el.id, editRef.current?.innerText ?? el.text)}
+                style={{
+                  width: '100%', height: '100%', outline: 'none', overflow: 'hidden',
+                  fontSize: fsPx ? `${fsPx}px` : `${el.style.fontSize}cqh`,
+                  fontWeight: el.style.fontWeight, fontStyle: el.style.fontStyle,
+                  color, textAlign: el.style.textAlign, lineHeight: el.style.lineHeight,
+                  letterSpacing: `${el.style.letterSpacing}em`, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  cursor: isEditing ? 'text' : 'inherit', pointerEvents: isEditing ? 'auto' : 'none',
+                }}
+              >{el.text}</div>
+            )}
 
             {/* Resize handles */}
             {isSelected && !isEditing && HANDLE_DIRS.map(dir => (
-              <div
-                key={dir}
-                onMouseDown={e => handleResizeMouseDown(e, el.id, dir)}
-                style={{
-                  position: 'absolute',
-                  width: 8, height: 8,
-                  background: '#7c3aed',
-                  border: '1.5px solid #fff',
-                  borderRadius: 2,
-                  cursor: HANDLE_CURSORS[dir],
-                  ...HANDLE_POS[dir],
-                  zIndex: 10,
-                }}
-              />
+              <div key={dir} onMouseDown={e => handleResizeMouseDown(e, el.id, dir)} style={{
+                position: 'absolute', width: 8, height: 8, background: '#7c3aed',
+                border: '1.5px solid #fff', borderRadius: 2, cursor: HANDLE_CURSORS[dir], zIndex: 10,
+                ...HANDLE_POS[dir],
+              }} />
             ))}
           </div>
         )
@@ -294,255 +282,383 @@ function SlideCanvas({ slide, deck, selectedId, editingId, onSelect, onUpdateEle
 }
 
 // ═══════════════════════════════════════
+//  全屏演示模式
+// ═══════════════════════════════════════
+
+function PresentationOverlay({ deck, startIdx, onClose }: { deck: SlidesDeck; startIdx: number; onClose: () => void }) {
+  const [idx, setIdx] = useState(startIdx)
+  const slide = deck.slides[idx]
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setIdx(i => Math.min(deck.slides.length - 1, i + 1))
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setIdx(i => Math.max(0, i - 1))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [deck.slides.length, onClose])
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <style>{ANIM_STYLE}</style>
+      <div style={{ width: 'min(100vw, calc(100vh * 16/9))', position: 'relative' }}>
+        <SlideCanvas slide={slide} deck={deck} selectedId={null} editingId={null} guides={[]}
+          onSelect={() => {}} onUpdateElement={() => {}} onCommit={() => {}} onStartEdit={() => {}} onEndEdit={() => {}} onGuideChange={() => {}} presentMode />
+      </div>
+      {/* 控制栏 */}
+      <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}
+          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: idx === 0 ? '#444' : '#fff', fontSize: 28, cursor: idx === 0 ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>‹</button>
+        <span style={{ color: '#888', fontSize: 13 }}>{idx + 1} / {deck.slides.length}</span>
+        <button onClick={() => setIdx(i => Math.min(deck.slides.length - 1, i + 1))} disabled={idx === deck.slides.length - 1}
+          style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: idx === deck.slides.length - 1 ? '#444' : '#fff', fontSize: 28, cursor: idx === deck.slides.length - 1 ? 'default' : 'pointer', borderRadius: 6, padding: '4px 14px' }}>›</button>
+        <button onClick={onClose} style={{ position: 'absolute', right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', borderRadius: 5, padding: '5px 12px' }}>✕ 退出 (Esc)</button>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════
+//  缩略图
+// ═══════════════════════════════════════
+
+function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: { slide: Slide; deck: SlidesDeck; index: number; selected: boolean; onClick: () => void; onDelete: () => void }) {
+  return (
+    <div onClick={onClick} style={{ position: 'relative', cursor: 'pointer', borderRadius: 5, border: selected ? '2px solid #7c3aed' : '2px solid #2a2a2a', flexShrink: 0 }}>
+      <div style={{ fontSize: 9, color: '#666', padding: '2px 5px', background: '#111' }}>{index + 1}</div>
+      <div style={{ width: 160, height: 90, background: deck.theme.bg, position: 'relative', overflow: 'hidden' }}>
+        {slide.elements.map(el => el.elementType === 'image' && el.imageUrl ? (
+          <img key={el.id} src={el.imageUrl} style={{ position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, objectFit: 'cover' }} />
+        ) : (
+          <div key={el.id} style={{ position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%`, fontSize: `${el.style.fontSize * 0.85}px`, fontWeight: el.style.fontWeight, color: getElementColor(el.role, deck.theme, el.style.colorOverride), textAlign: el.style.textAlign, lineHeight: el.style.lineHeight, overflow: 'hidden', whiteSpace: 'pre-wrap', wordBreak: 'break-word', pointerEvents: 'none' }}>{el.text}</div>
+        ))}
+      </div>
+      {selected && <button onClick={e => { e.stopPropagation(); onDelete() }} style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer' }}>×</button>}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════
+//  导出（PNG / PDF）
+// ═══════════════════════════════════════
+
+async function captureSlide(slide: Slide, deck: SlidesDeck): Promise<HTMLCanvasElement> {
+  const html2canvas = (await import('html2canvas')).default
+  const W = 1280, H = 720
+  const container = document.createElement('div')
+  container.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;overflow:hidden`
+  container.innerHTML = renderSlideHtml(slide, deck.theme, W, H)
+  document.body.appendChild(container)
+  const canvas = await html2canvas(container, { scale: 1, useCORS: true, allowTaint: true, backgroundColor: null })
+  document.body.removeChild(container)
+  return canvas
+}
+
+async function exportPng(deck: SlidesDeck, slideIdx: number) {
+  const canvas = await captureSlide(deck.slides[slideIdx], deck)
+  const a = document.createElement('a')
+  a.href = canvas.toDataURL('image/png')
+  a.download = `${deck.title}-第${slideIdx + 1}页.png`
+  a.click()
+}
+
+async function exportAllPng(deck: SlidesDeck) {
+  for (let i = 0; i < deck.slides.length; i++) {
+    const canvas = await captureSlide(deck.slides[i], deck)
+    await new Promise(r => setTimeout(r, 100))
+    const a = document.createElement('a')
+    a.href = canvas.toDataURL('image/png')
+    a.download = `${deck.title}-第${i + 1}页.png`
+    a.click()
+    await new Promise(r => setTimeout(r, 200))
+  }
+}
+
+async function exportPdf(deck: SlidesDeck) {
+  const jsPDF = (await import('jspdf')).default
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [1280, 720] })
+  for (let i = 0; i < deck.slides.length; i++) {
+    if (i > 0) pdf.addPage([1280, 720], 'landscape')
+    const canvas = await captureSlide(deck.slides[i], deck)
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 1280, 720)
+  }
+  pdf.save(`${deck.title}.pdf`)
+}
+
+// ═══════════════════════════════════════
 //  主面板
 // ═══════════════════════════════════════
 
 export default function SlidesEditorPanel() {
-  const [deck, setDeck] = useState<SlidesDeck>(createDefaultDeck)
+  const [histState, dispatch] = useReducer(historyReducer, { past: [], present: createDefaultDeck(), future: [] })
+  const deck = histState.present
+  const setDeck = useCallback((d: SlidesDeck) => dispatch({ type: 'SET', deck: d }), [])
+  const undo = useCallback(() => dispatch({ type: 'UNDO' }), [])
+  const redo = useCallback(() => dispatch({ type: 'REDO' }), [])
+
   const [currentIdx, setCurrentIdx] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [guides, setGuides] = useState<Guide[]>([])
+  const [presentMode, setPresentMode] = useState(false)
   const [config, setConfig] = useState<AIClientConfig | null>(null)
   const [showConfig, setShowConfig] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [generating, setGenerating] = useState(false)
-  const [exporting, setExporting] = useState(false)
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
   const [themeIdx, setThemeIdx] = useState(0)
+  const [exporting, setExporting] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  // AI 微调
+  const [aiInstruction, setAiInstruction] = useState('')
+  const [refining, setRefining] = useState(false)
+  // 动画选择器：选中元素时显示
+  const ANIM_OPTIONS: { val: AnimationType; label: string }[] = [
+    { val: 'none', label: '无' }, { val: 'fade', label: '淡入' },
+    { val: 'slide-up', label: '上滑' }, { val: 'slide-left', label: '左滑' }, { val: 'zoom', label: '缩放' },
+  ]
 
   useEffect(() => {
-    const saved = loadChatConfig()
-    setConfig(saved)
+    const saved = loadChatConfig(); setConfig(saved)
     if (!saved) setShowConfig(true)
   }, [])
 
   const currentSlide = deck.slides[Math.min(currentIdx, deck.slides.length - 1)]
-
-  // ── 更新单个元素 ──
-  const handleUpdateElement = useCallback((id: string, patch: Partial<SlideElement>) => {
-    // __delete__ 信号
-    if (patch.id === '__delete__') {
-      setDeck(prev => {
-        const slides = [...prev.slides]
-        const si = Math.min(currentIdx, slides.length - 1)
-        slides[si] = { ...slides[si], elements: slides[si].elements.filter(e => e.id !== id) }
-        return { ...prev, slides }
-      })
-      setSelectedId(null)
-      return
-    }
-    setDeck(prev => {
-      const slides = [...prev.slides]
-      const si = Math.min(currentIdx, slides.length - 1)
-      slides[si] = {
-        ...slides[si],
-        elements: slides[si].elements.map(el => el.id === id ? { ...el, ...patch } : el),
-      }
-      return { ...prev, slides }
-    })
-  }, [currentIdx])
-
-  // ── 文字编辑结束 ──
-  const handleEndEdit = useCallback((id: string, text: string) => {
-    setEditingId(null)
-    handleUpdateElement(id, { text })
-  }, [handleUpdateElement])
-
-  // ── 切换幻灯片 ──
-  const switchSlide = useCallback((idx: number) => {
-    setSelectedId(null)
-    setEditingId(null)
-    setCurrentIdx(idx)
-  }, [])
-
-  // ── 工具栏：更新选中元素样式 ──
-  const updateStyle = useCallback((patch: Partial<SlideElement['style']>) => {
-    if (!selectedId) return
-    const el = currentSlide?.elements.find(e => e.id === selectedId)
-    if (!el) return
-    handleUpdateElement(selectedId, { style: { ...el.style, ...patch } })
-  }, [selectedId, currentSlide, handleUpdateElement])
-
   const selectedEl = currentSlide?.elements.find(e => e.id === selectedId) ?? null
 
-  // ── 添加元素 ──
-  const addElement = (role: ElementRole) => {
+  // 提交历史（拖拽/缩放结束时调用）
+  const handleCommit = useCallback(() => {
+    dispatch({ type: 'SET', deck: histState.present })
+  }, [histState.present])
+
+  // 更新元素
+  const handleUpdateElement = useCallback((id: string, patch: Partial<SlideElement>) => {
+    if ((patch as any).id === '__delete__') {
+      const newDeck = { ...deck, slides: deck.slides.map((s, i) => i !== currentIdx ? s : { ...s, elements: s.elements.filter(e => e.id !== id) }) }
+      setDeck(newDeck); setSelectedId(null); return
+    }
+    const newDeck = { ...deck, slides: deck.slides.map((s, i) => i !== currentIdx ? s : { ...s, elements: s.elements.map(e => e.id === id ? { ...e, ...patch } : e) }) }
+    // live update（不推历史，mouseup时commit）
+    dispatch({ type: 'SET', deck: newDeck })
+  }, [deck, currentIdx, setDeck])
+
+  const handleEndEdit = useCallback((id: string, text: string) => {
+    setEditingId(null)
+    const newDeck = { ...deck, slides: deck.slides.map((s, i) => i !== currentIdx ? s : { ...s, elements: s.elements.map(e => e.id === id ? { ...e, text } : e) }) }
+    setDeck(newDeck)
+  }, [deck, currentIdx, setDeck])
+
+  // 键盘：撤销/重做/删除
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) { e.preventDefault(); undo() }
+      if ((e.key === 'y' && (e.ctrlKey || e.metaKey)) || (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey)) { e.preventDefault(); redo() }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId && !editingId) {
+        handleUpdateElement(selectedId, { id: '__delete__' } as any)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undo, redo, selectedId, editingId, handleUpdateElement])
+
+  const switchSlide = (idx: number) => { setSelectedId(null); setEditingId(null); setCurrentIdx(idx) }
+
+  const updateStyle = useCallback((patch: Partial<SlideElement['style']>) => {
+    if (!selectedId || !selectedEl) return
+    handleUpdateElement(selectedId, { style: { ...selectedEl.style, ...patch } })
+  }, [selectedId, selectedEl, handleUpdateElement])
+
+  // 添加文字元素
+  const addTextElement = (role: ElementRole) => {
     const el: SlideElement = {
-      id: makeId(), role,
+      id: makeId(), elementType: 'text', role, animation: 'none',
       text: role === 'title' ? '标题文字' : role === 'label' ? '标签' : '正文内容',
       x: 10, y: 10, w: 60, h: role === 'label' ? 8 : role === 'title' ? 18 : 40,
-      style: {
-        fontSize: role === 'title' ? 6 : role === 'label' ? 2.2 : 3,
-        fontWeight: role === 'title' ? 'bold' : 'normal',
-        fontStyle: 'normal', textAlign: 'left', lineHeight: 1.5, letterSpacing: 0,
-      },
+      style: { fontSize: role === 'title' ? 6 : role === 'label' ? 2.2 : 3, fontWeight: role === 'title' ? 'bold' : 'normal', fontStyle: 'normal', textAlign: 'left', lineHeight: 1.6, letterSpacing: 0 },
     }
-    setDeck(prev => {
-      const slides = [...prev.slides]
-      const si = Math.min(currentIdx, slides.length - 1)
-      slides[si] = { ...slides[si], elements: [...slides[si].elements, el] }
-      return { ...prev, slides }
-    })
+    setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements: [...s.elements, el] } : s) })
     setSelectedId(el.id)
   }
 
-  // ── 添加幻灯片 ──
+  // 插入图片
+  const handleImageInsert = () => {
+    const input = document.createElement('input')
+    input.type = 'file'; input.accept = 'image/*'
+    input.onchange = () => {
+      const file = input.files?.[0]; if (!file) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        const el: SlideElement = {
+          id: makeId(), elementType: 'image', role: 'custom', animation: 'none',
+          text: '', imageUrl: reader.result as string,
+          x: 15, y: 15, w: 40, h: 45,
+          style: { fontSize: 3, fontWeight: 'normal', fontStyle: 'normal', textAlign: 'left', lineHeight: 1.5, letterSpacing: 0 },
+        }
+        setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements: [...s.elements, el] } : s) })
+        setSelectedId(el.id)
+      }
+      reader.readAsDataURL(file)
+    }
+    input.click()
+  }
+
+  // 添加/删除幻灯片
   const addSlide = (layout: SlideLayout) => {
     const newSlide = createEmptySlide(layout)
-    setDeck(prev => {
-      const slides = [...prev.slides]
-      slides.splice(currentIdx + 1, 0, newSlide)
-      return { ...prev, slides }
-    })
-    setCurrentIdx(currentIdx + 1)
-    setSelectedId(null)
+    const slides = [...deck.slides]; slides.splice(currentIdx + 1, 0, newSlide)
+    setDeck({ ...deck, slides }); setCurrentIdx(currentIdx + 1); setSelectedId(null)
   }
-
-  // ── 删除幻灯片 ──
   const deleteSlide = (idx: number) => {
     if (deck.slides.length <= 1) return
-    setDeck(prev => ({ ...prev, slides: prev.slides.filter((_, i) => i !== idx) }))
-    setCurrentIdx(Math.max(0, idx - 1))
-    setSelectedId(null)
+    setDeck({ ...deck, slides: deck.slides.filter((_, i) => i !== idx) })
+    setCurrentIdx(Math.max(0, idx - 1)); setSelectedId(null)
   }
 
-  // ── AI 生成 ──
+  // AI 生成
   const handleGenerate = useCallback(async () => {
     if (!config || !prompt.trim()) return
     setGenerating(true)
     const res = await generateSlidesDeck(config, prompt.trim(), themeIdx)
-    if (res.success && res.deck) {
-      setDeck({ ...res.deck, theme: SLIDE_THEMES[themeIdx] })
-      setCurrentIdx(0); setSelectedId(null)
-    } else {
-      alert(res.error || '生成失败，请重试')
-    }
+    if (res.success && res.deck) { setDeck({ ...res.deck, theme: SLIDE_THEMES[themeIdx] }); setCurrentIdx(0); setSelectedId(null) }
+    else alert(res.error || '生成失败')
     setGenerating(false)
-  }, [config, prompt, themeIdx])
+  }, [config, prompt, themeIdx, setDeck])
 
-  // ── 切换主题 ──
-  const applyTheme = (idx: number) => {
-    setThemeIdx(idx)
-    setDeck(prev => ({ ...prev, theme: SLIDE_THEMES[idx] }))
+  // AI 微调单页
+  const handleRefine = useCallback(async () => {
+    if (!config || !aiInstruction.trim() || !currentSlide) return
+    setRefining(true)
+    const res = await refineSlide(config, currentSlide, aiInstruction.trim())
+    if (res.success && res.slide) {
+      setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? res.slide! : s) })
+      setAiInstruction('')
+    } else alert(res.error || '微调失败')
+    setRefining(false)
+  }, [config, aiInstruction, currentSlide, deck, currentIdx, setDeck])
+
+  // 切换主题
+  const applyTheme = (idx: number) => { setThemeIdx(idx); setDeck({ ...deck, theme: SLIDE_THEMES[idx] }) }
+
+  // 导出
+  const handleExport = async (type: 'pptx' | 'pdf' | 'png' | 'png-all') => {
+    setShowExportMenu(false); setExporting(true)
+    try {
+      if (type === 'pptx') await exportToPptx(deck)
+      else if (type === 'pdf') await exportPdf(deck)
+      else if (type === 'png') await exportPng(deck, currentIdx)
+      else await exportAllPng(deck)
+    } catch (e) { alert('导出失败：' + String(e)) }
+    setExporting(false)
   }
 
-  // ── 导出 ──
-  const handleExport = useCallback(async () => {
-    setExporting(true)
-    try { await exportToPptx(deck) } catch (e) { alert('导出失败：' + String(e)) }
-    setExporting(false)
-  }, [deck])
-
-  // ── CSS vars ──
-  const bg0 = '#0d0d0d', bg1 = '#111', bg2 = '#1a1a1a', bd = '#252525'
-  const accent = '#7c3aed', mu = '#666'
+  const bg1 = '#111', bg2 = '#1a1a1a', bd = '#252525', mu = '#666', accent = '#7c3aed'
 
   return (
-    <div style={{ display: 'flex', height: '100%', background: bg0, color: '#e5e5e5', fontFamily: 'system-ui,sans-serif', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100%', background: '#0d0d0d', color: '#e5e5e5', fontFamily: 'system-ui,sans-serif', overflow: 'hidden' }}>
+      <style>{ANIM_STYLE}</style>
+
+      {/* ══ 全屏演示 ══ */}
+      {presentMode && <PresentationOverlay deck={deck} startIdx={currentIdx} onClose={() => setPresentMode(false)} />}
 
       {/* ══ 左栏：幻灯片列表 ══ */}
       <div style={{ width: 186, background: bg1, borderRight: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '8px 10px 6px', fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, borderBottom: `1px solid ${bd}` }}>
-          幻灯片 · {deck.slides.length}页
-        </div>
+        <div style={{ padding: '8px 10px 6px', fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, borderBottom: `1px solid ${bd}` }}>幻灯片 · {deck.slides.length}页</div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {deck.slides.map((slide, i) => (
-            <SlideThumbnail key={slide.id} slide={slide} deck={deck} index={i}
-              selected={i === currentIdx} onClick={() => switchSlide(i)} onDelete={() => deleteSlide(i)} />
+            <SlideThumbnail key={slide.id} slide={slide} deck={deck} index={i} selected={i === currentIdx} onClick={() => switchSlide(i)} onDelete={() => deleteSlide(i)} />
           ))}
         </div>
         <div style={{ padding: '8px 10px', borderTop: `1px solid ${bd}` }}>
           <div style={{ fontSize: 9, color: mu, marginBottom: 5 }}>+ 新建幻灯片</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            {([
-              ['content', '正文'], ['bullets', '要点'], ['two-column', '双栏'],
-              ['quote', '引言'], ['title', '封面'], ['closing', '结尾'],
-            ] as [SlideLayout, string][]).map(([layout, label]) => (
-              <button key={layout} onClick={() => addSlide(layout)} style={{
-                padding: '3px 6px', fontSize: 9, cursor: 'pointer',
-                background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa',
-              }}>{label}</button>
+            {([['content', '正文'], ['bullets', '要点'], ['two-column', '双栏'], ['quote', '引言'], ['title', '封面'], ['closing', '结尾']] as [SlideLayout, string][]).map(([layout, label]) => (
+              <button key={layout} onClick={() => addSlide(layout)} style={{ padding: '3px 6px', fontSize: 9, cursor: 'pointer', background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa' }}>{label}</button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ══ 中间：画布 + 工具栏 ══ */}
+      {/* ══ 中间：画布 ══ */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* 顶部工具栏 */}
-        <div style={{ height: 42, background: bg2, borderBottom: `1px solid ${bd}`, display: 'flex', alignItems: 'center', padding: '0 12px', gap: 6, flexShrink: 0 }}>
-          {/* 文字格式（选中时显示） */}
-          {selectedEl ? (<>
-            <span style={{ fontSize: 10, color: mu, marginRight: 4 }}>选中元素：</span>
+        <div style={{ height: 42, background: bg2, borderBottom: `1px solid ${bd}`, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 5, flexShrink: 0 }}>
+          {/* 撤销/重做 */}
+          <button onClick={undo} disabled={!histState.past.length} title="撤销 Ctrl+Z"
+            style={{ padding: '3px 8px', fontSize: 12, background: histState.past.length ? '#222' : '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: histState.past.length ? '#ccc' : '#444', cursor: histState.past.length ? 'pointer' : 'default' }}>↩</button>
+          <button onClick={redo} disabled={!histState.future.length} title="重做 Ctrl+Y"
+            style={{ padding: '3px 8px', fontSize: 12, background: histState.future.length ? '#222' : '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: histState.future.length ? '#ccc' : '#444', cursor: histState.future.length ? 'pointer' : 'default' }}>↪</button>
 
-            {/* 字号 */}
+          <div style={{ width: 1, height: 20, background: bd, margin: '0 4px' }} />
+
+          {/* 选中元素工具 */}
+          {selectedEl ? (<>
             <select value={selectedEl.style.fontSize} onChange={e => updateStyle({ fontSize: parseFloat(e.target.value) })}
-              style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 4px' }}>
+              style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }}>
               {[1.5, 2, 2.2, 2.8, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8, 10].map(v => <option key={v} value={v}>{v}%</option>)}
             </select>
-
-            {/* 粗体 */}
             <button onClick={() => updateStyle({ fontWeight: selectedEl.style.fontWeight === 'bold' ? 'normal' : 'bold' })}
               style={{ padding: '2px 7px', fontSize: 11, fontWeight: 700, background: selectedEl.style.fontWeight === 'bold' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontWeight === 'bold' ? '#fff' : '#aaa', cursor: 'pointer' }}>B</button>
-
-            {/* 斜体 */}
             <button onClick={() => updateStyle({ fontStyle: selectedEl.style.fontStyle === 'italic' ? 'normal' : 'italic' })}
               style={{ padding: '2px 7px', fontSize: 11, fontStyle: 'italic', background: selectedEl.style.fontStyle === 'italic' ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.fontStyle === 'italic' ? '#fff' : '#aaa', cursor: 'pointer' }}>I</button>
-
-            {/* 对齐 */}
-            {(['left', 'center', 'right'] as const).map(align => (
-              <button key={align} onClick={() => updateStyle({ textAlign: align })}
-                style={{ padding: '2px 6px', fontSize: 10, background: selectedEl.style.textAlign === align ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.textAlign === align ? '#fff' : '#aaa', cursor: 'pointer' }}>
-                {align === 'left' ? '≡' : align === 'center' ? '☰' : '≡'}
+            {(['left', 'center', 'right'] as const).map(a => (
+              <button key={a} onClick={() => updateStyle({ textAlign: a })}
+                style={{ padding: '2px 6px', fontSize: 11, background: selectedEl.style.textAlign === a ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: selectedEl.style.textAlign === a ? '#fff' : '#aaa', cursor: 'pointer' }}>
+                {a === 'left' ? '⫷' : a === 'center' ? '≡' : '⫸'}
               </button>
             ))}
-
-            {/* 颜色 */}
-            <input type="color" value={selectedEl.style.colorOverride || '#ffffff'}
-              onChange={e => updateStyle({ colorOverride: e.target.value })}
+            <input type="color" value={selectedEl.style.colorOverride || '#ffffff'} onChange={e => updateStyle({ colorOverride: e.target.value })}
               style={{ width: 22, height: 22, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }} title="文字颜色" />
+            {/* 动画 */}
+            <select value={selectedEl.animation} onChange={e => handleUpdateElement(selectedId!, { animation: e.target.value as AnimationType })}
+              style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }} title="动画效果">
+              {ANIM_OPTIONS.map(o => <option key={o.val} value={o.val}>{o.label}</option>)}
+            </select>
+          </>) : (
+            <span style={{ fontSize: 10, color: mu }}>点击元素选中 · 拖拽移动 · 拖角点缩放 · 双击编辑文字</span>
+          )}
 
-            {/* 双击提示 */}
-            <span style={{ fontSize: 9, color: mu, marginLeft: 6 }}>双击编辑文字</span>
+          <div style={{ flex: 1 }} />
 
-            {/* 添加文字元素 */}
-            <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 9, color: mu }}>添加：</span>
-            {(['title', 'body', 'label'] as ElementRole[]).map(role => (
-              <button key={role} onClick={() => addElement(role)} style={{
-                padding: '2px 7px', fontSize: 9, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer',
-              }}>{role === 'title' ? '标题' : role === 'body' ? '正文' : '标签'}</button>
-            ))}
-          </>) : (<>
-            <span style={{ fontSize: 11, color: '#999' }}>🎞 幻灯片编辑器 · 点击元素选中，拖拽移动，拖拽角点缩放，双击编辑文字</span>
-            <div style={{ flex: 1 }} />
-            <span style={{ fontSize: 9, color: mu }}>添加元素：</span>
-            {(['title', 'body', 'label'] as ElementRole[]).map(role => (
-              <button key={role} onClick={() => addElement(role)} style={{
-                padding: '2px 7px', fontSize: 9, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer',
-              }}>{role === 'title' ? '标题' : role === 'body' ? '正文' : '标签'}</button>
-            ))}
-          </>)}
+          {/* 插入 */}
+          {(['title', 'body', 'label'] as ElementRole[]).map(role => (
+            <button key={role} onClick={() => addTextElement(role)} style={{ padding: '2px 6px', fontSize: 9, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>
+              +{role === 'title' ? '标题' : role === 'body' ? '正文' : '标签'}
+            </button>
+          ))}
+          <button onClick={handleImageInsert} style={{ padding: '2px 8px', fontSize: 9, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>🖼 图片</button>
+
+          <div style={{ width: 1, height: 20, background: bd, margin: '0 2px' }} />
+
+          {/* 演示 */}
+          <button onClick={() => setPresentMode(true)} title="全屏演示"
+            style={{ padding: '4px 10px', fontSize: 11, background: '#1e3a5f', border: `1px solid #2563eb`, borderRadius: 4, color: '#60a5fa', cursor: 'pointer' }}>▶ 演示</button>
+
+          {/* 导出 */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowExportMenu(v => !v)} disabled={exporting}
+              style={{ padding: '4px 10px', fontSize: 11, fontWeight: 600, background: exporting ? '#222' : '#059669', border: 'none', borderRadius: 4, color: exporting ? '#555' : '#fff', cursor: exporting ? 'default' : 'pointer' }}>
+              {exporting ? '导出中…' : '⬇ 导出 ▾'}
+            </button>
+            {showExportMenu && (
+              <div style={{ position: 'absolute', right: 0, top: '110%', background: '#1e1e1e', border: `1px solid ${bd}`, borderRadius: 6, padding: 4, zIndex: 50, minWidth: 140 }}>
+                {[['pptx', '⊞ 导出 PPTX'], ['pdf', '📄 导出 PDF（全部）'], ['png', '🖼 导出 PNG（当前页）'], ['png-all', '🖼 导出 PNG（全部页）']].map(([t, l]) => (
+                  <button key={t} onClick={() => handleExport(t as any)} style={{ display: 'block', width: '100%', padding: '6px 12px', fontSize: 11, background: 'none', border: 'none', color: '#ccc', cursor: 'pointer', textAlign: 'left', borderRadius: 4 }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#2a2a2a')} onMouseLeave={e => (e.currentTarget.style.background = 'none')}>{l}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 画布区域 */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#161616', padding: 24, overflow: 'auto', containerType: 'size' }}>
+        {/* 画布 */}
+        <div onClick={() => setShowExportMenu(false)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#161616', padding: 24, overflow: 'auto', containerType: 'size' }}>
           {currentSlide ? (
-            <div style={{
-              width: 'min(100%, calc(100cqh * 16/9))',
-              boxShadow: '0 8px 48px rgba(0,0,0,0.7)',
-              borderRadius: 3, overflow: 'visible',
-              containerType: 'size',
-            }}>
-              <SlideCanvas
-                slide={currentSlide} deck={deck}
-                selectedId={selectedId} editingId={editingId}
-                onSelect={setSelectedId}
-                onUpdateElement={handleUpdateElement}
-                onStartEdit={setEditingId}
-                onEndEdit={handleEndEdit}
-              />
+            <div style={{ width: 'min(100%, calc(100cqh * 16 / 9))', boxShadow: '0 8px 48px rgba(0,0,0,0.7)', borderRadius: 3, containerType: 'size' }}>
+              <SlideCanvas slide={currentSlide} deck={deck} selectedId={selectedId} editingId={editingId} guides={guides}
+                onSelect={setSelectedId} onUpdateElement={handleUpdateElement} onCommit={handleCommit}
+                onStartEdit={setEditingId} onEndEdit={handleEndEdit} onGuideChange={setGuides} />
             </div>
           ) : <div style={{ color: mu }}>没有幻灯片</div>}
         </div>
@@ -557,51 +673,47 @@ export default function SlidesEditorPanel() {
         </div>
       </div>
 
-      {/* ══ 右栏：AI 生成 + 主题 ══ */}
-      <div style={{ width: 250, background: bg2, borderLeft: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
+      {/* ══ 右栏 ══ */}
+      <div style={{ width: 248, background: bg2, borderLeft: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
 
         {/* AI 生成 */}
         <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
-          <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 7 }}>AI 生成</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 7 }}>
+          <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>✨ AI 生成全套</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
             {SLIDES_PRESETS.map(p => (
               <button key={p.id} onClick={() => { setSelectedPreset(p.id); setPrompt(p.examplePrompt) }}
-                style={{ padding: '2px 7px', fontSize: 9, cursor: 'pointer',
-                  background: selectedPreset === p.id ? accent : '#1a1a1a', border: `1px solid ${selectedPreset === p.id ? accent : bd}`,
-                  borderRadius: 3, color: selectedPreset === p.id ? '#fff' : '#999' }}>
+                style={{ padding: '2px 6px', fontSize: 9, cursor: 'pointer', background: selectedPreset === p.id ? accent : '#1a1a1a', border: `1px solid ${selectedPreset === p.id ? accent : bd}`, borderRadius: 3, color: selectedPreset === p.id ? '#fff' : '#999' }}>
                 {p.icon} {p.name}
               </button>
             ))}
           </div>
-          <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
-            placeholder="描述你的演示主题，AI 自动生成完整幻灯片…"
-            rows={4} style={{ width: '100%', boxSizing: 'border-box', resize: 'none',
-              background: '#111', border: `1px solid ${bd}`, borderRadius: 4,
-              color: '#ddd', fontSize: 11, padding: '6px 8px', fontFamily: 'inherit', outline: 'none' }} />
+          <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="描述演示主题…" rows={3}
+            style={{ width: '100%', boxSizing: 'border-box', resize: 'none', background: '#111', border: `1px solid ${bd}`, borderRadius: 4, color: '#ddd', fontSize: 11, padding: '5px 7px', fontFamily: 'inherit', outline: 'none' }} />
           <button onClick={handleGenerate} disabled={generating || !config || !prompt.trim()}
-            style={{ marginTop: 6, width: '100%', padding: '6px 0', fontSize: 12, fontWeight: 600,
-              background: generating || !config || !prompt.trim() ? '#2a2a2a' : accent,
-              border: 'none', borderRadius: 4,
-              color: generating || !config || !prompt.trim() ? '#555' : '#fff',
-              cursor: generating || !config || !prompt.trim() ? 'default' : 'pointer' }}>
-            {generating ? '生成中…' : '✨ AI 生成'}
+            style={{ marginTop: 5, width: '100%', padding: '6px 0', fontSize: 12, fontWeight: 600, background: generating || !config || !prompt.trim() ? '#2a2a2a' : accent, border: 'none', borderRadius: 4, color: generating || !config || !prompt.trim() ? '#555' : '#fff', cursor: generating || !config || !prompt.trim() ? 'default' : 'pointer' }}>
+            {generating ? '生成中…' : 'AI 生成'}
           </button>
-          {!config && <div style={{ fontSize: 9, color: '#f59e0b', marginTop: 4 }}>⚠ 请先配置 API Key</div>}
+        </div>
+
+        {/* AI 微调当前页 */}
+        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
+          <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🎯 AI 微调当前页</div>
+          <textarea value={aiInstruction} onChange={e => setAiInstruction(e.target.value)} placeholder="例：精简内容 / 改成更有力的标题 / 换成口语化表达…" rows={2}
+            style={{ width: '100%', boxSizing: 'border-box', resize: 'none', background: '#111', border: `1px solid ${bd}`, borderRadius: 4, color: '#ddd', fontSize: 11, padding: '5px 7px', fontFamily: 'inherit', outline: 'none' }} />
+          <button onClick={handleRefine} disabled={refining || !config || !aiInstruction.trim()}
+            style={{ marginTop: 5, width: '100%', padding: '5px 0', fontSize: 11, fontWeight: 600, background: refining || !config || !aiInstruction.trim() ? '#2a2a2a' : '#0891b2', border: 'none', borderRadius: 4, color: refining || !config || !aiInstruction.trim() ? '#555' : '#fff', cursor: refining || !config || !aiInstruction.trim() ? 'default' : 'pointer' }}>
+            {refining ? '微调中…' : '微调这一页'}
+          </button>
         </div>
 
         {/* 主题 */}
         <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
-          <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>配色主题</div>
+          <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🎨 配色主题</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SLIDE_THEMES.map((theme, i) => (
-              <button key={i} onClick={() => applyTheme(i)} style={{
-                display: 'flex', alignItems: 'center', gap: 7, padding: '5px 8px', borderRadius: 4, cursor: 'pointer',
-                background: themeIdx === i ? '#1e1630' : '#161616', border: `1px solid ${themeIdx === i ? accent : bd}`, textAlign: 'left',
-              }}>
+              <button key={i} onClick={() => applyTheme(i)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 8px', borderRadius: 4, cursor: 'pointer', background: themeIdx === i ? '#1e1630' : '#161616', border: `1px solid ${themeIdx === i ? accent : bd}`, textAlign: 'left' }}>
                 <div style={{ display: 'flex', gap: 2 }}>
-                  {[theme.bg, theme.accent, theme.titleColor].map((c, ci) => (
-                    <div key={ci} style={{ width: 10, height: 10, borderRadius: 2, background: c, border: '1px solid #333' }} />
-                  ))}
+                  {[theme.bg, theme.accent, theme.titleColor].map((c, ci) => <div key={ci} style={{ width: 10, height: 10, borderRadius: 2, background: c, border: '1px solid #333' }} />)}
                 </div>
                 <span style={{ fontSize: 11, color: themeIdx === i ? '#ddd' : '#888' }}>{theme.name}</span>
               </button>
@@ -609,47 +721,32 @@ export default function SlidesEditorPanel() {
           </div>
         </div>
 
-        {/* 导出 & API */}
-        <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <button onClick={handleExport} disabled={exporting} style={{
-            padding: '7px 0', fontSize: 12, fontWeight: 600,
-            background: exporting ? '#222' : '#059669', border: 'none', borderRadius: 4,
-            color: exporting ? '#555' : '#fff', cursor: exporting ? 'default' : 'pointer',
-          }}>{exporting ? '导出中…' : '⬇ 导出 PPTX'}</button>
-          <button onClick={() => setShowConfig(true)} style={{
-            padding: '5px 0', fontSize: 10, background: '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: '#888', cursor: 'pointer',
-          }}>⚙️ 配置 API Key</button>
-        </div>
-
-        {/* 说明 */}
-        <div style={{ padding: '0 12px 10px', flex: 1 }}>
-          <div style={{ fontSize: 10, color: '#444', lineHeight: 1.9 }}>
-            • 点击元素 → 选中<br />
-            • 拖拽元素 → 移动位置<br />
-            • 拖拽角点/边点 → 缩放<br />
-            • 双击元素 → 编辑文字<br />
-            • Delete 键 → 删除元素<br />
-            • 顶栏工具 → 调整样式
+        {/* API + 说明 */}
+        <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={() => setShowConfig(true)} style={{ padding: '5px 0', fontSize: 10, background: '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: config ? '#4ade80' : '#f59e0b', cursor: 'pointer' }}>
+            {config ? '✓ API 已配置' : '⚠ 配置 API Key'}
+          </button>
+          <div style={{ fontSize: 10, color: '#3a3a3a', lineHeight: 1.9 }}>
+            ↩/↪ 撤销/重做 · Del 删除元素<br />
+            双击文字 → 编辑<br />
+            拖角点 → 缩放大小<br />
+            红线 → 对齐辅助
           </div>
         </div>
       </div>
 
       {/* API 配置弹窗 */}
       {showConfig && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
           <div style={{ background: '#1e1e1e', borderRadius: 10, padding: 22, width: 420, border: `1px solid ${bd}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>API 配置</span>
+              <span style={{ fontWeight: 600 }}>API 配置</span>
               <button onClick={() => setShowConfig(false)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 18 }}>×</button>
             </div>
-            <APIConfigForm
-              title="配置 AI 服务"
-              description="幻灯片生成需要 AI 大模型，推荐通义千问或 DeepSeek。"
-              config={config}
+            <APIConfigForm title="配置 AI 服务" description="推荐通义千问或 DeepSeek。" config={config}
               providers={chatProviderPresets.filter(p => p.id !== 'custom').slice(0, 8)}
               onSave={cfg => { setConfig(cfg as AIClientConfig); saveChatConfig(cfg as AIClientConfig); setShowConfig(false) }}
-              onCancel={() => setShowConfig(false)}
-            />
+              onCancel={() => setShowConfig(false)} />
           </div>
         </div>
       )}

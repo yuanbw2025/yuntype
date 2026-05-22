@@ -10,11 +10,12 @@ import InfographicPanel from './components/InfographicPanel'
 import WebGenPanel from './components/WebGenPanel'
 import ImageGenPanel from './components/ImageGenPanel'
 import PresentationPanel from './components/PresentationPanel'
+import SlidesEditorPanel from './components/SlidesEditorPanel'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
 import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 
-type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation'
+type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation' | 'slides'
 
 export default function App() {
   const [article, setArticle] = useState('')
@@ -134,6 +135,7 @@ export default function App() {
             { key: 'imagegen' as AppMode, label: '🎨 配图', color: '#4F46E5' },
             { key: 'webpage' as AppMode, label: '🌐 网页', color: '#059669' },
             { key: 'presentation' as AppMode, label: '🎬 演示', color: '#7C3AED' },
+            { key: 'slides' as AppMode, label: '🎞 幻灯片', color: '#0891b2' },
           ]).map(({ key, label, color }, i, arr) => (
             <button
               key={key}
@@ -204,7 +206,7 @@ export default function App() {
         overflow: 'hidden',
       }}>
         {/* 左栏：文章输入（信息图/网页模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && (
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
           <div style={{
             width: '30%',
             minWidth: '280px',
@@ -218,7 +220,7 @@ export default function App() {
         )}
 
         {/* 中栏：风格面板（信息图/网页/配图模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && (
+        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
           <div style={{
             width: '260px',
             flexShrink: 0,
@@ -279,6 +281,9 @@ export default function App() {
           )}
           {mode === 'presentation' && (
             <PresentationPanel />
+          )}
+          {mode === 'slides' && (
+            <SlidesEditorPanel />
           )}
         </div>
       </div>
