@@ -140,6 +140,22 @@ function calcGuides(dragged: SlideElement, others: SlideElement[]): { guides: Gu
 //  画布
 // ═══════════════════════════════════════
 
+// 快速插入形状调色板（label, preset, path）
+const QUICK_SHAPES: { label: string; preset: string; path: string; icon: string }[] = [
+  { label: '矩形',   preset: 'rect',       icon: '▬', path: 'M0,0 H100 V100 H0 Z' },
+  { label: '圆',     preset: 'ellipse',    icon: '⬤', path: 'M50,0 C77.6,0 100,22.4 100,50 C100,77.6 77.6,100 50,100 C22.4,100 0,77.6 0,50 C0,22.4 22.4,0 50,0 Z' },
+  { label: '三角',   preset: 'triangle',   icon: '▲', path: 'M50,0 L100,100 L0,100 Z' },
+  { label: '菱形',   preset: 'diamond',    icon: '◆', path: 'M50,0 L100,50 L50,100 L0,50 Z' },
+  { label: '右箭头', preset: 'rightArrow', icon: '➤', path: 'M0,35 L65,35 L65,0 L100,50 L65,100 L65,65 L0,65 Z' },
+  { label: '五角星', preset: 'star5',      icon: '★', path: 'M50,0 L61.8,38.2 L100,38.2 L69.1,61.8 L80.9,100 L50,76.4 L19.1,100 L30.9,61.8 L0,38.2 L38.2,38.2 Z' },
+  { label: '六边形', preset: 'hexagon',    icon: '⬡', path: 'M25,0 L75,0 L100,50 L75,100 L25,100 L0,50 Z' },
+  { label: '圆角矩', preset: 'roundRect',  icon: '▢', path: 'M10,0 H90 Q100,0 100,10 V90 Q100,100 90,100 H10 Q0,100 0,90 V10 Q0,0 10,0 Z' },
+  { label: '平行边', preset: 'parallelogram', icon: '▱', path: 'M25,0 L100,0 L75,100 L0,100 Z' },
+  { label: '心形',   preset: 'heart',      icon: '♥', path: 'M50,85 C30,70 0,60 0,35 C0,15 15,0 35,0 C42,0 48,3 50,8 C52,3 58,0 65,0 C85,0 100,15 100,35 C100,60 70,70 50,85 Z' },
+  { label: '闪电',   preset: 'lightningBolt', icon: '⚡', path: 'M60,0 L25,55 L50,55 L40,100 L75,45 L50,45 Z' },
+  { label: '云朵',   preset: 'cloud',      icon: '☁', path: 'M25,70 C10,70 0,60 0,48 C0,36 10,26 22,26 C24,14 34,5 46,5 C54,5 62,9 67,16 C70,13 75,11 80,11 C91,11 100,20 100,31 C100,42 91,51 80,51 C78,51 76,50 74,50 C74,62 64,70 52,70 Z' },
+]
+
 interface SlideCanvasProps {
   slide: Slide; deck: SlidesDeck
   selectedId: string | null; editingId: string | null
@@ -463,32 +479,58 @@ function PresentationOverlay({ deck, startIdx, onClose }: { deck: SlidesDeck; st
 //  缩略图
 // ═══════════════════════════════════════
 
-function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: { slide: Slide; deck: SlidesDeck; index: number; selected: boolean; onClick: () => void; onDelete: () => void }) {
+// 缩略图渲染精准方案：在 1280×720 容器内渲染（cqh 与画布一致），再 scale(0.125) 缩小
+const THUMB_SCALE = 160 / 1280  // 0.125
+
+function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: {
+  slide: Slide; deck: SlidesDeck; index: number; selected: boolean; onClick: () => void; onDelete: () => void
+}) {
   const t = deck.theme
   return (
     <div onClick={onClick} style={{ position: 'relative', cursor: 'pointer', borderRadius: 5, border: selected ? '2px solid #7c3aed' : '2px solid #2a2a2a', flexShrink: 0 }}>
       <div style={{ fontSize: 9, color: '#666', padding: '2px 5px', background: '#111' }}>{index + 1}</div>
-      <div style={{ width: 160, height: 90, background: t.bg, position: 'relative', overflow: 'hidden' }}>
-        {slide.elements.map(el => {
-          const base = { position: 'absolute' as const, left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%` }
-          if (el.elementType === 'shape') return (
-            <svg key={el.id} style={base} viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path d={el.svgPath || 'M0,0 H100 V100 H0 Z'} fill={el.shapeFill || t.accent}
-                stroke={el.shapeStroke || 'none'} strokeWidth={el.shapeStrokeWidth || 0} vectorEffect="non-scaling-stroke" />
-            </svg>
-          )
-          if (el.elementType === 'image' && el.imageUrl) return (
-            <img key={el.id} src={el.imageUrl} style={{ ...base, objectFit: 'cover' }} />
-          )
-          return (
-            <div key={el.id} style={{ ...base, fontSize: `${el.style.fontSize * 0.85}px`, fontWeight: el.style.fontWeight,
-              color: getElementColor(el.role, t, el.style.colorOverride),
-              textAlign: el.style.textAlign, lineHeight: el.style.lineHeight, overflow: 'hidden',
-              whiteSpace: 'pre-wrap', wordBreak: 'break-word', pointerEvents: 'none',
-              background: el.style.bgFill || 'transparent',
-            }}>{el.text}</div>
-          )
-        })}
+      {/* 外层：160×90 裁切框 */}
+      <div style={{ width: 160, height: 90, overflow: 'hidden', position: 'relative', background: t.bg }}>
+        {/* 内层：以1280×720渲染，再缩放到160×90，字号/布局与画布完全一致 */}
+        <div style={{
+          width: 1280, height: 720,
+          transform: `scale(${THUMB_SCALE})`, transformOrigin: 'top left',
+          position: 'relative', background: t.bg, containerType: 'size', overflow: 'hidden',
+          pointerEvents: 'none',
+        }}>
+          {/* 装饰条（简化版） */}
+          {slide.layout === 'title'      && <div style={{ position: 'absolute', left: 0, top: '72%', width: '100%', height: '0.8%', background: t.accent }} />}
+          {slide.layout === 'closing'    && <><div style={{ position: 'absolute', left: '35%', top: '22%', width: '30%', height: '0.7%', background: t.accent }} /><div style={{ position: 'absolute', left: '35%', top: '88%', width: '30%', height: '0.7%', background: t.accent }} /></>}
+          {slide.layout === 'quote'      && <div style={{ position: 'absolute', left: '5%', top: 0, width: '1.2%', height: '100%', background: t.accent }} />}
+          {slide.layout === 'two-column' && <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '18%', background: t.accent }} />}
+          {!['title','closing','quote','two-column'].includes(slide.layout) && <div style={{ position: 'absolute', left: '3.5%', top: '5%', width: '0.6%', height: '88%', background: t.accent, borderRadius: 3 }} />}
+
+          {slide.elements.map(el => {
+            const base: React.CSSProperties = { position: 'absolute', left: `${el.x}%`, top: `${el.y}%`, width: `${el.w}%`, height: `${el.h}%` }
+            if (el.elementType === 'shape') return (
+              <svg key={el.id} style={base} viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d={el.svgPath || 'M0,0 H100 V100 H0 Z'} fill={el.shapeFill || t.accent}
+                  stroke={el.shapeStroke || 'none'} strokeWidth={el.shapeStrokeWidth || 0} vectorEffect="non-scaling-stroke" />
+              </svg>
+            )
+            if (el.elementType === 'image' && el.imageUrl) return (
+              <img key={el.id} src={el.imageUrl} style={{ ...base, objectFit: 'cover' as const }} draggable={false} />
+            )
+            return (
+              <div key={el.id} style={{
+                ...base,
+                fontSize: `${el.style.fontSize}cqh`,  // 与画布完全一致
+                fontWeight: el.style.fontWeight, fontStyle: el.style.fontStyle,
+                color: getElementColor(el.role, t, el.style.colorOverride),
+                textAlign: el.style.textAlign, lineHeight: el.style.lineHeight,
+                letterSpacing: `${el.style.letterSpacing}em`,
+                overflow: 'hidden', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                background: el.style.bgFill || 'transparent',
+                fontFamily: "'Microsoft YaHei','PingFang SC',sans-serif",
+              }}>{el.text}</div>
+            )
+          })}
+        </div>
       </div>
       {selected && <button onClick={e => { e.stopPropagation(); onDelete() }} style={{ position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%', background: '#ef4444', border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer' }}>×</button>}
     </div>
@@ -650,6 +692,19 @@ export default function SlidesEditorPanel() {
     setSelectedId(el.id)
   }
 
+  // 插入形状
+  const addShapeElement = (preset: string, svgPath: string) => {
+    const el: SlideElement = {
+      id: makeId(), elementType: 'shape', role: 'custom', animation: 'none',
+      text: '', svgPath, shapePreset: preset,
+      shapeFill: deck.theme.accent, shapeStroke: undefined, shapeStrokeWidth: 0,
+      x: 20, y: 25, w: 30, h: 30,
+      style: { fontSize: 3, fontWeight: 'normal', fontStyle: 'normal', textAlign: 'left', lineHeight: 1, letterSpacing: 0 },
+    }
+    setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements: [...s.elements, el] } : s) })
+    setSelectedId(el.id)
+  }
+
   // 插入图片
   const handleImageInsert = () => {
     const input = document.createElement('input')
@@ -797,7 +852,24 @@ export default function SlidesEditorPanel() {
             <SlideThumbnail key={slide.id} slide={slide} deck={deck} index={i} selected={i === currentIdx} onClick={() => switchSlide(i)} onDelete={() => deleteSlide(i)} />
           ))}
         </div>
-        <div style={{ padding: '8px 10px', borderTop: `1px solid ${bd}` }}>
+        {/* 插入形状 */}
+        <div style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
+          <div style={{ fontSize: 9, color: mu, marginBottom: 5 }}>+ 插入形状</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
+            {QUICK_SHAPES.map(s => (
+              <button key={s.preset} onClick={() => addShapeElement(s.preset, s.path)}
+                title={s.label}
+                style={{ padding: '3px 0', fontSize: 13, cursor: 'pointer', background: '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 3, color: deck.theme.accent, lineHeight: 1 }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#252525')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#1a1a1a')}>
+                {s.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 新建幻灯片 */}
+        <div style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
           <div style={{ fontSize: 9, color: mu, marginBottom: 5 }}>+ 新建幻灯片</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
             {([['content', '正文'], ['bullets', '要点'], ['two-column', '双栏'], ['quote', '引言'], ['title', '封面'], ['closing', '结尾']] as [SlideLayout, string][]).map(([layout, label]) => (
