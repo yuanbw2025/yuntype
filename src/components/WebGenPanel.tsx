@@ -4,13 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { generateWebPage, downloadHtml, webPagePresets, type WebGenResult } from '../lib/ai/web-gen'
 import { loadChatConfig, saveChatConfig, chatProviderPresets, type AIClientConfig } from '../lib/ai/client'
 import { APIConfigForm } from './APIConfigForm'
-import { theme, accentThemes } from '../lib/theme'
+import { accentThemes } from '../lib/theme'
 import DeployGuide from './DeployGuide'
-
-const accentColor = accentThemes.green.accent
-const accentBg = accentThemes.green.accentBg
-const accentBorder = accentThemes.green.accentBorder
-const { border: borderColor, text: textColor, muted: mutedColor } = theme
 
 export default function WebGenPanel() {
   const [prompt, setPrompt] = useState('')
@@ -25,7 +20,6 @@ export default function WebGenPanel() {
   useEffect(() => {
     const saved = loadChatConfig()
     setConfig(saved)
-    if (!saved) setShowConfig(true)
   }, [])
 
   const handleGenerate = useCallback(async () => {
@@ -65,191 +59,119 @@ export default function WebGenPanel() {
   }, [result?.html])
 
   return (
-    <div className="panel-split" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div className="webgen-workbench">
       <DeployGuide visible={showGuide} onClose={() => setShowGuide(false)} />
 
-      {/* 左栏：需求输入 */}
-      <div className="panel-split-left" style={{
-        width: '340px', flexShrink: 0,
-        background: '#fff', borderRight: `1px solid ${borderColor}`,
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }}>
-        {/* API 配置区 */}
+      <aside className="webgen-control-panel">
         {showConfig ? (
-          <APIConfigForm
-            title="配置 AI 服务"
-            description="网页生成需要调用 AI 大模型。选择提供商并填写 API Key。推荐使用通义千问或 DeepSeek，便宜好用。"
-            config={config}
-            providers={chatProviderPresets.filter(p => p.id !== 'custom').slice(0, 8)}
-            accent={accentThemes.green}
-            onSave={(c) => { setConfig(c as AIClientConfig); saveChatConfig(c as AIClientConfig); setShowConfig(false) }}
-            onCancel={() => config && setShowConfig(false)}
-          />
+          <div className="webgen-config-wrap">
+            <APIConfigForm
+              title="配置 AI 服务"
+              description="网页生成需要调用 AI 大模型。选择提供商并填写 API Key。推荐使用通义千问或 DeepSeek，便宜好用。"
+              config={config}
+              providers={chatProviderPresets.filter(p => p.id !== 'custom').slice(0, 8)}
+              accent={accentThemes.green}
+              onSave={(c) => { setConfig(c as AIClientConfig); saveChatConfig(c as AIClientConfig); setShowConfig(false) }}
+              onCancel={() => config && setShowConfig(false)}
+            />
+          </div>
         ) : (
           <>
-            <div style={{
-              padding: '16px', borderBottom: `1px solid ${borderColor}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: textColor }}>
-                🌐 网页生成
+            <div className="webgen-toolbar">
+              <div className="webgen-title">
+                <strong>网页生成</strong>
+                <span>{selectedPreset ? webPagePresets.find(p => p.id === selectedPreset)?.name : '描述需求生成单页 HTML'}</span>
               </div>
               <button
                 onClick={() => setShowConfig(true)}
-                style={{
-                  padding: '4px 8px', fontSize: '11px', color: mutedColor,
-                  background: 'none', border: `1px solid ${borderColor}`,
-                  borderRadius: '4px', cursor: 'pointer',
-                }}
+                className="webgen-ghost-btn"
               >
-                ⚙ API 配置
+                API 配置
               </button>
             </div>
 
-            {/* 预设场景 */}
-            <div style={{ padding: '12px 16px', borderBottom: `1px solid ${borderColor}` }}>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '8px' }}>
-                快速开始 · 选择场景
+            <section className="webgen-section">
+              <div className="webgen-section-title">
+                <strong>场景</strong>
+                <span>{webPagePresets.length} 个起点</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+              <div className="webgen-preset-grid">
                 {webPagePresets.map(p => (
                   <button
                     key={p.id}
                     onClick={() => handlePresetClick(p.id)}
-                    style={{
-                      padding: '8px 4px', fontSize: '11px',
-                      background: selectedPreset === p.id ? accentBg : '#f8f8f8',
-                      border: `1px solid ${selectedPreset === p.id ? accentBorder : '#eee'}`,
-                      borderRadius: '6px', cursor: 'pointer',
-                      color: selectedPreset === p.id ? accentColor : '#555',
-                      fontWeight: selectedPreset === p.id ? 600 : 400,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-                      transition: 'all 0.15s',
-                    }}
+                    className={`webgen-preset ${selectedPreset === p.id ? 'is-active' : ''}`}
                   >
-                    <span style={{ fontSize: '16px' }}>{p.icon}</span>
+                    <span>{p.icon}</span>
                     <span>{p.name}</span>
                   </button>
                 ))}
               </div>
-            </div>
+            </section>
 
-            {/* 需求描述 */}
-            <div style={{ flex: 1, padding: '12px 16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '6px' }}>
-                描述你想要的网页
+            <section className="webgen-prompt-section">
+              <div className="webgen-section-title">
+                <strong>描述</strong>
+                <span>{prompt.trim().length} 字</span>
               </div>
               <textarea
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 placeholder="例如：做一个个人介绍页，我叫小明，是一名设计师..."
-                style={{
-                  flex: 1, width: '100%', padding: '12px',
-                  fontSize: '13px', lineHeight: 1.6,
-                  border: `1px solid ${borderColor}`, borderRadius: '8px',
-                  resize: 'none', outline: 'none', fontFamily: 'inherit',
-                  color: textColor, minHeight: '120px',
-                }}
               />
 
               <button
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim() || !config}
-                style={{
-                  marginTop: '10px', padding: '10px',
-                  fontSize: '13px', fontWeight: 600,
-                  color: '#fff',
-                  background: loading || !prompt.trim() || !config ? '#ccc' : accentColor,
-                  border: 'none', borderRadius: '8px',
-                  cursor: loading || !prompt.trim() || !config ? 'default' : 'pointer',
-                  transition: 'background 0.2s',
-                }}
+                className="webgen-primary-btn"
               >
-                {loading ? '⏳ 生成中...' : '✨ 生成网页'}
+                {loading ? '生成中...' : '生成网页'}
               </button>
 
               {!config && (
-                <div style={{ marginTop: '8px', fontSize: '11px', color: '#E53E3E', textAlign: 'center' }}>
+                <div className="webgen-config-warning">
                   请先点击右上角配置 API Key
                 </div>
               )}
-            </div>
+            </section>
 
-            {/* 底部操作 */}
-            <div style={{
-              padding: '12px 16px',
-              borderTop: `1px solid ${borderColor}`,
-              display: 'flex', gap: '8px',
-            }}>
+            <div className="webgen-action-area">
               {result?.html && (
                 <button
                   onClick={handleDownload}
-                  style={{
-                    flex: 1, padding: '8px',
-                    fontSize: '12px', fontWeight: 600,
-                    color: '#4F46E5', background: '#EEF0FF',
-                    border: '1px solid #4F46E530',
-                    borderRadius: '6px', cursor: 'pointer',
-                  }}
+                  className="webgen-download-btn"
                 >
-                  ⬇ 下载 HTML
+                  下载 HTML
                 </button>
               )}
               <button
                 onClick={() => setShowGuide(true)}
-                style={{
-                  flex: result?.html ? undefined : 1,
-                  padding: '8px 12px',
-                  fontSize: '12px', fontWeight: 600,
-                  color: accentColor, background: accentBg,
-                  border: `1px solid ${accentBorder}`,
-                  borderRadius: '6px', cursor: 'pointer',
-                }}
+                className="webgen-guide-btn"
               >
-                📖 建站教程
+                建站教程
               </button>
             </div>
           </>
         )}
-      </div>
+      </aside>
 
-      {/* 右栏：预览 */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        background: '#f0f0f0', overflow: 'hidden',
-      }}>
+      <section className="webgen-preview-area">
         {result?.html ? (
           <>
-            <div style={{
-              padding: '8px 16px',
-              background: '#fff', borderBottom: `1px solid ${borderColor}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <span style={{ fontSize: '12px', color: mutedColor }}>
-                预览 · 生成的网页
-              </span>
+            <div className="webgen-browser-bar">
+              <span>预览 · 生成的网页</span>
+              <i />
               <button
                 onClick={handleDownload}
-                style={{
-                  padding: '4px 10px', fontSize: '11px', fontWeight: 600,
-                  color: '#4F46E5', background: '#EEF0FF',
-                  border: '1px solid #4F46E530',
-                  borderRadius: '4px', cursor: 'pointer',
-                }}
+                className="webgen-download-btn"
               >
-                ⬇ 下载
+                下载
               </button>
             </div>
-            <div style={{ flex: 1, padding: '16px', overflow: 'auto', display: 'flex', justifyContent: 'center' }}>
-              <div style={{
-                width: '100%', maxWidth: '1200px',
-                background: '#fff', borderRadius: '8px',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                overflow: 'hidden', height: 'fit-content',
-              }}>
+            <div className="webgen-browser-stage">
+              <div className="webgen-browser-frame">
                 <iframe
                   ref={iframeRef}
-                  style={{ width: '100%', minHeight: '600px', border: 'none', display: 'block' }}
                   sandbox="allow-scripts allow-same-origin"
                   title="网页预览"
                 />
@@ -257,34 +179,21 @@ export default function WebGenPanel() {
             </div>
           </>
         ) : result?.error ? (
-          <div style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '40px',
-          }}>
-            <div style={{
-              padding: '20px 24px', background: '#FFF5F5',
-              border: '1px solid #FED7D7', borderRadius: '8px',
-              fontSize: '13px', color: '#C53030', maxWidth: '400px', textAlign: 'center',
-            }}>
-              ❌ {result.error}
+          <div className="webgen-empty-wrap">
+            <div className="webgen-error">
+              {result.error}
             </div>
           </div>
         ) : (
-          <div style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexDirection: 'column', gap: '12px',
-          }}>
-            <div style={{ fontSize: '48px', opacity: 0.3 }}>🌐</div>
-            <div style={{ fontSize: '14px', color: '#999' }}>
-              在左侧描述你想要的网页，AI 将为你生成
-            </div>
-            <div style={{ fontSize: '12px', color: '#bbb' }}>
-              生成后可在这里预览，满意后下载 HTML 文件
+          <div className="webgen-empty-wrap">
+            <div className="webgen-empty-state">
+              <div>🌐</div>
+              <strong>等待生成网页</strong>
+              <span>在左侧描述你想要的网页，生成后可在这里预览并下载 HTML。</span>
             </div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }
-

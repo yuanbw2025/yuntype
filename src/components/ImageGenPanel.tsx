@@ -16,12 +16,7 @@ import {
 } from '../lib/ai/image-gen'
 
 import { APIConfigForm } from './APIConfigForm'
-import { theme, accentThemes } from '../lib/theme'
-
-const accent = accentThemes.indigo.accent
-const accentBg = accentThemes.indigo.accentBg
-const accentBorder = accentThemes.indigo.accentBorder
-const { border: borderColor, text: textColor, muted: mutedColor } = theme
+import { accentThemes } from '../lib/theme'
 
 interface HistoryItem {
   imageUrl: string
@@ -119,125 +114,91 @@ export default function ImageGenPanel() {
     .every(f => fieldValues[f.key]?.trim())
 
   return (
-    <div className="panel-split" style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-      {/* 左栏：模板选择 + 参数输入 */}
-      <div className="panel-split-left" style={{
-        width: '360px', flexShrink: 0,
-        background: '#fff', borderRight: `1px solid ${borderColor}`,
-        display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      }}>
+    <div className="imagegen-workbench">
+      <aside className="imagegen-control-panel">
         {showConfig ? (
-          <APIConfigForm
-            title="图片生成 API"
-            description="选择图片生成服务并填写 API Key。推荐通义万相或豆包，每张约 ¥0.04。"
-            config={config}
-            providers={providerPresets}
-            accent={accentThemes.indigo}
-            showDescription
-            onSave={(c) => handleSaveConfig(c as AIImageConfig)}
-            onCancel={() => config && setShowConfig(false)}
-          />
+          <div className="imagegen-config-wrap">
+            <APIConfigForm
+              title="图片生成 API"
+              description="选择图片生成服务并填写 API Key。推荐通义万相或豆包，每张约 ¥0.04。"
+              config={config}
+              providers={providerPresets}
+              accent={accentThemes.indigo}
+              showDescription
+              onSave={(c) => handleSaveConfig(c as AIImageConfig)}
+              onCancel={() => config && setShowConfig(false)}
+            />
+          </div>
         ) : (
           <>
-            {/* 标题栏 */}
-            <div style={{
-              padding: '16px', borderBottom: `1px solid ${borderColor}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: textColor }}>
-                🎨 AI 配图
+            <div className="imagegen-toolbar">
+              <div className="imagegen-title">
+                <strong>AI 配图</strong>
+                <span>{selectedCat.name} · {selectedTpl.name}</span>
               </div>
               <button
                 onClick={() => setShowConfig(true)}
-                style={{
-                  padding: '4px 8px', fontSize: '11px', color: mutedColor,
-                  background: 'none', border: `1px solid ${borderColor}`,
-                  borderRadius: '4px', cursor: 'pointer',
-                }}
+                className="imagegen-ghost-btn"
               >
-                ⚙ 图片API
+                图片 API
               </button>
             </div>
 
-            <div style={{ flex: 1, overflow: 'auto' }}>
-              {/* 场景分类 */}
-              <div style={{ padding: '12px 16px', borderBottom: `1px solid ${borderColor}` }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '8px' }}>
-                  选择场景
+            <div className="imagegen-scroll">
+              <section className="imagegen-section">
+                <div className="imagegen-section-title">
+                  <strong>场景</strong>
+                  <span>{imageCategories.length} 类</span>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <div className="imagegen-category-grid">
                   {imageCategories.map(cat => (
                     <button
                       key={cat.id}
                       onClick={() => handleCatSelect(cat)}
-                      style={{
-                        padding: '6px 10px', fontSize: '12px',
-                        background: selectedCat.id === cat.id ? accentBg : '#f8f8f8',
-                        border: `1px solid ${selectedCat.id === cat.id ? accentBorder : '#eee'}`,
-                        borderRadius: '6px', cursor: 'pointer',
-                        color: selectedCat.id === cat.id ? accent : '#555',
-                        fontWeight: selectedCat.id === cat.id ? 600 : 400,
-                        transition: 'all 0.15s',
-                      }}
+                      className={`imagegen-category ${selectedCat.id === cat.id ? 'is-active' : ''}`}
                     >
-                      {cat.icon} {cat.name}
+                      <span>{cat.icon}</span>
+                      <strong>{cat.name}</strong>
                     </button>
                   ))}
                 </div>
-                <div style={{ fontSize: '11px', color: mutedColor, marginTop: '6px' }}>
-                  {selectedCat.description}
-                </div>
-              </div>
+                <p className="imagegen-help">{selectedCat.description}</p>
+              </section>
 
-              {/* 模板选择 */}
-              <div style={{ padding: '12px 16px', borderBottom: `1px solid ${borderColor}` }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '8px' }}>
-                  选择模板
+              <section className="imagegen-section">
+                <div className="imagegen-section-title">
+                  <strong>模板</strong>
+                  <span>{selectedCat.templates.length} 个 Prompt 结构</span>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <div className="imagegen-template-list">
                   {selectedCat.templates.map(tpl => (
                     <button
                       key={tpl.id}
                       onClick={() => handleTplSelect(tpl)}
-                      style={{
-                        padding: '6px 12px', fontSize: '12px',
-                        background: selectedTpl.id === tpl.id ? accent : '#f5f5f5',
-                        color: selectedTpl.id === tpl.id ? '#fff' : '#555',
-                        border: 'none', borderRadius: '16px',
-                        cursor: 'pointer', fontWeight: selectedTpl.id === tpl.id ? 600 : 400,
-                        transition: 'all 0.15s',
-                      }}
+                      className={`imagegen-template ${selectedTpl.id === tpl.id ? 'is-active' : ''}`}
                     >
                       {tpl.name}
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
 
-              {/* 参数输入 */}
-              <div style={{ padding: '12px 16px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '10px' }}>
-                  填写参数
+              <section className="imagegen-section">
+                <div className="imagegen-section-title">
+                  <strong>参数</strong>
+                  <span>{selectedTpl.fields.length} 项</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="imagegen-fields">
                   {selectedTpl.fields.map(field => (
                     <div key={field.key}>
-                      <label style={{
-                        display: 'block', fontSize: '12px', fontWeight: 500,
-                        color: textColor, marginBottom: '4px',
-                      }}>
+                      <label>
                         {field.label}
-                        {field.required && <span style={{ color: '#E53E3E', marginLeft: '2px' }}>*</span>}
+                        {field.required && <span>*</span>}
                       </label>
                       <input
                         value={fieldValues[field.key] || ''}
                         onChange={e => handleFieldChange(field.key, e.target.value)}
                         placeholder={field.placeholder}
-                        style={{
-                          width: '100%', padding: '8px 10px', fontSize: '13px',
-                          border: `1px solid ${borderColor}`, borderRadius: '6px',
-                          outline: 'none', color: textColor,
-                        }}
                         onKeyDown={e => {
                           if (e.key === 'Enter' && hasRequiredFields && config && !loading) {
                             handleGenerate()
@@ -247,74 +208,39 @@ export default function ImageGenPanel() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
 
-              {/* 生成的 Prompt 预览 */}
-              <div style={{ padding: '0 16px 12px' }}>
-                <div style={{
-                  fontSize: '11px', fontWeight: 600, color: mutedColor,
-                  marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                }}>
-                  <span>Prompt 预览</span>
+              <section className="imagegen-section">
+                <div className="imagegen-section-title">
+                  <strong>Prompt</strong>
                   <button
                     onClick={handleCopyPrompt}
-                    style={{
-                      padding: '2px 8px', fontSize: '10px',
-                      background: copied ? '#D1FAE5' : '#f5f5f5',
-                      color: copied ? '#059669' : mutedColor,
-                      border: 'none', borderRadius: '4px', cursor: 'pointer',
-                    }}
+                    className={`imagegen-copy ${copied ? 'is-copied' : ''}`}
                   >
                     {copied ? '已复制' : '复制'}
                   </button>
                 </div>
-                <div style={{
-                  padding: '8px 10px', fontSize: '11px', lineHeight: 1.6,
-                  background: '#f8f8f8', borderRadius: '6px', color: '#666',
-                  maxHeight: '100px', overflow: 'auto',
-                  wordBreak: 'break-word',
-                }}>
+                <div className="imagegen-prompt-preview">
                   {renderedPrompt}
                 </div>
-              </div>
+              </section>
             </div>
 
-            {/* 底部按钮 */}
-            <div style={{
-              padding: '12px 16px', borderTop: `1px solid ${borderColor}`,
-              display: 'flex', flexDirection: 'column', gap: '8px',
-            }}>
+            <div className="imagegen-action-area">
               {config ? (
                 <button
                   onClick={handleGenerate}
                   disabled={loading || !hasRequiredFields}
-                  style={{
-                    padding: '10px', fontSize: '13px', fontWeight: 600,
-                    color: '#fff',
-                    background: loading || !hasRequiredFields ? '#ccc' : accent,
-                    border: 'none', borderRadius: '8px',
-                    cursor: loading || !hasRequiredFields ? 'default' : 'pointer',
-                    transition: 'background 0.2s',
-                  }}
+                  className="imagegen-primary-btn"
                 >
-                  {loading ? '⏳ 生成中...' : '✨ 生成图片'}
+                  {loading ? '生成中...' : '生成图片'}
                 </button>
               ) : (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', color: '#E53E3E', marginBottom: '6px' }}>
-                    未配置图片 API
-                  </div>
-                  <div style={{ fontSize: '11px', color: mutedColor, lineHeight: 1.5 }}>
-                    你可以复制上方 Prompt，粘贴到任意 AI 绘图工具中使用
-                  </div>
+                <div className="imagegen-config-empty">
+                  <strong>未配置图片 API</strong>
+                  <span>可以先复制 Prompt 到任意 AI 绘图工具使用。</span>
                   <button
                     onClick={() => setShowConfig(true)}
-                    style={{
-                      marginTop: '8px', padding: '6px 16px', fontSize: '12px',
-                      color: accent, background: accentBg,
-                      border: `1px solid ${accentBorder}`,
-                      borderRadius: '6px', cursor: 'pointer',
-                    }}
                   >
                     配置 API Key
                   </button>
@@ -323,80 +249,46 @@ export default function ImageGenPanel() {
             </div>
           </>
         )}
-      </div>
+      </aside>
 
-      {/* 右栏：图片预览 + 历史 */}
-      <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
-        background: '#f0f0f0', overflow: 'hidden',
-      }}>
-        {/* 当前图片 */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', overflow: 'auto' }}>
+      <section className="imagegen-preview-area">
+        <div className="imagegen-preview-stage">
           {loading ? (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'spin 2s linear infinite' }}>🎨</div>
-              <div style={{ fontSize: '14px', color: mutedColor }}>AI 正在创作中...</div>
-              <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+            <div className="imagegen-empty-state">
+              <div className="imagegen-spinner">🎨</div>
+              <strong>AI 正在创作中...</strong>
             </div>
           ) : currentImage ? (
-            <div style={{ maxWidth: '100%', maxHeight: '100%', textAlign: 'center' }}>
+            <div className="imagegen-result">
               <img
                 src={currentImage}
                 alt="AI generated"
-                style={{
-                  maxWidth: '100%', maxHeight: 'calc(100vh - 260px)',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                }}
               />
-              <div style={{
-                marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center',
-              }}>
+              <div className="imagegen-result-actions">
                 <button
                   onClick={handleDownload}
-                  style={{
-                    padding: '6px 16px', fontSize: '12px', fontWeight: 600,
-                    color: accent, background: accentBg,
-                    border: `1px solid ${accentBorder}`,
-                    borderRadius: '6px', cursor: 'pointer',
-                  }}
                 >
-                  ⬇ 下载图片
+                  下载图片
                 </button>
                 <button
                   onClick={handleGenerate}
                   disabled={loading}
-                  style={{
-                    padding: '6px 16px', fontSize: '12px', fontWeight: 600,
-                    color: '#059669', background: '#ECFDF5',
-                    border: '1px solid #A7F3D0',
-                    borderRadius: '6px', cursor: 'pointer',
-                  }}
                 >
-                  🔄 重新生成
+                  重新生成
                 </button>
               </div>
             </div>
           ) : error ? (
-            <div style={{
-              padding: '20px 24px', background: '#FFF5F5',
-              border: '1px solid #FED7D7', borderRadius: '8px',
-              fontSize: '13px', color: '#C53030', maxWidth: '400px', textAlign: 'center',
-            }}>
-              ❌ {error}
+            <div className="imagegen-error">
+              {error}
             </div>
           ) : (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', opacity: 0.3 }}>🎨</div>
-              <div style={{ fontSize: '14px', color: '#999', marginTop: '12px' }}>
-                {config ? '选择模板并填写参数，点击生成' : '复制 Prompt 到 AI 绘图工具，或配置 API 直接生成'}
-              </div>
+            <div className="imagegen-empty-state">
+              <div className="imagegen-empty-icon">🎨</div>
+              <strong>{config ? '准备生成图片' : '复制 Prompt 或配置 API'}</strong>
+              <span>{config ? '选择模板并填写参数，点击生成。' : '复制 Prompt 到绘图工具，或配置 API 直接生成。'}</span>
               {currentPrompt && (
-                <div style={{
-                  marginTop: '16px', padding: '12px', background: '#fff',
-                  borderRadius: '8px', fontSize: '12px', color: '#666',
-                  maxWidth: '400px', textAlign: 'left', lineHeight: 1.6,
-                }}>
+                <div className="imagegen-current-prompt">
                   {currentPrompt}
                 </div>
               )}
@@ -404,40 +296,29 @@ export default function ImageGenPanel() {
           )}
         </div>
 
-        {/* 历史记录 */}
         {history.length > 0 && (
-          <div style={{
-            borderTop: `1px solid ${borderColor}`,
-            background: '#fff', padding: '12px 16px',
-            maxHeight: '140px', overflow: 'auto',
-          }}>
-            <div style={{ fontSize: '11px', fontWeight: 600, color: mutedColor, marginBottom: '8px' }}>
-              历史记录
+          <div className="imagegen-history">
+            <div className="imagegen-history-title">
+              <strong>历史记录</strong>
+              <span>{history.length} 张</span>
             </div>
-            <div style={{ display: 'flex', gap: '8px', overflow: 'auto' }}>
+            <div className="imagegen-history-strip">
               {history.map((item, i) => (
                 <div
                   key={i}
                   onClick={() => setCurrentImage(item.imageUrl)}
-                  style={{
-                    width: '80px', height: '80px', flexShrink: 0,
-                    borderRadius: '6px', overflow: 'hidden', cursor: 'pointer',
-                    border: currentImage === item.imageUrl ? `2px solid ${accent}` : '2px solid transparent',
-                    transition: 'border 0.15s',
-                  }}
+                  className={`imagegen-history-thumb ${currentImage === item.imageUrl ? 'is-active' : ''}`}
                 >
                   <img
                     src={item.imageUrl}
                     alt={item.templateName}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
               ))}
             </div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }
-

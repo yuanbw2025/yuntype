@@ -632,7 +632,6 @@ export default function SlidesEditorPanel() {
 
   useEffect(() => {
     const saved = loadChatConfig(); setConfig(saved)
-    if (!saved) setShowConfig(true)
   }, [])
 
   const currentSlide = deck.slides[Math.min(currentIdx, deck.slides.length - 1)]
@@ -838,22 +837,22 @@ export default function SlidesEditorPanel() {
   const bg1 = '#111', bg2 = '#1a1a1a', bd = '#252525', mu = '#666', accent = '#7c3aed'
 
   return (
-    <div style={{ display: 'flex', height: '100%', background: '#0d0d0d', color: '#e5e5e5', fontFamily: 'system-ui,sans-serif', overflow: 'hidden' }}>
+    <div className="slides-editor-workbench" style={{ display: 'flex', height: '100%', background: '#0d0d0d', color: '#e5e5e5', fontFamily: 'system-ui,sans-serif', overflow: 'hidden' }}>
       <style>{ANIM_STYLE}</style>
 
       {/* ══ 全屏演示 ══ */}
       {presentMode && <PresentationOverlay deck={deck} startIdx={currentIdx} onClose={() => setPresentMode(false)} />}
 
       {/* ══ 左栏：幻灯片列表 ══ */}
-      <div style={{ width: 186, background: bg1, borderRight: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '8px 10px 6px', fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, borderBottom: `1px solid ${bd}` }}>幻灯片 · {deck.slides.length}页</div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="slides-thumb-rail" style={{ width: 186, background: bg1, borderRight: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div className="slides-rail-title" style={{ padding: '8px 10px 6px', fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, borderBottom: `1px solid ${bd}` }}>幻灯片 · {deck.slides.length}页</div>
+        <div className="slides-thumb-list" style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {deck.slides.map((slide, i) => (
             <SlideThumbnail key={slide.id} slide={slide} deck={deck} index={i} selected={i === currentIdx} onClick={() => switchSlide(i)} onDelete={() => deleteSlide(i)} />
           ))}
         </div>
         {/* 插入形状 */}
-        <div style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
+        <div className="slides-rail-section" style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
           <div style={{ fontSize: 9, color: mu, marginBottom: 5 }}>+ 插入形状</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 3 }}>
             {QUICK_SHAPES.map(s => (
@@ -869,7 +868,7 @@ export default function SlidesEditorPanel() {
         </div>
 
         {/* 新建幻灯片 */}
-        <div style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
+        <div className="slides-rail-section" style={{ padding: '7px 10px', borderTop: `1px solid ${bd}` }}>
           <div style={{ fontSize: 9, color: mu, marginBottom: 5 }}>+ 新建幻灯片</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
             {([['content', '正文'], ['bullets', '要点'], ['two-column', '双栏'], ['quote', '引言'], ['title', '封面'], ['closing', '结尾']] as [SlideLayout, string][]).map(([layout, label]) => (
@@ -880,10 +879,10 @@ export default function SlidesEditorPanel() {
       </div>
 
       {/* ══ 中间：画布 ══ */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <div className="slides-center-pane" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* 顶部工具栏 */}
-        <div style={{ height: 42, background: bg2, borderBottom: `1px solid ${bd}`, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 5, flexShrink: 0 }}>
+        <div className="slides-editor-toolbar" style={{ height: 42, background: bg2, borderBottom: `1px solid ${bd}`, display: 'flex', alignItems: 'center', padding: '0 10px', gap: 5, flexShrink: 0 }}>
           {/* 撤销/重做 */}
           <button onClick={undo} disabled={!histState.past.length} title="撤销 Ctrl+Z"
             style={{ padding: '3px 8px', fontSize: 12, background: histState.past.length ? '#222' : '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: histState.past.length ? '#ccc' : '#444', cursor: histState.past.length ? 'pointer' : 'default' }}>↩</button>
@@ -996,9 +995,9 @@ export default function SlidesEditorPanel() {
         </div>
 
         {/* 画布 */}
-        <div onClick={() => setShowExportMenu(false)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#161616', padding: 24, overflow: 'auto', containerType: 'size' }}>
+        <div className="slides-canvas-stage" onClick={() => setShowExportMenu(false)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#161616', padding: 24, overflow: 'auto', containerType: 'size' }}>
           {currentSlide ? (
-            <div style={{ width: 'min(100%, calc(100cqh * 16 / 9))', boxShadow: '0 8px 48px rgba(0,0,0,0.7)', borderRadius: 3, containerType: 'size' }}>
+            <div className="slides-canvas-frame" style={{ width: 'min(100%, calc(100cqh * 16 / 9))', boxShadow: '0 8px 48px rgba(0,0,0,0.7)', borderRadius: 3, containerType: 'size' }}>
               <SlideCanvas slide={currentSlide} deck={deck} selectedId={selectedId} editingId={editingId} guides={guides}
                 onSelect={setSelectedId} onUpdateElement={handleUpdateElement} onCommit={handleCommit}
                 onStartEdit={setEditingId} onEndEdit={handleEndEdit} onGuideChange={setGuides} />
@@ -1007,7 +1006,7 @@ export default function SlidesEditorPanel() {
         </div>
 
         {/* 底部翻页 */}
-        <div style={{ height: 34, background: bg2, borderTop: `1px solid ${bd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexShrink: 0 }}>
+        <div className="slides-status-bar" style={{ height: 34, background: bg2, borderTop: `1px solid ${bd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexShrink: 0 }}>
           <button onClick={() => switchSlide(Math.max(0, currentIdx - 1))} disabled={currentIdx === 0}
             style={{ background: 'none', border: 'none', color: currentIdx === 0 ? '#333' : '#888', fontSize: 18, cursor: currentIdx === 0 ? 'default' : 'pointer' }}>‹</button>
           <span style={{ fontSize: 11, color: mu }}>{currentIdx + 1} / {deck.slides.length}</span>
@@ -1017,10 +1016,10 @@ export default function SlidesEditorPanel() {
       </div>
 
       {/* ══ 右栏 ══ */}
-      <div style={{ width: 248, background: bg2, borderLeft: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
+      <div className="slides-inspector" style={{ width: 248, background: bg2, borderLeft: `1px solid ${bd}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 }}>
 
         {/* AI 生成 */}
-        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
+        <div className="slides-inspector-section" style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
           <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>✨ AI 生成全套</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
             {SLIDES_PRESETS.map(p => (
@@ -1039,7 +1038,7 @@ export default function SlidesEditorPanel() {
         </div>
 
         {/* AI 微调当前页 */}
-        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
+        <div className="slides-inspector-section" style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
           <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🎯 AI 微调当前页</div>
           <textarea value={aiInstruction} onChange={e => setAiInstruction(e.target.value)} placeholder="例：精简内容 / 改成更有力的标题 / 换成口语化表达…" rows={2}
             style={{ width: '100%', boxSizing: 'border-box', resize: 'none', background: '#111', border: `1px solid ${bd}`, borderRadius: 4, color: '#ddd', fontSize: 11, padding: '5px 7px', fontFamily: 'inherit', outline: 'none' }} />
@@ -1051,7 +1050,7 @@ export default function SlidesEditorPanel() {
 
         {/* 风格感知（导入 PPTX 后显示） */}
         {styleAnalysis && (
-          <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}`, background: '#0e1a0e' }}>
+          <div className="slides-inspector-section slides-style-detected" style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}`, background: '#0e1a0e' }}>
             <div style={{ fontSize: 10, color: '#4ade80', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🧠 检测到风格</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
               {styleAnalysis.styleKeywords.map(k => (
@@ -1077,7 +1076,7 @@ export default function SlidesEditorPanel() {
         )}
 
         {/* 主题 */}
-        <div style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
+        <div className="slides-inspector-section" style={{ padding: '10px 12px', borderBottom: `1px solid ${bd}` }}>
           <div style={{ fontSize: 10, color: mu, fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>🎨 配色主题</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {SLIDE_THEMES.map((theme, i) => (
@@ -1092,7 +1091,7 @@ export default function SlidesEditorPanel() {
         </div>
 
         {/* API + 说明 */}
-        <div style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="slides-inspector-section slides-help-section" style={{ padding: '10px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={() => setShowConfig(true)} style={{ padding: '5px 0', fontSize: 10, background: '#1a1a1a', border: `1px solid ${bd}`, borderRadius: 4, color: config ? '#4ade80' : '#f59e0b', cursor: 'pointer' }}>
             {config ? '✓ API 已配置' : '⚠ 配置 API Key'}
           </button>

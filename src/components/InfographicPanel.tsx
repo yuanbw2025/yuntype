@@ -1,6 +1,6 @@
 // 信息图面板 — 选模板 → 编辑数据 → 预览 → 导出PNG
 
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, type CSSProperties } from 'react'
 import {
   renderInfographic,
   getInfographicTemplates,
@@ -17,10 +17,6 @@ interface InfographicPanelProps {
   style: StyleComboV2
 }
 
-import { theme } from '../lib/theme'
-const activeColor = theme.accent
-const { border: borderColor, text: textColor, muted: mutedColor } = theme
-
 export default function InfographicPanel({ style }: InfographicPanelProps) {
   const templates = useMemo(() => getInfographicTemplates(), [])
   const [selectedType, setSelectedType] = useState<InfographicType>('flow')
@@ -35,6 +31,7 @@ export default function InfographicPanel({ style }: InfographicPanelProps) {
   const previewRef = useRef<HTMLDivElement>(null)
 
   const currentData = dataMap[selectedType]
+  const selectedTemplate = templates.find((t) => t.type === selectedType)
 
   const updateData = useCallback((newData: InfographicData) => {
     setDataMap(prev => ({ ...prev, [selectedType]: newData }))
@@ -93,90 +90,47 @@ export default function InfographicPanel({ style }: InfographicPanelProps) {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: '#f5f5f5',
-    }}>
-      {/* 顶部标题 */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 16px',
-        background: '#fff',
-        borderBottom: `1px solid ${borderColor}`,
-        flexShrink: 0,
-      }}>
-        <span style={{ fontSize: '14px', fontWeight: 600, color: textColor }}>📊 信息图生成</span>
+    <div className="infographic-workbench">
+      <div className="infographic-toolbar">
+        <div className="infographic-title">
+          <strong>信息图生成</strong>
+          <span>{selectedTemplate?.name} · {selectedTemplate?.description}</span>
+        </div>
         <button
           onClick={handleExport}
           disabled={exporting}
-          style={{
-            padding: '6px 14px',
-            fontSize: '12px',
-            fontWeight: 600,
-            background: activeColor,
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: exporting ? 'wait' : 'pointer',
-            opacity: exporting ? 0.7 : 1,
-          }}
+          className="infographic-export-btn"
         >
-          {exporting ? '⏳ 导出中...' : '📥 导出PNG (1080px)'}
+          {exporting ? '导出中...' : '导出 PNG'}
         </button>
       </div>
 
-      {/* 主内容区 */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* 左侧：模板选择 + 数据编辑 */}
-        <div style={{
-          width: '320px',
-          flexShrink: 0,
-          overflow: 'auto',
-          background: '#fff',
-          borderRight: `1px solid ${borderColor}`,
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          {/* 模板选择 */}
-          <div style={{ padding: '12px', borderBottom: `1px solid ${borderColor}` }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: textColor, marginBottom: '8px' }}>
-              选择模板
+      <div className="infographic-main">
+        <aside className="infographic-control-panel">
+          <section className="infographic-section">
+            <div className="infographic-section-title">
+              <strong>模板</strong>
+              <span>{templates.length} 种结构</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <div className="infographic-template-grid">
               {templates.map((t) => (
                 <button
                   key={t.type}
                   onClick={() => setSelectedType(t.type)}
-                  style={{
-                    padding: '10px 8px',
-                    background: selectedType === t.type ? '#EEF0FF' : '#FAFAFA',
-                    border: `1.5px solid ${selectedType === t.type ? activeColor : borderColor}`,
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    transition: 'all 0.15s',
-                  }}
+                  className={`infographic-template-card ${selectedType === t.type ? 'is-active' : ''}`}
                 >
-                  <div style={{ fontSize: '20px', marginBottom: '4px' }}>{t.icon}</div>
-                  <div style={{
-                    fontSize: '12px',
-                    fontWeight: selectedType === t.type ? 700 : 500,
-                    color: selectedType === t.type ? activeColor : textColor,
-                  }}>{t.name}</div>
-                  <div style={{ fontSize: '10px', color: mutedColor, marginTop: '2px' }}>{t.description}</div>
+                  <TemplateThumb type={t.type} />
+                  <span>{t.icon} {t.name}</span>
+                  <small>{t.description}</small>
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* 数据编辑区 */}
-          <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: textColor, marginBottom: '10px' }}>
-              编辑数据
+          <section className="infographic-section infographic-editor-section">
+            <div className="infographic-section-title">
+              <strong>数据</strong>
+              <span>{getDataCount(currentData)}</span>
             </div>
             {currentData.type === 'flow' && (
               <FlowEditor data={currentData} onChange={updateData} />
@@ -190,28 +144,75 @@ export default function InfographicPanel({ style }: InfographicPanelProps) {
             {currentData.type === 'timeline' && (
               <TimelineEditor data={currentData} onChange={updateData} />
             )}
-          </div>
-        </div>
+          </section>
+        </aside>
 
-        {/* 右侧：预览 */}
-        <div style={{
-          flex: 1,
-          overflow: 'auto',
-          padding: '24px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-        }}>
-          <div ref={previewRef} style={{
-            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-            borderRadius: '12px',
-            overflow: 'hidden',
-          }}>
+        <section className="infographic-preview-area">
+          <div className="infographic-preview-head">
+            <div>
+              <strong>预览</strong>
+              <span>375px 编辑预览，导出为 1080px 高清图</span>
+            </div>
+          </div>
+          <div ref={previewRef} className="infographic-preview-card">
             <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
           </div>
-        </div>
+        </section>
       </div>
     </div>
+  )
+}
+
+function getDataCount(data: InfographicData): string {
+  switch (data.type) {
+    case 'flow':
+      return `${data.steps.length} 个步骤`
+    case 'comparison':
+      return `${data.columns.length} 列 · ${data.columns[0]?.items.length ?? 0} 行`
+    case 'card':
+      return `${data.points.length} 个要点`
+    case 'timeline':
+      return `${data.events.length} 个事件`
+  }
+}
+
+function TemplateThumb({ type }: { type: InfographicType }) {
+  if (type === 'flow') {
+    return (
+      <svg viewBox="0 0 120 72" aria-hidden="true">
+        <rect x="8" y="25" width="24" height="22" rx="7" />
+        <rect x="48" y="25" width="24" height="22" rx="7" />
+        <rect x="88" y="25" width="24" height="22" rx="7" />
+        <path d="M35 36H45M75 36H85" />
+      </svg>
+    )
+  }
+  if (type === 'comparison') {
+    return (
+      <svg viewBox="0 0 120 72" aria-hidden="true">
+        <rect x="14" y="12" width="42" height="48" rx="8" />
+        <rect x="64" y="12" width="42" height="48" rx="8" />
+        <path d="M24 29H46M24 39H44M74 29H96M74 39H91" />
+      </svg>
+    )
+  }
+  if (type === 'card') {
+    return (
+      <svg viewBox="0 0 120 72" aria-hidden="true">
+        <rect x="20" y="12" width="80" height="48" rx="10" />
+        <circle cx="38" cy="31" r="8" />
+        <path d="M54 27H86M54 37H80M32 47H88" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 120 72" aria-hidden="true">
+      <path d="M60 11V61" />
+      <circle cx="60" cy="20" r="6" />
+      <circle cx="60" cy="36" r="6" />
+      <circle cx="60" cy="52" r="6" />
+      <path d="M68 20H96M24 36H52M68 52H92" />
+    </svg>
   )
 }
 
@@ -219,39 +220,40 @@ export default function InfographicPanel({ style }: InfographicPanelProps) {
 //  通用输入样式
 // ═══════════════════════════════════════
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: '100%',
   padding: '7px 10px',
   fontSize: '12px',
-  border: `1px solid ${borderColor}`,
+  border: '1px solid var(--border-color)',
   borderRadius: '6px',
   outline: 'none',
   boxSizing: 'border-box',
-  color: textColor,
+  color: 'var(--text-primary)',
+  background: 'var(--bg-card)',
   transition: 'border-color 0.15s',
 }
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   fontSize: '11px',
   fontWeight: 600,
-  color: mutedColor,
+  color: 'var(--text-muted)',
   marginBottom: '4px',
   display: 'block',
 }
 
-const addBtnStyle: React.CSSProperties = {
+const addBtnStyle: CSSProperties = {
   width: '100%',
   padding: '7px',
   fontSize: '12px',
-  color: activeColor,
-  background: '#F8F8FF',
-  border: `1px dashed ${activeColor}`,
+  color: 'var(--accent)',
+  background: 'var(--accent-soft)',
+  border: '1px dashed var(--accent)',
   borderRadius: '6px',
   cursor: 'pointer',
   marginTop: '4px',
 }
 
-const removeBtnStyle: React.CSSProperties = {
+const removeBtnStyle: CSSProperties = {
   padding: '2px 6px',
   fontSize: '11px',
   color: '#E53E3E',
@@ -293,7 +295,7 @@ function FlowEditor({ data, onChange }: { data: FlowData; onChange: (d: Infograp
         <label style={labelStyle}>步骤 ({data.steps.length})</label>
         {data.steps.map((step, i) => (
           <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: '4px', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: mutedColor, width: '20px', flexShrink: 0 }}>{i + 1}.</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
             <input
               style={{ ...inputStyle, flex: 1 }}
               value={step}
@@ -426,7 +428,7 @@ function CardEditor({ data, onChange }: { data: CardData; onChange: (d: Infograp
         <label style={labelStyle}>要点 ({data.points.length})</label>
         {data.points.map((point, i) => (
           <div key={i} style={{ display: 'flex', gap: '4px', marginBottom: '4px', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: mutedColor, width: '20px', flexShrink: 0 }}>{i + 1}.</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
             <input
               style={{ ...inputStyle, flex: 1 }}
               value={point}

@@ -1,21 +1,36 @@
-// 云中书 YunType — 主应用布局（三栏：输入 | 风格 | 预览）
+// 云中书 YunType — Preview First 主应用布局
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
-import ArticleInput from './components/ArticleInput'
-import LayoutPanel from './components/LayoutPanel'
-import WechatPreview from './components/WechatPreview'
-import ExportPanel from './components/ExportPanel'
-import XiaohongshuPreview from './components/XiaohongshuPreview'
-import InfographicPanel from './components/InfographicPanel'
-import WebGenPanel from './components/WebGenPanel'
-import ImageGenPanel from './components/ImageGenPanel'
-import PresentationPanel from './components/PresentationPanel'
-import SlidesEditorPanel from './components/SlidesEditorPanel'
+import { lazy, Suspense, useState, useMemo, useEffect, useCallback } from 'react'
 import ApiConfigDialog from './components/ApiConfigDialog'
 import GuideOverlay from './components/GuideOverlay'
+import AppHeader, { type ModeMeta } from './components/shell/AppHeader'
+import IconSidebar, { type ShellPanel } from './components/shell/IconSidebar'
+import ShellPanelFrame from './components/shell/ShellPanelFrame'
+import FloatingActionBar from './components/shell/FloatingActionBar'
 import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
 
-type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation' | 'slides'
+const ArticleEditorPanel = lazy(() => import('./components/panels/ArticleEditorPanel'))
+const StyleGalleryPanel = lazy(() => import('./components/panels/StyleGalleryPanel'))
+const WechatPreview = lazy(() => import('./components/WechatPreview'))
+const ExportPanel = lazy(() => import('./components/ExportPanel'))
+const XiaohongshuPreview = lazy(() => import('./components/XiaohongshuPreview'))
+const InfographicPanel = lazy(() => import('./components/InfographicPanel'))
+const WebGenPanel = lazy(() => import('./components/WebGenPanel'))
+const ImageGenPanel = lazy(() => import('./components/ImageGenPanel'))
+const PresentationPanel = lazy(() => import('./components/PresentationPanel'))
+const SlidesEditorPanel = lazy(() => import('./components/SlidesEditorPanel'))
+
+export type AppMode = 'wechat' | 'xiaohongshu' | 'infographic' | 'webpage' | 'imagegen' | 'presentation' | 'slides'
+
+const MODES: ModeMeta[] = [
+  { key: 'wechat', icon: '📝', label: '公众号', color: '#07C160' },
+  { key: 'xiaohongshu', icon: '📸', label: '小红书', color: '#E8294A' },
+  { key: 'infographic', icon: '📊', label: '信息图', color: '#7C3AED' },
+  { key: 'imagegen', icon: '🎨', label: '配图', color: '#0284C7' },
+  { key: 'webpage', icon: '🌐', label: '网页', color: '#059669' },
+  { key: 'presentation', icon: '🎬', label: '演示', color: '#D97706' },
+  { key: 'slides', icon: '🎞', label: '幻灯片', color: '#0891B2' },
+]
 
 export default function App() {
   const [article, setArticle] = useState('')
@@ -27,6 +42,7 @@ export default function App() {
     return defaultAtomIdsV2()
   })
   const [mode, setMode] = useState<AppMode>('wechat')
+  const [activePanel, setActivePanel] = useState<ShellPanel>('style')
   const [showApiConfig, setShowApiConfig] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -49,6 +65,14 @@ export default function App() {
   const handleShuffle = useCallback(() => {
     setAtomIdsV2(randomAtomIdsV2())
   }, [])
+
+  useEffect(() => {
+    if (mode === 'wechat' || mode === 'xiaohongshu') {
+      setActivePanel(prev => prev ?? 'style')
+    } else {
+      setActivePanel(null)
+    }
+  }, [mode])
 
   // 键盘快捷键
   useEffect(() => {
@@ -86,14 +110,11 @@ export default function App() {
 
   const comboName = getComboNameV2(atomIdsV2)
   const totalCombos = TOTAL_COMBOS_V2
+  const showTypesettingPanel = mode === 'wechat' || mode === 'xiaohongshu'
+  const visiblePanel = showTypesettingPanel ? activePanel : null
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      background: '#f5f5f5',
-    }}>
+    <div className="yt-app">
       {/* 新手引导 */}
       <GuideOverlay />
 
@@ -108,185 +129,106 @@ export default function App() {
         }}
       />
 
-      {/* 顶栏 */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 20px',
-        background: '#fff',
-        borderBottom: '1px solid #e5e5e5',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>☁️</span>
-          <span style={{ fontSize: '16px', fontWeight: 700, color: '#333' }}>云中书 YunType</span>
-          <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
-            {totalCombos}+ 种排版组合
-          </span>
-        </div>
-
-        {/* 模式切换 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {([
-            { key: 'wechat' as AppMode, label: '📝 公众号', color: '#07C160' },
-            { key: 'xiaohongshu' as AppMode, label: '📸 小红书', color: '#FF2442' },
-            { key: 'infographic' as AppMode, label: '📊 信息图', color: '#4F46E5' },
-            { key: 'imagegen' as AppMode, label: '🎨 配图', color: '#4F46E5' },
-            { key: 'webpage' as AppMode, label: '🌐 网页', color: '#059669' },
-            { key: 'presentation' as AppMode, label: '🎬 演示', color: '#7C3AED' },
-            { key: 'slides' as AppMode, label: '🎞 幻灯片', color: '#0891b2' },
-          ]).map(({ key, label, color }, i, arr) => (
-            <button
-              key={key}
-              onClick={() => setMode(key)}
-              style={{
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: mode === key ? 700 : 400,
-                color: mode === key ? '#fff' : '#666',
-                background: mode === key ? color : '#f0f0f0',
-                border: 'none',
-                borderRadius: i === 0 ? '6px 0 0 6px' : i === arr.length - 1 ? '0 6px 6px 0' : '0',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* AI 分析按钮 — 仅排版模式下显示 */}
-          {(mode === 'wechat' || mode === 'xiaohongshu') && (
-            <button
-              onClick={() => setShowApiConfig(true)}
-              style={{
-                padding: '5px 12px',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: '#059669',
-                background: '#ECFDF5',
-                border: '1px solid #05966930',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              🤖 AI分析
-            </button>
-          )}
-          {/* 深色模式切换 */}
-          <button
-            onClick={() => setDarkMode(prev => !prev)}
-            title="Ctrl+D 切换深色模式"
-            style={{
-              padding: '4px 8px',
-              fontSize: '14px',
-              background: 'none',
-              border: '1px solid #e5e5e5',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </button>
-          {(mode === 'wechat' || mode === 'xiaohongshu') && (
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              当前: {comboName}
-            </div>
-          )}
-        </div>
-      </header>
+      <AppHeader
+        mode={mode}
+        modes={MODES}
+        darkMode={darkMode}
+        comboName={`${totalCombos}+ · ${comboName}`}
+        onModeChange={setMode}
+        onAnalyze={() => setShowApiConfig(true)}
+        onToggleDark={() => setDarkMode(prev => !prev)}
+      />
 
       {/* 主内容区 */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        overflow: 'hidden',
-      }}>
-        {/* 左栏：文章输入（信息图/网页模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
-          <div style={{
-            width: '30%',
-            minWidth: '280px',
-            background: '#fff',
-            borderRight: '1px solid #e5e5e5',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <ArticleInput value={article} onChange={setArticle} />
-          </div>
+      <div className="yt-workspace">
+        <IconSidebar mode={mode} activePanel={visiblePanel} onToggle={setActivePanel} />
+
+        {visiblePanel === 'article' && (
+          <ShellPanelFrame title="文章编辑" subtitle="粘贴 Markdown 或纯文本">
+            <Suspense fallback={<PanelLoading />}>
+              <ArticleEditorPanel value={article} onChange={setArticle} />
+            </Suspense>
+          </ShellPanelFrame>
         )}
 
-        {/* 中栏：风格面板（信息图/网页/配图模式下隐藏） */}
-        {mode !== 'infographic' && mode !== 'webpage' && mode !== 'imagegen' && mode !== 'presentation' && mode !== 'slides' && (
-          <div style={{
-            width: '260px',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            background: '#fff',
-            borderRight: '1px solid #e5e5e5',
-            overflow: 'hidden',
-          }}>
-            <LayoutPanel
-              atomIdsV2={atomIdsV2}
-              onChange={setAtomIdsV2}
-              onShuffle={handleShuffle}
-              article={article}
-            />
-          </div>
+        {visiblePanel === 'style' && (
+          <ShellPanelFrame title="风格选择" subtitle="场景预设、骨架、配色和插槽">
+            <Suspense fallback={<PanelLoading />}>
+              <StyleGalleryPanel
+                atomIdsV2={atomIdsV2}
+                onChange={setAtomIdsV2}
+                onShuffle={handleShuffle}
+                article={article}
+              />
+            </Suspense>
+          </ShellPanelFrame>
+        )}
+
+        {visiblePanel === 'export' && mode === 'wechat' && (
+          <ShellPanelFrame title="导出" subtitle="复制富文本或下载 HTML">
+            <Suspense fallback={<PanelLoading />}>
+              <ExportPanel markdown={article} style={finalStyle} />
+            </Suspense>
+          </ShellPanelFrame>
         )}
 
         {/* 右栏：预览 + 导出（根据模式切换） */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}>
-          {mode === 'wechat' && (
-            <>
-              <div style={{ flex: 1, overflow: 'hidden' }}>
+        <main className="yt-canvas">
+          <div className="yt-canvas-content">
+            <Suspense fallback={<CanvasLoading />}>
+              {mode === 'wechat' && (
                 <WechatPreview
                   markdown={article}
                   style={finalStyle}
                   comboName={comboName}
                 />
-              </div>
-              <ExportPanel markdown={article} style={finalStyle} />
-            </>
-          )}
-          {mode === 'xiaohongshu' && (
-            <XiaohongshuPreview
-              markdown={article}
-              style={finalStyle}
-              comboName={comboName}
-              atomIdsV2={atomIdsV2}
-              onShuffle={handleShuffle}
-              onColorChange={(colorId, override) =>
-                setAtomIdsV2({ ...atomIdsV2, colorId, colorOverride: override })
-              }
-            />
-          )}
-          {mode === 'infographic' && (
-            <InfographicPanel style={finalStyle} />
-          )}
-          {mode === 'imagegen' && (
-            <ImageGenPanel />
-          )}
-          {mode === 'webpage' && (
-            <WebGenPanel />
-          )}
-          {mode === 'presentation' && (
-            <PresentationPanel />
-          )}
-          {mode === 'slides' && (
-            <SlidesEditorPanel />
-          )}
-        </div>
+              )}
+              {mode === 'xiaohongshu' && (
+                <XiaohongshuPreview
+                  markdown={article}
+                  style={finalStyle}
+                  comboName={comboName}
+                  atomIdsV2={atomIdsV2}
+                  onShuffle={handleShuffle}
+                  onColorChange={(colorId, override) =>
+                    setAtomIdsV2({ ...atomIdsV2, colorId, colorOverride: override })
+                  }
+                />
+              )}
+              {mode === 'infographic' && (
+                <InfographicPanel style={finalStyle} />
+              )}
+              {mode === 'imagegen' && (
+                <ImageGenPanel />
+              )}
+              {mode === 'webpage' && (
+                <WebGenPanel />
+              )}
+              {mode === 'presentation' && (
+                <PresentationPanel />
+              )}
+              {mode === 'slides' && (
+                <SlidesEditorPanel />
+              )}
+            </Suspense>
+          </div>
+          <FloatingActionBar
+            mode={mode}
+            markdown={article}
+            style={finalStyle}
+            onShuffle={handleShuffle}
+            onOpenPanel={setActivePanel}
+          />
+        </main>
       </div>
     </div>
   )
+}
+
+function PanelLoading() {
+  return <div className="yt-panel-loading">加载中...</div>
+}
+
+function CanvasLoading() {
+  return <div className="yt-canvas-loading">加载中...</div>
 }

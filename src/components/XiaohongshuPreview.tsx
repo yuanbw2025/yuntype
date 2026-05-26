@@ -123,40 +123,22 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
   const previewScale = Math.min(400 / config.width, 550 / config.height, 1)
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: '#f5f5f5',
-    }}>
+    <div className="xhs-workbench">
       {/* 顶部工具栏 */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 16px',
-        background: '#fff',
-        borderBottom: '1px solid #e5e5e5',
-        flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>📸 小红书图片组</span>
-          <span style={{ fontSize: '12px', color: '#999' }}>
+      <div className="xhs-toolbar">
+        <div className="xhs-title">
+          <strong>图片组预览</strong>
+          <span>
             {pagesWithOverrides.length > 0 ? `${pagesWithOverrides.length} 张` : '暂无'}
           </span>
         </div>
 
         {/* 快捷工具 */}
-        <div style={{ display: 'flex', gap: '6px', marginRight: '8px' }}>
+        <div className="xhs-quick-tools">
           {onShuffle && (
             <button
               onClick={onShuffle}
               title="随机换一套排版 (Ctrl+Shift+R)"
-              style={{
-                padding: '4px 10px', fontSize: '11px', fontWeight: 600,
-                color: '#4F46E5', background: '#EEF2FF',
-                border: '1px solid #E0E7FF', borderRadius: '4px', cursor: 'pointer',
-              }}
             >
               🎲 随机
             </button>
@@ -165,11 +147,6 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
             <button
               onClick={() => setColorDialogOpen(true)}
               title="自定义配色"
-              style={{
-                padding: '4px 10px', fontSize: '11px', fontWeight: 600,
-                color: '#4F46E5', background: '#EEF2FF',
-                border: '1px solid #E0E7FF', borderRadius: '4px', cursor: 'pointer',
-              }}
             >
               🎨 配色{atomIdsV2.colorOverride ? ' ✓' : ''}
             </button>
@@ -177,21 +154,12 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
         </div>
 
         {/* 比例选择 */}
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div className="xhs-ratio-tabs">
           {(['3:4', '16:9'] as AspectRatio[]).map((r) => (
             <button
               key={r}
               onClick={() => { setRatio(r); setSelectedPage(0) }}
-              style={{
-                padding: '4px 10px',
-                fontSize: '11px',
-                fontWeight: ratio === r ? 700 : 400,
-                color: ratio === r ? '#fff' : '#666',
-                background: ratio === r ? '#4F46E5' : '#f0f0f0',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
+              className={ratio === r ? 'is-active' : ''}
             >
               {r}
             </button>
@@ -200,21 +168,11 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
       </div>
 
       {/* 主内容区 */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div className="xhs-main">
         {/* 左侧：缩略图列表 */}
-        <div style={{
-          width: `${thumbW + 24}px`,
-          flexShrink: 0,
-          overflow: 'auto',
-          padding: '12px',
-          background: '#fafafa',
-          borderRight: '1px solid #e5e5e5',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-        }}>
+        <div className="xhs-thumb-rail">
           {pagesWithOverrides.length === 0 ? (
-            <div style={{ fontSize: '11px', color: '#999', textAlign: 'center', padding: '20px 0' }}>
+            <div className="xhs-empty-rail">
               输入文章后<br />自动分页
             </div>
           ) : (
@@ -227,28 +185,15 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => e.preventDefault()}
                 onClick={() => setSelectedPage(i)}
+                className={`xhs-thumb-card${selectedPage === i ? ' is-active' : ''}`}
                 style={{
-                  width: `${thumbW}px`,
-                  height: `${thumbH}px`,
-                  background: activeColors.pageBg,
-                  border: `2px solid ${selectedPage === i ? '#4F46E5' : '#ddd'}`,
-                  borderRadius: '4px',
-                  cursor: 'grab',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                  transition: 'transform 0.15s',
+                  ['--thumb-bg' as string]: activeColors.pageBg,
+                  ['--thumb-w' as string]: `${thumbW}px`,
+                  ['--thumb-h' as string]: `${thumbH}px`,
                 }}
               >
                 {/* 页码标签 */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '2px',
-                  right: '4px',
-                  fontSize: '10px',
-                  color: activeColors.textMuted,
-                  fontWeight: 600,
-                }}>
+                <div className="xhs-thumb-label" style={{ color: activeColors.textMuted }}>
                   {page.type === 'cover' ? '封面' : page.type === 'ending' ? '尾页' : `${i + 1}`}
                 </div>
                 {/* 简易内容示意 */}
@@ -284,14 +229,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
         </div>
 
         {/* 右侧：大图预览 */}
-        <div style={{
-          flex: 1,
-          overflow: 'auto',
-          padding: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
+        <div className="xhs-preview-stage">
           {selectedPageHtml ? (
             <>
               {/* 模板切换工具栏（仅 content 页显示） */}
@@ -420,12 +358,7 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
               </div>
             </>
           ) : (
-            <div style={{
-              textAlign: 'center',
-              color: '#999',
-              fontSize: '14px',
-              marginTop: '80px',
-            }}>
+            <div className="xhs-empty-preview">
               在左侧输入文章后，小红书图片组将显示在这里
             </div>
           )}
@@ -433,16 +366,8 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
       </div>
 
       {/* 底部导出栏 */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        padding: '12px 16px',
-        background: '#fff',
-        borderTop: '1px solid #e5e5e5',
-        alignItems: 'center',
-        flexShrink: 0,
-      }}>
-        <span style={{ fontSize: '11px', color: '#999', marginRight: 'auto' }}>
+      <div className="xhs-export-bar">
+        <span>
           {comboName} · {ratio} · {config.width}×{config.height}
         </span>
 
