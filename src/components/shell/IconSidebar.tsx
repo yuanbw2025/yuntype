@@ -1,6 +1,6 @@
 import type { AppMode } from '../../App'
 
-export type ShellPanel = 'article' | 'style' | 'export' | null
+export type ShellPanel = 'article' | 'media' | 'style' | 'export' | null
 
 interface IconSidebarProps {
   mode: AppMode
@@ -10,6 +10,7 @@ interface IconSidebarProps {
 
 const PANEL_ITEMS: { id: Exclude<ShellPanel, null>; icon: string; label: string; modes?: AppMode[] }[] = [
   { id: 'article', icon: '📄', label: '文章', modes: ['wechat', 'xiaohongshu'] },
+  { id: 'media', icon: '🖼', label: '图片', modes: ['wechat', 'xiaohongshu'] },
   { id: 'style', icon: '🎨', label: '风格', modes: ['wechat', 'xiaohongshu'] },
   { id: 'export', icon: '📤', label: '导出', modes: ['wechat'] },
 ]

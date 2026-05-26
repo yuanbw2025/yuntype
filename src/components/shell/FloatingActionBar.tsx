@@ -4,11 +4,14 @@ import type { StyleComboV2 } from '../../lib/atoms'
 import type { ShellPanel } from './IconSidebar'
 import { renderWechatV2 } from '../../lib/render/wechat'
 import { copyRichText, downloadHTML } from '../../lib/export/clipboard'
+import type { MediaAsset, MediaPlacement } from '../../lib/media'
 
 interface FloatingActionBarProps {
   mode: AppMode
   markdown: string
   style: StyleComboV2
+  mediaAssets?: MediaAsset[]
+  mediaPlacements?: MediaPlacement[]
   onShuffle: () => void
   onOpenPanel: (panel: ShellPanel) => void
 }
@@ -17,14 +20,16 @@ export default function FloatingActionBar({
   mode,
   markdown,
   style,
+  mediaAssets = [],
+  mediaPlacements = [],
   onShuffle,
   onOpenPanel,
 }: FloatingActionBarProps) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'fail'>('idle')
   const html = useMemo(() => {
     if (!markdown.trim() || mode !== 'wechat') return ''
-    return renderWechatV2(markdown, style)
-  }, [markdown, mode, style])
+    return renderWechatV2(markdown, style, { assets: mediaAssets, placements: mediaPlacements })
+  }, [markdown, mode, style, mediaAssets, mediaPlacements])
 
   const disabled = !markdown.trim()
 
@@ -45,6 +50,7 @@ export default function FloatingActionBar({
   return (
     <div className="floating-action-bar">
       <button onClick={() => onOpenPanel('article')}>📄 文章</button>
+      <button onClick={() => onOpenPanel('media')}>🖼 图片</button>
       <button onClick={() => onOpenPanel('style')}>🎨 风格</button>
       <span className="fab-sep" />
       <button onClick={onShuffle}>🎲 随机</button>

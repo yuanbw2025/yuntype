@@ -1,12 +1,13 @@
 // 公众号 HTML 渲染器 — 全部内联CSS，微信兼容
 
-import { parseMarkdown, type MarkdownNode } from './markdown'
+import { type MarkdownNode } from './markdown'
 
 function renderImage(node: MarkdownNode): string {
   return `<section style="text-align: center; margin: 16px 0;"><img src="${node.src}" alt="${node.alt ?? ''}" style="max-width: 100%; border-radius: 4px;" /></section>`
 }
 import { type StyleComboV2 } from '../atoms'
 import { getSlot, type RenderContext } from '../atoms/slots'
+import { getPlacementAsset, parseAnchoredMarkdown, placementsForAnchor, type MediaAsset, type MediaPlacement } from '../media'
 
 // ═══════════════════════════════════════════════════════
 //  V2 骨架引擎渲染器
@@ -15,13 +16,23 @@ import { getSlot, type RenderContext } from '../atoms/slots'
 interface Section {
   heading: string | null
   headingLevel: number
-  nodes: MarkdownNode[]
+  headingAnchorIndex: number | null
+  nodes: AnchoredWechatNode[]
+}
+
+interface AnchoredWechatNode extends MarkdownNode {
+  anchorIndex: number
+}
+
+export interface MediaRenderPlan {
+  assets: MediaAsset[]
+  placements: MediaPlacement[]
 }
 
 /** 将 AST 按 h2 分组为 Section */
-function groupSections(nodes: MarkdownNode[]): Section[] {
+function groupSections(nodes: AnchoredWechatNode[]): Section[] {
   const sections: Section[] = []
-  let current: Section = { heading: null, headingLevel: 0, nodes: [] }
+  let current: Section = { heading: null, headingLevel: 0, headingAnchorIndex: null, nodes: [] }
 
   for (const node of nodes) {
     if (node.type === 'heading' && (node.level ?? 3) <= 2) {
@@ -32,6 +43,7 @@ function groupSections(nodes: MarkdownNode[]): Section[] {
       current = {
         heading: node.text ?? '',
         headingLevel: node.level ?? 2,
+        headingAnchorIndex: node.anchorIndex,
         nodes: [],
       }
     } else {
@@ -46,8 +58,8 @@ function groupSections(nodes: MarkdownNode[]): Section[] {
 }
 
 /** V2 渲染器 — 使用骨架 + 插槽系统 */
-export function renderWechatV2(markdown: string, style: StyleComboV2): string {
-  const nodes = parseMarkdown(markdown)
+export function renderWechatV2(markdown: string, style: StyleComboV2, media?: MediaRenderPlan): string {
+  const nodes = parseAnchoredMarkdown(markdown)
   const { color, typography, blueprint, slots } = style
   const c = color.colors
   const isDark = color.category === 'dark'
@@ -76,14 +88,24 @@ export function renderWechatV2(markdown: string, style: StyleComboV2): string {
     let innerHtml = ''
     let isFirstParagraph = true
 
+    const renderMedia = (anchorIndex: number, position: 'before' | 'after') =>
+      renderMediaPlacements(anchorIndex, position, media, ctx)
+
     // 渲染 section 标题
     if (section.heading) {
+      if (section.headingAnchorIndex !== null) {
+        innerHtml += renderMedia(section.headingAnchorIndex, 'before')
+      }
       innerHtml += titleSlot.render(section.heading, section.headingLevel, ctx, headingIndex)
       headingIndex++
+      if (section.headingAnchorIndex !== null) {
+        innerHtml += renderMedia(section.headingAnchorIndex, 'after')
+      }
     }
 
     // 渲染 section 内容
     for (const node of section.nodes) {
+      innerHtml += renderMedia(node.anchorIndex, 'before')
       switch (node.type) {
         case 'heading':
           innerHtml += titleSlot.render(node.text ?? '', node.level ?? 3, ctx, headingIndex)
@@ -109,6 +131,7 @@ export function renderWechatV2(markdown: string, style: StyleComboV2): string {
           innerHtml += renderImage(node)
           break
       }
+      innerHtml += renderMedia(node.anchorIndex, 'after')
     }
 
     // 用 section 插槽包裹
@@ -118,6 +141,31 @@ export function renderWechatV2(markdown: string, style: StyleComboV2): string {
   // 用骨架容器包裹
   const containerCss = blueprint.containerStyle(c)
   return `<section style="${containerCss} padding: ${blueprint.contentPadding}; max-width: 100%; box-sizing: border-box; font-size: 15px; line-height: 1.75; letter-spacing: ${typography.wechat.letterSpacing}; font-weight: ${typography.wechat.bodyWeight};">${sectionsHtml}</section>`
+}
+
+function renderMediaPlacements(
+  anchorIndex: number,
+  position: 'before' | 'after',
+  media: MediaRenderPlan | undefined,
+  ctx: RenderContext,
+): string {
+  if (!media) return ''
+  return placementsForAnchor(media.placements, 'wechat', anchorIndex, position)
+    .map(placement => {
+      const asset = getPlacementAsset(media.assets, placement)
+      if (!asset) return ''
+      const caption = placement.caption ?? asset.caption
+      const radius = placement.layout === 'card' ? 12 : 6
+      const cardStyle = placement.layout === 'card'
+        ? `background:${ctx.colors.contentBg};padding:10px;border:1px solid ${ctx.colors.primary}20;border-radius:${radius}px;box-shadow:0 4px 18px rgba(0,0,0,0.06);`
+        : ''
+      return `
+        <section style="margin:18px 0;text-align:center;${cardStyle}">
+          <img src="${asset.url}" alt="${caption ?? asset.name}" style="max-width:100%;display:block;margin:0 auto;border-radius:${radius}px;" />
+          ${caption ? `<p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:${ctx.colors.textMuted};">${caption}</p>` : ''}
+        </section>`
+    })
+    .join('')
 }
 
 function renderCodeBlockV2(node: MarkdownNode, ctx: RenderContext): string {

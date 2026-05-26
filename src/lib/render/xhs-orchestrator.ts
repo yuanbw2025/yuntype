@@ -156,6 +156,10 @@ function renderElement(
       return fn(ctx, data)
     }
 
+    case 'image': {
+      return renderImageBlock(el, ctx)
+    }
+
     // 其他暂不支持的类型降级为段落
     case 'code':
     case 'hr':
@@ -166,6 +170,34 @@ function renderElement(
       return fn(ctx, { text: renderInline(el.content) })
     }
   }
+}
+
+function renderImageBlock(el: PageElement, ctx: BlockContext): string {
+  if (!el.imageUrl) return ''
+  const caption = el.caption || el.alt
+  const radius = Math.round(18 * (ctx.config.fontSize / 36))
+  const image = `<img src="${el.imageUrl}" alt="${el.alt ?? ''}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:${radius}px;" />`
+  const captionHtml = caption
+    ? `<div style="margin-top:${Math.round(10 * (ctx.config.fontSize / 36))}px;font-size:${Math.round(ctx.config.fontSize * 0.62)}px;color:${ctx.colors.textMuted};line-height:1.5;text-align:center;">${caption}</div>`
+    : ''
+
+  if (el.imageLayout === 'split') {
+    return `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:${Math.round(18 * (ctx.config.fontSize / 36))}px;align-items:center;margin:${Math.round(12 * (ctx.config.fontSize / 36))}px 0;padding:${Math.round(14 * (ctx.config.fontSize / 36))}px;background:${ctx.colors.contentBg};border-radius:${radius + 6}px;box-shadow:0 8px 24px rgba(0,0,0,0.06);">
+        <div style="aspect-ratio:4/3;overflow:hidden;border-radius:${radius}px;">${image}</div>
+        <div style="font-size:${Math.round(ctx.config.fontSize * 0.72)}px;line-height:1.65;color:${ctx.colors.text};">${caption || '图片补充说明'}</div>
+      </div>`
+  }
+
+  const wrapStyle = el.imageLayout === 'card'
+    ? `padding:${Math.round(14 * (ctx.config.fontSize / 36))}px;background:${ctx.colors.contentBg};border-radius:${radius + 8}px;box-shadow:0 8px 28px rgba(0,0,0,0.08);`
+    : ''
+
+  return `
+    <div style="margin:${Math.round(14 * (ctx.config.fontSize / 36))}px 0;${wrapStyle}">
+      <div style="aspect-ratio:4/3;overflow:hidden;border-radius:${radius}px;">${image}</div>
+      ${captionHtml}
+    </div>`
 }
 
 // ═══════════════════════════════════════

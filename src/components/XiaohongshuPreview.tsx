@@ -5,6 +5,7 @@ import { splitToPagesV2, renderXhsPageV2, XHS_PRESETS, type XhsConfig, type Page
 import { exportAllPagesAsZip, downloadSinglePage } from '../lib/export/image'
 import type { StyleComboV2, AtomIdsV2 } from '../lib/atoms'
 import type { ColorOverride } from '../lib/atoms/colors'
+import type { MediaAsset, MediaPlacement } from '../lib/media'
 import ColorCustomDialog from './ColorCustomDialog'
 
 const TEMPLATE_OPTIONS: { value: PageTemplateType; label: string }[] = [
@@ -20,13 +21,15 @@ interface XhsPreviewProps {
   style: StyleComboV2
   comboName: string
   atomIdsV2?: AtomIdsV2
+  mediaAssets?: MediaAsset[]
+  mediaPlacements?: MediaPlacement[]
   onColorChange?: (colorId: string, override?: ColorOverride) => void
   onShuffle?: () => void
 }
 
 type AspectRatio = '3:4' | '16:9'
 
-export default function XiaohongshuPreview({ markdown, style, comboName, atomIdsV2, onColorChange, onShuffle }: XhsPreviewProps) {
+export default function XiaohongshuPreview({ markdown, style, comboName, atomIdsV2, mediaAssets = [], mediaPlacements = [], onColorChange, onShuffle }: XhsPreviewProps) {
   const [ratio, setRatio] = useState<AspectRatio>('3:4')
   const [colorDialogOpen, setColorDialogOpen] = useState(false)
   const [selectedPage, setSelectedPage] = useState(0)
@@ -42,8 +45,8 @@ export default function XiaohongshuPreview({ markdown, style, comboName, atomIds
 
   const rawPages = useMemo(() => {
     if (!markdown.trim()) return []
-    return splitToPagesV2(markdown, config, style)
-  }, [markdown, config, style])
+    return splitToPagesV2(markdown, config, style, { assets: mediaAssets, placements: mediaPlacements })
+  }, [markdown, config, style, mediaAssets, mediaPlacements])
 
   // 页面排序 + 模板覆盖：当原始页面变化时重置
   useEffect(() => {

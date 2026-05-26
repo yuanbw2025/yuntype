@@ -8,8 +8,10 @@ import IconSidebar, { type ShellPanel } from './components/shell/IconSidebar'
 import ShellPanelFrame from './components/shell/ShellPanelFrame'
 import FloatingActionBar from './components/shell/FloatingActionBar'
 import { randomAtomIdsV2, getStyleComboV2, getComboNameV2, TOTAL_COMBOS_V2, defaultAtomIdsV2, type AtomIdsV2 } from './lib/atoms'
+import type { MediaAsset, MediaPlacement } from './lib/media'
 
 const ArticleEditorPanel = lazy(() => import('./components/panels/ArticleEditorPanel'))
+const MediaPanel = lazy(() => import('./components/panels/MediaPanel'))
 const StyleGalleryPanel = lazy(() => import('./components/panels/StyleGalleryPanel'))
 const WechatPreview = lazy(() => import('./components/WechatPreview'))
 const ExportPanel = lazy(() => import('./components/ExportPanel'))
@@ -43,6 +45,8 @@ export default function App() {
   })
   const [mode, setMode] = useState<AppMode>('wechat')
   const [activePanel, setActivePanel] = useState<ShellPanel>('style')
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([])
+  const [mediaPlacements, setMediaPlacements] = useState<MediaPlacement[]>([])
   const [showApiConfig, setShowApiConfig] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -164,10 +168,24 @@ export default function App() {
           </ShellPanelFrame>
         )}
 
+        {visiblePanel === 'media' && (
+          <ShellPanelFrame title="图片素材" subtitle="上传图片并编排到文章中">
+            <Suspense fallback={<PanelLoading />}>
+              <MediaPanel
+                markdown={article}
+                assets={mediaAssets}
+                placements={mediaPlacements}
+                onAssetsChange={setMediaAssets}
+                onPlacementsChange={setMediaPlacements}
+              />
+            </Suspense>
+          </ShellPanelFrame>
+        )}
+
         {visiblePanel === 'export' && mode === 'wechat' && (
           <ShellPanelFrame title="导出" subtitle="复制富文本或下载 HTML">
             <Suspense fallback={<PanelLoading />}>
-              <ExportPanel markdown={article} style={finalStyle} />
+              <ExportPanel markdown={article} style={finalStyle} mediaAssets={mediaAssets} mediaPlacements={mediaPlacements} />
             </Suspense>
           </ShellPanelFrame>
         )}
@@ -181,6 +199,8 @@ export default function App() {
                   markdown={article}
                   style={finalStyle}
                   comboName={comboName}
+                  mediaAssets={mediaAssets}
+                  mediaPlacements={mediaPlacements}
                 />
               )}
               {mode === 'xiaohongshu' && (
@@ -189,6 +209,8 @@ export default function App() {
                   style={finalStyle}
                   comboName={comboName}
                   atomIdsV2={atomIdsV2}
+                  mediaAssets={mediaAssets}
+                  mediaPlacements={mediaPlacements}
                   onShuffle={handleShuffle}
                   onColorChange={(colorId, override) =>
                     setAtomIdsV2({ ...atomIdsV2, colorId, colorOverride: override })
@@ -216,6 +238,8 @@ export default function App() {
             mode={mode}
             markdown={article}
             style={finalStyle}
+            mediaAssets={mediaAssets}
+            mediaPlacements={mediaPlacements}
             onShuffle={handleShuffle}
             onOpenPanel={setActivePanel}
           />

@@ -1,10 +1,11 @@
 // 小红书图片组渲染器 — 分页算法 + HTML生成
 
-import { parseMarkdown, renderInline, type MarkdownNode } from './markdown'
+import { renderInline, type MarkdownNode } from './markdown'
 import type { StyleComboV2 } from '../atoms'
 import { getSlot, type RenderContext } from '../atoms/slots'
 import type { BlueprintXhsConfig, ContentLayoutType } from '../atoms/blueprints'
 import { renderPageWithOrchestrator } from './xhs-orchestrator'
+import { getPlacementAsset, parseAnchoredMarkdown, placementsForAnchor, type MediaAsset, type MediaPlacement } from '../media'
 import {
   renderCoverClassic, renderCoverBold, renderCoverMinimal,
   renderCoverCard, renderCoverMagazine, COVER_SEPARATORS,
@@ -45,14 +46,23 @@ export interface XhsPage {
 }
 
 export interface PageElement {
-  type: 'heading' | 'paragraph' | 'list' | 'blockquote' | 'code' | 'hr' | 'table'
+  type: 'heading' | 'paragraph' | 'list' | 'blockquote' | 'code' | 'hr' | 'table' | 'image'
   content: string
   level?: number
   items?: string[]
   ordered?: boolean
   headers?: string[]
   rows?: string[][]
+  imageUrl?: string
+  alt?: string
+  caption?: string
+  imageLayout?: 'full' | 'card' | 'split' | 'background'
   estimatedHeight: number
+}
+
+export interface XhsMediaPlan {
+  assets: MediaAsset[]
+  placements: MediaPlacement[]
 }
 
 // ═══════════════════════════════════════
@@ -138,6 +148,11 @@ function estimateElementHeightV2(
       textH = rowCount * (fontSize * lineHeight + 16 * scale)
       break
     }
+    case 'image': {
+      const ratio = node.src ? 0.58 : 0.5
+      textH = contentWidth * ratio
+      break
+    }
     default:
       textH = fontSize * lineHeight
   }
@@ -175,14 +190,34 @@ function nodeToPageElementV2(
   layout: ContentLayoutType,
 ): PageElement {
   return {
-    type: node.type === 'image' ? 'paragraph' : node.type as PageElement['type'],
-    content: node.text || (node.type === 'image' ? `[图片: ${node.alt || ''}]` : ''),
+    type: node.type as PageElement['type'],
+    content: node.text || '',
     level: node.level,
     items: node.children,
     ordered: node.ordered,
     headers: node.headers,
     rows: node.rows,
+    imageUrl: node.src,
+    alt: node.alt,
+    caption: node.alt,
+    imageLayout: 'full',
     estimatedHeight: estimateElementHeightV2(node, config, scale, layout),
+  }
+}
+
+function mediaPlacementToElement(placement: MediaPlacement, asset: MediaAsset, config: XhsConfig): PageElement {
+  const contentWidth = config.width - config.padding * 2
+  const imageRatio = asset.height && asset.width ? Math.min(1.05, Math.max(0.42, asset.height / asset.width)) : 0.62
+  const imageHeight = contentWidth * imageRatio
+  const captionHeight = (placement.caption || asset.caption) ? config.fontSize * 1.2 : 0
+  return {
+    type: 'image',
+    content: '',
+    imageUrl: asset.url,
+    alt: placement.caption || asset.caption || asset.name,
+    caption: placement.caption || asset.caption,
+    imageLayout: placement.layout,
+    estimatedHeight: imageHeight + captionHeight + 52,
   }
 }
 
@@ -231,8 +266,8 @@ function planPageTemplate(elements: PageElement[]): PageTemplateType {
 }
 
 /** V2 分页算法 — 先按 H2/H3 分节，每节一页；节过长时再按高度补切 */
-export function splitToPagesV2(markdown: string, config: XhsConfig, style: StyleComboV2): XhsPage[] {
-  const allNodes = parseMarkdown(markdown)
+export function splitToPagesV2(markdown: string, config: XhsConfig, style: StyleComboV2, media?: XhsMediaPlan): XhsPage[] {
+  const allNodes = parseAnchoredMarkdown(markdown)
   if (allNodes.length === 0) return []
 
   const xhs = style.blueprint.xhs
@@ -271,8 +306,8 @@ export function splitToPagesV2(markdown: string, config: XhsConfig, style: Style
 
   // ── 按 heading 分节 ──────────────────────────
   const contentNodes = allNodes.slice(contentStartIdx)
-  const sections: import('./markdown').MarkdownNode[][] = []
-  let cur: import('./markdown').MarkdownNode[] = []
+  const sections: typeof contentNodes[] = []
+  let cur: typeof contentNodes = []
 
   for (const node of contentNodes) {
     if (node.type === 'heading' && cur.length > 0) {
@@ -286,7 +321,25 @@ export function splitToPagesV2(markdown: string, config: XhsConfig, style: Style
 
   // ── 每节转成一张或多张页 ──────────────────────
   for (const sectionNodes of sections) {
-    const allEls = sectionNodes.map(n => nodeToPageElementV2(n, config, scale, layout))
+    const allEls = sectionNodes.flatMap(n => {
+      const before = media
+        ? placementsForAnchor(media.placements, 'xhs', n.anchorIndex, 'before')
+            .map(placement => {
+              const asset = getPlacementAsset(media.assets, placement)
+              return asset ? mediaPlacementToElement(placement, asset, config) : null
+            })
+            .filter(Boolean) as PageElement[]
+        : []
+      const after = media
+        ? placementsForAnchor(media.placements, 'xhs', n.anchorIndex, 'after')
+            .map(placement => {
+              const asset = getPlacementAsset(media.assets, placement)
+              return asset ? mediaPlacementToElement(placement, asset, config) : null
+            })
+            .filter(Boolean) as PageElement[]
+        : []
+      return [...before, nodeToPageElementV2(n, config, scale, layout), ...after]
+    })
     const headingEl = allEls[0]?.type === 'heading' ? allEls[0] : null
 
     // 无标题节：每页最多 3 个元素（保证手机可读性）

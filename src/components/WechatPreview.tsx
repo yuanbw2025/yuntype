@@ -4,20 +4,23 @@
 import { useState, useMemo } from 'react'
 import { renderWechatV2 } from '../lib/render/wechat'
 import { type StyleComboV2 } from '../lib/atoms'
+import type { MediaAsset, MediaPlacement } from '../lib/media'
 
 interface WechatPreviewProps {
   markdown: string
   style: StyleComboV2
   comboName: string
+  mediaAssets?: MediaAsset[]
+  mediaPlacements?: MediaPlacement[]
 }
 
-export default function WechatPreview({ markdown, style, comboName }: WechatPreviewProps) {
+export default function WechatPreview({ markdown, style, comboName, mediaAssets = [], mediaPlacements = [] }: WechatPreviewProps) {
   const [zoom, setZoom] = useState(100)
 
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
-    return renderWechatV2(markdown, style)
-  }, [markdown, style])
+    return renderWechatV2(markdown, style, { assets: mediaAssets, placements: mediaPlacements })
+  }, [markdown, style, mediaAssets, mediaPlacements])
 
   const pageBg = style.color.colors.pageBg
   const scale = zoom / 100

@@ -4,19 +4,22 @@ import { useState, useMemo } from 'react'
 import { renderWechatV2 } from '../lib/render/wechat'
 import { type StyleComboV2 } from '../lib/atoms'
 import { copyRichText, downloadHTML } from '../lib/export/clipboard'
+import type { MediaAsset, MediaPlacement } from '../lib/media'
 
 interface ExportPanelProps {
   markdown: string
   style: StyleComboV2
+  mediaAssets?: MediaAsset[]
+  mediaPlacements?: MediaPlacement[]
 }
 
-export default function ExportPanel({ markdown, style }: ExportPanelProps) {
+export default function ExportPanel({ markdown, style, mediaAssets = [], mediaPlacements = [] }: ExportPanelProps) {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'fail'>('idle')
 
   const html = useMemo(() => {
     if (!markdown.trim()) return ''
-    return renderWechatV2(markdown, style)
-  }, [markdown, style])
+    return renderWechatV2(markdown, style, { assets: mediaAssets, placements: mediaPlacements })
+  }, [markdown, style, mediaAssets, mediaPlacements])
 
   const handleCopy = async () => {
     if (!html) return
