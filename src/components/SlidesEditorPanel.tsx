@@ -4,7 +4,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo, useReducer } from 'react'
 import {
   type Slide, type SlidesDeck, type SlideLayout, type SlideElement,
-  type ElementRole, type AnimationType, type StyleAnalysis,
+  type ElementRole, type AnimationType, type ImageFit, type StyleAnalysis,
   SLIDE_THEMES, SLIDES_PRESETS,
   createDefaultDeck, createEmptySlide, makeId,
   generateSlidesDeck, exportToPptx, refineSlide,
@@ -53,6 +53,13 @@ type DragState =
   | { type: 'none' }
   | { type: 'move'; elId: string; startMX: number; startMY: number; startX: number; startY: number; cW: number; cH: number }
   | { type: 'resize'; elId: string; dir: HandleDir; startMX: number; startMY: number; startX: number; startY: number; startW: number; startH: number; cW: number; cH: number }
+
+interface SlideImageFile {
+  name: string
+  url: string
+  width: number
+  height: number
+}
 
 const HANDLE_CURSORS: Record<HandleDir, string> = { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize', se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' }
 const HANDLE_POS: Record<HandleDir, React.CSSProperties> = {
@@ -297,7 +304,7 @@ function SlideCanvas({ slide, deck, selectedId, editingId, guides, onSelect, onU
               </svg>
             ) : el.elementType === 'image' && el.imageUrl ? (
               /* ── 图片 ── */
-              <img src={el.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 2 }} draggable={false} />
+              <img src={el.imageUrl} alt={el.imageName ?? ''} style={{ width: '100%', height: '100%', objectFit: el.imageFit ?? 'cover', display: 'block', borderRadius: 2 }} draggable={false} />
             ) : (
               /* ── 文字（可带背景色） ── */
               <div ref={isEditing ? editRef : undefined}
@@ -379,7 +386,7 @@ function PresentSlideView({ slide, deck, revealLevel }: { slide: Slide; deck: Sl
                   stroke={el.shapeStroke || 'none'} strokeWidth={el.shapeStrokeWidth || 0} vectorEffect="non-scaling-stroke" />
               </svg>
             ) : el.elementType === 'image' && el.imageUrl ? (
-              <img src={el.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 2 }} />
+              <img src={el.imageUrl} alt={el.imageName ?? ''} style={{ width: '100%', height: '100%', objectFit: el.imageFit ?? 'cover', display: 'block', borderRadius: 2 }} />
             ) : (
               <div style={{
                 width: '100%', height: '100%', overflow: 'hidden',
@@ -514,7 +521,7 @@ function SlideThumbnail({ slide, deck, index, selected, onClick, onDelete }: {
               </svg>
             )
             if (el.elementType === 'image' && el.imageUrl) return (
-              <img key={el.id} src={el.imageUrl} style={{ ...base, objectFit: 'cover' as const }} draggable={false} />
+              <img key={el.id} src={el.imageUrl} alt={el.imageName ?? ''} style={{ ...base, objectFit: el.imageFit ?? 'cover' }} draggable={false} />
             )
             return (
               <div key={el.id} style={{
@@ -582,6 +589,57 @@ async function exportPdf(deck: SlidesDeck) {
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 1280, 720)
   }
   pdf.save(`${deck.title}.pdf`)
+}
+
+function pickSingleImage(): Promise<SlideImageFile | null> {
+  return new Promise(resolve => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      resolve(file ? await readSlideImageFile(file) : null)
+    }
+    input.click()
+  })
+}
+
+function readSlideImageFile(file: File): Promise<SlideImageFile> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error)
+    reader.onload = () => {
+      const url = String(reader.result)
+      const img = new Image()
+      img.onload = () => resolve({
+        name: file.name,
+        url,
+        width: img.naturalWidth || 1,
+        height: img.naturalHeight || 1,
+      })
+      img.onerror = () => resolve({ name: file.name, url, width: 1, height: 1 })
+      img.src = url
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function defaultImageBox(image: SlideImageFile, index: number) {
+  const ratio = image.width / image.height
+  const maxW = 44
+  const maxH = 52
+  let w = maxW
+  let h = w / ratio / (9 / 16)
+  if (h > maxH) {
+    h = maxH
+    w = h * ratio * (9 / 16)
+  }
+  return {
+    x: Math.min(64, 14 + index * 4),
+    y: Math.min(58, 18 + index * 4),
+    w: Math.max(18, Math.min(maxW, w)),
+    h: Math.max(18, Math.min(maxH, h)),
+  }
 }
 
 // ═══════════════════════════════════════
@@ -679,6 +737,36 @@ export default function SlidesEditorPanel() {
     handleUpdateElement(selectedId, { style: { ...selectedEl.style, ...patch } })
   }, [selectedId, selectedEl, handleUpdateElement])
 
+  const replaceSelectedImage = async () => {
+    if (!selectedId || selectedEl?.elementType !== 'image') return
+    const file = await pickSingleImage()
+    if (!file) return
+    handleUpdateElement(selectedId, {
+      imageUrl: file.url,
+      imageName: file.name,
+    })
+  }
+
+  const moveSelectedElementLayer = (direction: 'front' | 'back') => {
+    if (!selectedId) return
+    const slide = deck.slides[currentIdx]
+    const target = slide.elements.find(el => el.id === selectedId)
+    if (!target) return
+    const rest = slide.elements.filter(el => el.id !== selectedId)
+    const elements = direction === 'front' ? [...rest, target] : [target, ...rest]
+    setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements } : s) })
+  }
+
+  const setSelectedImageAsBackground = () => {
+    if (!selectedId || selectedEl?.elementType !== 'image') return
+    const slide = deck.slides[currentIdx]
+    const target = slide.elements.find(el => el.id === selectedId)
+    if (!target) return
+    const updatedTarget = { ...target, x: 0, y: 0, w: 100, h: 100, imageFit: 'cover' as ImageFit }
+    const elements = [updatedTarget, ...slide.elements.filter(el => el.id !== selectedId)]
+    setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements } : s) })
+  }
+
   // 添加文字元素
   const addTextElement = (role: ElementRole) => {
     const el: SlideElement = {
@@ -707,21 +795,23 @@ export default function SlidesEditorPanel() {
   // 插入图片
   const handleImageInsert = () => {
     const input = document.createElement('input')
-    input.type = 'file'; input.accept = 'image/*'
-    input.onchange = () => {
-      const file = input.files?.[0]; if (!file) return
-      const reader = new FileReader()
-      reader.onload = () => {
+    input.type = 'file'; input.accept = 'image/*'; input.multiple = true
+    input.onchange = async () => {
+      const files = input.files ? Array.from(input.files) : []
+      if (!files.length) return
+      const images = await Promise.all(files.map(readSlideImageFile))
+      const newElements = images.map((image, idx) => {
+        const box = defaultImageBox(image, idx)
         const el: SlideElement = {
           id: makeId(), elementType: 'image', role: 'custom', animation: 'none',
-          text: '', imageUrl: reader.result as string,
-          x: 15, y: 15, w: 40, h: 45,
+          text: '', imageUrl: image.url, imageName: image.name, imageFit: 'cover',
+          x: box.x, y: box.y, w: box.w, h: box.h,
           style: { fontSize: 3, fontWeight: 'normal', fontStyle: 'normal', textAlign: 'left', lineHeight: 1.5, letterSpacing: 0 },
         }
-        setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements: [...s.elements, el] } : s) })
-        setSelectedId(el.id)
-      }
-      reader.readAsDataURL(file)
+        return el
+      })
+      setDeck({ ...deck, slides: deck.slides.map((s, i) => i === currentIdx ? { ...s, elements: [...s.elements, ...newElements] } : s) })
+      setSelectedId(newElements[newElements.length - 1]?.id ?? null)
     }
     input.click()
   }
@@ -912,6 +1002,26 @@ export default function SlidesEditorPanel() {
               </select>
             </>) : (<>
               {/* 文字/图片：原有控件 */}
+              {selectedEl.elementType === 'image' && <>
+                {([
+                  ['cover', '裁切'],
+                  ['contain', '完整'],
+                  ['fill', '拉伸'],
+                ] as [ImageFit, string][]).map(([fit, label]) => (
+                  <button key={fit} onClick={() => handleUpdateElement(selectedId!, { imageFit: fit })}
+                    style={{ padding: '2px 7px', fontSize: 10, background: (selectedEl.imageFit ?? 'cover') === fit ? accent : '#222', border: `1px solid ${bd}`, borderRadius: 3, color: (selectedEl.imageFit ?? 'cover') === fit ? '#fff' : '#aaa', cursor: 'pointer' }}>
+                    {label}
+                  </button>
+                ))}
+                <button onClick={replaceSelectedImage}
+                  style={{ padding: '2px 7px', fontSize: 10, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>替换</button>
+                <button onClick={setSelectedImageAsBackground}
+                  style={{ padding: '2px 7px', fontSize: 10, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>铺满</button>
+                <button onClick={() => moveSelectedElementLayer('back')}
+                  style={{ padding: '2px 7px', fontSize: 10, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>置底</button>
+                <button onClick={() => moveSelectedElementLayer('front')}
+                  style={{ padding: '2px 7px', fontSize: 10, background: '#222', border: `1px solid ${bd}`, borderRadius: 3, color: '#aaa', cursor: 'pointer' }}>置顶</button>
+              </>}
               {selectedEl.elementType === 'text' && <>
                 <select value={selectedEl.style.fontSize} onChange={e => updateStyle({ fontSize: parseFloat(e.target.value) })}
                   style={{ fontSize: 10, background: '#222', border: `1px solid ${bd}`, color: '#ddd', borderRadius: 3, padding: '1px 3px' }}>

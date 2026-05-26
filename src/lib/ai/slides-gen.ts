@@ -9,6 +9,7 @@ import { chat, type AIClientConfig } from './client'
 export type SlideLayout = 'title' | 'content' | 'bullets' | 'two-column' | 'quote' | 'closing'
 export type ElementRole = 'title' | 'subtitle' | 'body' | 'label' | 'custom'
 export type ElementType = 'text' | 'image' | 'shape'
+export type ImageFit = 'cover' | 'contain' | 'fill'
 // 动画类型：none=无, fade=淡入, slide-up=下往上滑, slide-left=右往左滑, zoom=缩放出现
 // appear=立即出现（PPTX Appear 效果映射）, bounce=弹入（PPTX Bounce 映射）
 export type AnimationType = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'appear' | 'bounce'
@@ -33,6 +34,8 @@ export interface SlideElement {
   role: ElementRole
   text: string
   imageUrl?: string         // base64, for elementType === 'image'
+  imageName?: string
+  imageFit?: ImageFit
   // 形状属性（elementType === 'shape'）
   svgPath?: string          // 归一化 SVG path，viewBox 0 0 100 100
   shapeFill?: string        // 填充色，hex
@@ -247,7 +250,7 @@ export function renderSlideHtml(slide: Slide, theme: SlideTheme, w = 1280, h = 7
   const elsHtml = slide.elements.map(el => {
     if (el.elementType === 'image' && el.imageUrl) {
       return `<div style="position:absolute;left:${el.x}%;top:${el.y}%;width:${el.w}%;height:${el.h}%;overflow:hidden">
-        <img src="${el.imageUrl}" style="width:100%;height:100%;object-fit:cover" /></div>`
+        <img src="${el.imageUrl}" alt="${el.imageName ?? ''}" style="width:100%;height:100%;object-fit:${el.imageFit ?? 'cover'}" /></div>`
     }
     if (el.elementType === 'shape') {
       const fill   = el.shapeFill   || t.accent
@@ -332,7 +335,14 @@ export async function exportToPptx(deck: SlidesDeck) {
       } else if (el.elementType === 'image' && el.imageUrl) {
         const base64 = el.imageUrl.split(',')[1]
         const ext = el.imageUrl.startsWith('data:image/png') ? 'png' : 'jpg'
-        s.addImage({ data: `${ext};base64,${base64}`, x: ex, y: ey, w: ew, h: eh })
+        const fit = el.imageFit ?? 'cover'
+        const sizing = fit === 'fill' ? undefined : { type: fit, x: ex, y: ey, w: ew, h: eh }
+        s.addImage({
+          data: `${ext};base64,${base64}`,
+          x: ex, y: ey, w: ew, h: eh,
+          sizing,
+          altText: el.imageName || 'slide image',
+        })
       } else if (el.elementType === 'text') {
         const color = getElementColor(el.role, t, el.style.colorOverride)
         const fillOpts = el.style.bgFill
