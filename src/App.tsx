@@ -110,6 +110,23 @@ export default function App() {
     }
   }, [])
 
+  // ── 嵌入模式（被微信公众号插件以 iframe 内嵌）──
+  // 父页面（插件）通过 postMessage 灌入正文；云中书把排版结果回传，由插件写进原生编辑器
+  const EMBED = useMemo(() => {
+    try { return new URLSearchParams(window.location.search).has('embed') } catch { return false }
+  }, [])
+  useEffect(() => {
+    if (!EMBED) return
+    const onMsg = (e: MessageEvent) => {
+      const d = (e && e.data) || {}
+      if (d && d.type === 'yt-set-article' && typeof d.text === 'string') setArticle(d.text)
+      if (d && d.type === 'yt-shuffle') handleShuffle()
+    }
+    window.addEventListener('message', onMsg)
+    try { window.parent.postMessage({ type: 'yt-ready' }, '*') } catch {}
+    return () => window.removeEventListener('message', onMsg)
+  }, [EMBED, handleShuffle])
+
   const finalStyle = useMemo(() => getStyleComboV2(atomIdsV2), [atomIdsV2])
 
   const comboName = getComboNameV2(atomIdsV2)
@@ -236,6 +253,7 @@ export default function App() {
           </div>
           <FloatingActionBar
             mode={mode}
+            embed={EMBED}
             markdown={article}
             style={finalStyle}
             mediaAssets={mediaAssets}

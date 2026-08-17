@@ -8,6 +8,7 @@ import type { MediaAsset, MediaPlacement } from '../../lib/media'
 
 interface FloatingActionBarProps {
   mode: AppMode
+  embed?: boolean
   markdown: string
   style: StyleComboV2
   mediaAssets?: MediaAsset[]
@@ -18,6 +19,7 @@ interface FloatingActionBarProps {
 
 export default function FloatingActionBar({
   mode,
+  embed = false,
   markdown,
   style,
   mediaAssets = [],
@@ -45,6 +47,14 @@ export default function FloatingActionBar({
     downloadHTML(html)
   }
 
+  // 嵌入模式：把排版好的 HTML 回传给父页面（插件），写进公众号原生正文
+  const handleApply = () => {
+    if (!html) return
+    try { window.parent.postMessage({ type: 'yt-apply', html }, '*') } catch {}
+    setCopyStatus('success')
+    window.setTimeout(() => setCopyStatus('idle'), 1800)
+  }
+
   if (mode !== 'wechat' && mode !== 'xiaohongshu') return null
 
   return (
@@ -58,9 +68,15 @@ export default function FloatingActionBar({
       {mode === 'wechat' && (
         <>
           <span className="fab-sep" />
-          <button className="is-primary" onClick={handleCopy} disabled={disabled}>
-            {copyStatus === 'success' ? '已复制' : copyStatus === 'fail' ? '复制失败' : '复制到公众号'}
-          </button>
+          {embed ? (
+            <button className="is-primary" onClick={handleApply} disabled={disabled}>
+              {copyStatus === 'success' ? '已应用 ✓' : '✨ 应用到公众号正文'}
+            </button>
+          ) : (
+            <button className="is-primary" onClick={handleCopy} disabled={disabled}>
+              {copyStatus === 'success' ? '已复制' : copyStatus === 'fail' ? '复制失败' : '复制到公众号'}
+            </button>
+          )}
           <button onClick={handleDownload} disabled={disabled}>HTML</button>
         </>
       )}

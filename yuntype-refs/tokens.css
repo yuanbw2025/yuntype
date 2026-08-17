@@ -1,0 +1,58 @@
+/* ================================================================
+   云中书 YunType · 新 CSS 变量
+   替换 src/index.css 中的 :root 变量块
+   ================================================================ */
+
+:root,
+[data-theme="light"] {
+  /* ── 背景层级 ── */
+  --bg-primary: #EDEBE6;      /* 全局暖奶白（原 #f5f5f5）*/
+  --bg-card: #FFFFFF;
+  --bg-hover: rgba(0,0,0,0.04);
+  --bg-surface2: #F5F3EE;     /* 次级面板 */
+  --bg-surface3: #EEECEA;
+
+  /* ── 文字 ── */
+  --text-primary: #18160F;    /* 暖近黑（原 #333333）*/
+  --text-secondary: #5C5850;
+  --text-muted: #A09A90;
+
+  /* ── 边框 ── */
+  --border-color: rgba(0,0,0,0.09);   /* 柔边框（原 #e5e5e5）*/
+  --border-strong: rgba(0,0,0,0.15);
+
+  /* ── 品牌色 ── */
+  --accent: #4F46E5;
+  --accent-soft: rgba(79,70,229,0.10);
+
+  /* ── 阴影 ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 24px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.08);
+
+  /* ── 圆角 ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+/* 深色模式 — 保持原有变量值，只微调背景 */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-hover: rgba(255,255,255,0.05);
+  --bg-surface2: #1a243e;
+  --bg-surface3: #1e2844;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --border-color: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
+  --accent: #7C73E6;
+  --accent-soft: rgba(124,115,230,0.15);
+}
+
+/* body 背景色 */
+body {
+  background-color: var(--bg-primary);
+}

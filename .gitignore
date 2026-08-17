@@ -3,3 +3,6 @@ dist/
 .vite/
 *.local
 .DS_Store
+*.tsbuildinfo
+yuntype-refs/_render-*.html
+yuntype-refs/screen-*.png
